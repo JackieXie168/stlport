@@ -39,6 +39,7 @@
 #include "errno_test.h"
 #include "shared_ptr_test.h"
 // #include "reference_wrapper_test.h"
+// #include "num_put_get_test.h"
 
 int main( int argc, const char** argv )
 {
@@ -134,30 +135,6 @@ int main( int argc, const char** argv )
   
   //   t.add( &cstring_test::import_checks, cst_test, "import_checks" );
   
-#if 0
-  sstream_test sstrm_test;
-
-  t.add( &sstream_test::output, sstrm_test, "sstream output" );
-  t.add( &sstream_test::input, sstrm_test, "sstream input" );
-  t.add( &sstream_test::input_char, sstrm_test, "sstream input_char" );
-  t.add( &sstream_test::io, sstrm_test, "sstream io" );
-  t.add( &sstream_test::err, sstrm_test, "sstream err" );
-  t.add( &sstream_test::err_long, sstrm_test, "sstream err_long" );
-  t.add( &sstream_test::maxint, sstrm_test, "sstream maxint" );
-  t.add( &sstream_test::init_in, sstrm_test, "sstream init_in" );
-  t.add( &sstream_test::init_out, sstrm_test, "sstream init_out" );
-  t.add( &sstream_test::init_in_str, sstrm_test, "sstream str( \"foo\" )" );
-  t.add( &sstream_test::buf, sstrm_test, "sstream buf" );
-  t.add( &sstream_test::rdbuf, sstrm_test, "sstream rdbuf" );
-  //  t.add( &sstream_test::streambuf_output, sstrm_test, "sstream streambuf_output" );
-  t.add( &sstream_test::fail_bit, sstrm_test, "sstream throw ios_base::failure exception for invalid seekg",
-  t.add( &sstream_test::seek, sstrm_test, "sstream seek" ) );
-  t.add( &sstream_test::seekp, sstrm_test, "sstream seekp" );
-  t.add( &sstream_test::seek_gp, sstrm_test, "sstream seek_gp" );
-  t.add( &sstream_test::tellp, sstrm_test, "sstream tellp" );
-  t.add( &sstream_test::extra0_bug_id_2728232, sstrm_test, "extra 0; bug ID: 2728232" );
-  t.add( &sstream_test::negative, sstrm_test, "sstream negative" );
-
   iostream_test strm_test;
   //  t.add( &iostream_test::manipulators, strm_test, "manipulators" );
   //  t.add( &iostream_test::manipulators, strm_test, "manipulators" );
@@ -166,7 +143,7 @@ int main( int argc, const char** argv )
   //  strm_test.manipulators(&t);
   //  strm_test.in_avail(&t);
 
-# endif
+#if 0
 
   fstream_test fstrm_test0;
 
@@ -203,7 +180,29 @@ int main( int argc, const char** argv )
 
   t.add( &fstream_test::rewind, fstrm_test, "fstream write after read fail", fstream_tc[1] );
 
-#if 0
+  sstream_test sstrm_test;
+
+  t.add( &sstream_test::output, sstrm_test, "sstream output" );
+  t.add( &sstream_test::input, sstrm_test, "sstream input" );
+  t.add( &sstream_test::input_char, sstrm_test, "sstream input_char" );
+  t.add( &sstream_test::io, sstrm_test, "sstream io" );
+  t.add( &sstream_test::err, sstrm_test, "sstream err" );
+  t.add( &sstream_test::err_long, sstrm_test, "sstream err_long" );
+  t.add( &sstream_test::maxint, sstrm_test, "sstream maxint" );
+  t.add( &sstream_test::init_in, sstrm_test, "sstream init_in" );
+  t.add( &sstream_test::init_out, sstrm_test, "sstream init_out" );
+  t.add( &sstream_test::init_in_str, sstrm_test, "sstream str( \"foo\" )" );
+  t.add( &sstream_test::buf, sstrm_test, "sstream buf" );
+  t.add( &sstream_test::rdbuf, sstrm_test, "sstream rdbuf" );
+  //  t.add( &sstream_test::streambuf_output, sstrm_test, "sstream streambuf_output" );
+  t.add( &sstream_test::fail_bit, sstrm_test, "sstream throw ios_base::failure exception for invalid seekg",
+  t.add( &sstream_test::seek, sstrm_test, "sstream seek" ) );
+  t.add( &sstream_test::seekp, sstrm_test, "sstream seekp" );
+  t.add( &sstream_test::seek_gp, sstrm_test, "sstream seek_gp" );
+  t.add( &sstream_test::tellp, sstrm_test, "sstream tellp" );
+  t.add( &sstream_test::extra0_bug_id_2728232, sstrm_test, "extra 0; bug ID: 2728232" );
+  t.add( &sstream_test::negative, sstrm_test, "sstream negative" );
+
   istream_iterator_test isit_test;
 
   t.add( &istream_iterator_test::istmit1, isit_test, "istmit1" );
@@ -218,8 +217,9 @@ int main( int argc, const char** argv )
   t.add( &ioiter_test::ioiterat_test, ioit_test, "ioiterat_test" );
   t.add( &ioiter_test::assign_test, ioit_test, "assign_test" );
   t.add( &ioiter_test::assign2_test, ioit_test, "assign2_test" );
+#endif
 
-
+#if 0
 
   insert_iter_test ins_test;
 
@@ -484,8 +484,6 @@ int main( int argc, const char** argv )
     cvt_tc[1] = t.add( &codecvt_test::utf8_to_wchar, cvt_test, "convert UTF-8 to wchar", cvt_tc[0] ) );
   t.add( &codecvt_test::partial_conversion, cvt_test, "codecvt partial conversion", cvt_tc[1] );
 
-#endif
-
   shared_ptr_test shp_test;
   t.add( &shared_ptr_test::shared_from_this, shp_test, "shared_from_this" );
 
@@ -493,7 +491,7 @@ int main( int argc, const char** argv )
   //  t.add( &ref_wrapper_test::ref, ref_test, "ref" );
   //  t.add( &ref_wrapper_test::cref, ref_test, "cref" );
 
-#if 0
+
   locale_test ltest;
 
   t.add( &locale_test::locale_by_name, ltest, "locale_by_name" );

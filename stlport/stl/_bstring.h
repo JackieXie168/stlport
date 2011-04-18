@@ -986,7 +986,7 @@ public:
   // Check to see if _InputIterator is an integer type.  If so, then
   // it can't be an iterator.
   template <class _InputIter>
-  void insert(const_iterator_param __p, _InputIter __first, _InputIter __last) {
+  void insert(const_iterator __p, _InputIter __first, _InputIter __last) {
     typedef typename is_integral<_InputIter>::type _Integral;
     _M_insert_dispatch(__p, __first, __last, _Integral());
   }
