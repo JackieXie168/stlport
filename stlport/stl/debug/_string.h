@@ -72,9 +72,11 @@ public:
 public:                         // Constructor, destructor, assignment.
   typedef typename _Base::_Reserve_t _Reserve_t;
 
+  const _Base* _Get_base() const { return (const _Base*)this; }
+  _Base* _Get_base() { return (_Base*)this; }
+
 protected:
   __owned_list _M_iter_list;
-  _Base* _Get_base() { return this; }
   void _Invalidate_all() {
     _M_iter_list._Invalidate_all();
   }
@@ -151,11 +153,6 @@ public:
     _STLP_NON_DBG_STRING_BASE(__f, __l), _M_iter_list(_Get_base()) {
   }
 #    endif
-#  else
-protected:
-    basic_string(_Base::_CalledFromWorkaround_t __x, const allocator_type& __a)
-      : _STLP_NON_DBG_STRING_BASE(__x, __a), _M_iter_list(_Get_base()) {}
-public:
 #  endif
 #endif
 
@@ -228,12 +225,10 @@ public:                         // Size, capacity, etc.
 
 public:                         // Element access.
 
-  const_reference operator[](size_type __n) const
-  {
-    _STLP_VERBOSE_ASSERT(__n <= this->size(), _StlMsg_OUT_OF_BOUNDS);
-    return __n == this->size() ? __STATIC_CAST(const _CharT&,_STLP_DEFAULT_CONSTRUCTED(_CharT)) : *(begin() + __n);
+  const_reference operator[](size_type __n) const {
+    _STLP_VERBOSE_ASSERT(__n < this->size(), _StlMsg_OUT_OF_BOUNDS)
+    return *(begin() + __n); 
   }
-
   reference operator[](size_type __n) {
     _STLP_VERBOSE_ASSERT(__n < this->size(), _StlMsg_OUT_OF_BOUNDS)
     return *(begin() + __n); 

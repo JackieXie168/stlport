@@ -27,8 +27,8 @@ struct locale_data
   } alloc;
 
   /* This provides a slot for category-specific code to cache data computed
-   * about this locale.  That code can set a cleanup function to deallocate
-   * the data.  
+     about this locale.  That code can set a cleanup function to deallocate
+     the data.  */
   struct
   {
     void (*cleanup) (struct locale_data *);
@@ -39,7 +39,6 @@ struct locale_data
       const struct gconv_fcts *ctype;
     };
   } private;
-   */
 
   unsigned int usage_count;     /* Counter for users.  */
 
@@ -91,13 +90,8 @@ typedef __locale_t __c_locale;
 # define __nl_langinfo_l nl_langinfo_l
 #endif
 
-#if (__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ > 2))
-#  define __LOCALE_CREATE(nm,category) (void*)newlocale(1 << category, nm, NULL )
-#  define __LOCALE_DESTROY(__loc)      freelocale((__c_locale)__loc)
-#else
-#  define __LOCALE_CREATE(nm,category) (void*)__newlocale(1 << category, nm, NULL )
-#  define __LOCALE_DESTROY(__loc)      __freelocale((__c_locale)__loc)
-#endif
+#define __LOCALE_CREATE(nm,category) (void*)__newlocale(1 << category, nm, 0 )
+#define __LOCALE_DESTROY(__loc)      __freelocale((__c_locale)__loc)
 
 static const char *_empty_str = "";
 static const char *_C_name = "C";
@@ -153,91 +147,83 @@ void *_Locale_monetary_create( const char *nm )
 void *_Locale_messages_create( const char *nm )
 { return __LOCALE_CREATE( nm, LC_MESSAGES ); }
 
-/*
-  try to see locale category LC should be used from environment;
-  according POSIX, the order is
-  1. LC_ALL
-  2. category (LC_CTYPE, LC_NUMERIC, ... )
-  3. LANG
-  If set nothing, return "C" (this really implemetation-specific).
-*/
-const char *_Locale_aux_default( const char *LC, char *nm )
-{
-  char *name = getenv( "LC_ALL" );
-
-  if ( name != NULL && *name != 0 ) {
-    return strncpy( nm, name, _Locale_MAX_SIMPLE_NAME );
-  }
-  name = getenv( LC );
-  if ( name != NULL && *name != 0 ) {
-    return strncpy( nm, name, _Locale_MAX_SIMPLE_NAME );
-  }
-  name = getenv( "LANG" );
-  if ( name != NULL && *name != 0 ) {
-    return strncpy( nm, name, _Locale_MAX_SIMPLE_NAME );
-  }
-
-  return strcpy( nm, "C" );
-}
-
 const char *_Locale_ctype_default( char *nm )
 {
-  return _Locale_aux_default( "LC_CTYPE", nm );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, nm );
+
+  return 0;
 }
 
-const char *_Locale_numeric_default( char *nm )
+const char *_Locale_numeric_default( char *buf )
 {
-  return _Locale_aux_default( "LC_NUMERIC", nm );
+  char *num = getenv( "LC_NUMERIC" );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, buf );
+  // return 0;
+  if ( num == 0 || *num == '0' ) {
+    num = getenv( "LANG" );
+  }
+  if ( num == 0 || *num == '0' ) {
+    return strcpy( buf, _C_name ); // return 0;
+  }
+  return strcpy( buf, num );
 }
 
 const char *_Locale_time_default( char *nm )
 {
-  return _Locale_aux_default( "LC_TIME", nm );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, nm );
+
+  return 0;
 }
 
 const char *_Locale_collate_default( char *nm )
 {
-  return _Locale_aux_default( "LC_COLLATE", nm );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, nm );
+
+  return 0;
 }
 
 const char *_Locale_monetary_default( char *nm )
 {
-  return _Locale_aux_default( "LC_MONETARY", nm );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, nm );
+
+  return 0;
 }
 
 const char *_Locale_messages_default( char *nm )
 {
-  return _Locale_aux_default( "LC_MESSAGES", nm );
+  printf( "%s:%d %s\n", __FILE__, __LINE__, nm );
+
+  return 0;
 }
 
 char *_Locale_ctype_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_CTYPE]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_CTYPE]->name ) : 0;
 }
 
 char *_Locale_numeric_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_NUMERIC]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_NUMERIC]->name ) : 0;
 }
 
 char *_Locale_time_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_TIME]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_TIME]->name ) : 0;
 }
 
 char *_Locale_collate_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_COLLATE]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_COLLATE]->name ) : 0;
 }
 
 char *_Locale_monetary_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_MONETARY]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_MONETARY]->name ) : 0;
 }
 
 char *_Locale_messages_name( const void *__loc, char *buf )
 {
-  return __loc != 0 ? strncpy( buf, ((__c_locale)__loc)->__locales[LC_MESSAGES]->name, _Locale_MAX_SIMPLE_NAME ) : 0;
+  return __loc != 0 ? strcpy( buf, ((__c_locale)__loc)->__locales[LC_MESSAGES]->name ) : 0;
 }
 
 void _Locale_ctype_destroy( void *__loc )
@@ -273,7 +259,7 @@ char *__Extract_locale_name( const char *loc, const char *category, char *buf )
   if( loc[0]=='L' && loc[1]=='C' && loc[2]=='_') {
     expr = strstr( (char*)loc, category );
     if ( expr == NULL )
-      return NULL; /* Category not found. */
+      return NULL; // Category not found.
     ++expr;
     len_name = strcspn( expr, ";" );
     len_name = len_name > _Locale_MAX_SIMPLE_NAME ? _Locale_MAX_SIMPLE_NAME : len_name;
@@ -391,18 +377,18 @@ int _Locale_is_stateless( struct _Locale_ctype * __DUMMY_PAR)
 wint_t _Locale_btowc( struct _Locale_ctype *__loc, int c )
 {
   wint_t _c;
-  /* __c_locale __tmp = __uselocale( __loc ); */
+  // __c_locale __tmp = __uselocale( __loc );
   _c = btowc( c );
-  /* __uselocale( __tmp ); */
+  // __uselocale( __tmp );
   return _c;
 }
 
 int _Locale_wctob( struct _Locale_ctype *__loc, wint_t c )
 {
   int _c;
-  /* __c_locale __tmp = __uselocale( __loc ); */
+  // __c_locale __tmp = __uselocale( __loc );
   _c = wctob( c );
-  /* __uselocale( __tmp ); */
+  // __uselocale( __tmp );
   return _c;
 }
 
@@ -578,49 +564,31 @@ char _Locale_frac_digits(struct _Locale_monetary *__loc)
   return __loc != 0 ? *(__nl_langinfo_l(FRAC_DIGITS, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 1 if currency_symbol precedes a positive value, 0 if succeeds */
 int _Locale_p_cs_precedes(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(P_CS_PRECEDES, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 1 if a space separates currency_symbol from a positive value. */
 int _Locale_p_sep_by_space(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(P_SEP_BY_SPACE, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 
- * 0 Parentheses surround the quantity and currency_symbol
- * 1 The sign string precedes the quantity and currency_symbol
- * 2 The sign string succeeds the quantity and currency_symbol.
- * 3 The sign string immediately precedes the currency_symbol.
- * 4 The sign string immediately succeeds the currency_symbol.
- */
 int _Locale_p_sign_posn(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(P_SIGN_POSN, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 1 if currency_symbol precedes a negative value, 0 if succeeds */
 int _Locale_n_cs_precedes(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(N_CS_PRECEDES, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 1 if a space separates currency_symbol from a negative value. */
 int _Locale_n_sep_by_space(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(N_SEP_BY_SPACE, (__c_locale)__loc)) : CHAR_MAX;
 }
 
-/* 
- * 0 Parentheses surround the quantity and currency_symbol
- * 1 The sign string precedes the quantity and currency_symbol
- * 2 The sign string succeeds the quantity and currency_symbol.
- * 3 The sign string immediately precedes the currency_symbol.
- * 4 The sign string immediately succeeds the currency_symbol.
- */
 int _Locale_n_sign_posn(struct _Locale_monetary *__loc)
 {
   return __loc != 0 ? *(__nl_langinfo_l(N_SIGN_POSN, (__c_locale)__loc)) : CHAR_MAX;

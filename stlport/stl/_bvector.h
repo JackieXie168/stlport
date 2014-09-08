@@ -32,11 +32,7 @@
 
 #ifndef _STLP_INTERNAL_VECTOR_H
 # include <stl/_vector.h>
-#endif
-
-#ifndef _STLP_RANGE_ERRORS_H
-# include <stl/_range_errors.h>
-#endif
+# endif
 
 #define _STLP_WORD_BIT (int(CHAR_BIT*sizeof(unsigned int)))
 
@@ -89,7 +85,7 @@ inline void swap(_Bit_reference& __x, _Bit_reference& __y) {
   __y = __tmp;
 }
 
-// Might not be very useful but costs nothing!
+// Might not be very usefull but costs nothing!
 _STLP_TEMPLATE_NULL
 struct __type_traits<_Bit_reference> { 
   typedef __false_type    has_trivial_default_constructor;
@@ -121,10 +117,7 @@ struct _Bit_iterator_base {
 
   _Bit_iterator_base() : _M_p(0), _M_offset(0) {}
   _Bit_iterator_base(unsigned int* __x, unsigned int __y) : _M_p(__x), _M_offset(__y) {}
-// see comment in doc/README.evc4
-#if defined(_MSC_VER) && _MSC_VER<1300 && defined(MIPS) && defined(NDEBUG)
-  _Bit_iterator_base( const _Bit_iterator_base& __x) : _M_p(__x._M_p), _M_offset(__x._M_offset) {}
-#endif
+  //  _Bit_iterator_base( const _Bit_iterator_base& __x) : _M_p(__x._M_p), _M_offset(__x._M_offset) {}
   //  _Bit_iterator_base& operator = ( const _Bit_iterator_base& __x) { _M_p = __x._M_p ; _M_offset = __x._M_offset ; return *this; }
 
   void _M_advance (difference_type __i) {

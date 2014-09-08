@@ -117,7 +117,7 @@ pair<_InIt1, bool> __get_string( _InIt1 __first, _InIt1 __last,
 
 template <class _InIt, class _OuIt, class _CharT>
 bool
-__get_monetary_value(_InIt& __first, _InIt __last, _OuIt __out_ite,
+__get_monetary_value(_InIt& __first, _InIt __last, _OuIt __out,
                      const ctype<_CharT>& _c_type,
                      _CharT __point, int __frac_digits, _CharT __sep,
                      const string& __grouping, bool &__syntax_ok) {
@@ -131,7 +131,7 @@ __get_monetary_value(_InIt& __first, _InIt __last, _OuIt __out_ite,
   while (__first != __last) {
     if (_c_type.is(ctype_base::digit, *__first)) {
       ++__current_group_size;
-      *__out_ite++ = *__first++;
+      *__out++ = *__first++;
     }
     else if (__group_sizes_end) {
       if (*__first == __sep) {
@@ -156,7 +156,7 @@ __get_monetary_value(_InIt& __first, _InIt __last, _OuIt __out_ite,
     
     if (__first == __last || *__first != __point) {
       for (int __digits = 0; __digits != __frac_digits; ++__digits)
-        *__out_ite++ = _CharT('0');
+        *__out++ = _CharT('0');
       return true; // OK not to have decimal point
     }
   }
@@ -166,7 +166,7 @@ __get_monetary_value(_InIt& __first, _InIt __last, _OuIt __out_ite,
   int __digits = 0;
 
   while (__first != __last && _c_type.is(ctype_base::digit, *__first)) {
-      *__out_ite++ = *__first++;
+      *__out++ = *__first++;
      ++__digits;
   }
 
@@ -206,7 +206,7 @@ _InputIter _S_do_get(_InputIter __s, _InputIter __end, bool  __intl,
   int __i;
   bool __symbol_required = (__str.flags() & ios_base::showbase) != 0;
   string_type __buf;
-  back_insert_iterator<string_type> __out_ite(__buf);
+  back_insert_iterator<string_type> __out(__buf);
 
   for (__i = 0; __i < 4; ++__i) {
     switch (__format.field[__i]) {
@@ -292,7 +292,7 @@ _InputIter _S_do_get(_InputIter __s, _InputIter __end, bool  __intl,
       char_type __sep = __grouping.empty() ? char_type() : 
       __intl ? __punct_intl.thousands_sep() : __punct.thousands_sep();
 
-      __result = __get_monetary_value(__s, __end, __out_ite, __c_type,
+      __result = __get_monetary_value(__s, __end, __out, __c_type,
                                       __point, __frac_digits,
                                       __sep,
                                       __grouping, __syntax_ok);      
@@ -453,7 +453,7 @@ _OutputIter _S_do_put(_OutputIter __s, bool  __intl, ios_base&  __str,
   }
 
   // Determine the amount of padding required, if any.  
-  streamsize __width = __str.width();
+  size_t __width = __str.width();
 
 #if defined(_STLP_DEBUG) && (defined(__HP_aCC) && (__HP_aCC <= 1))
   size_t __value_length = operator -(__digits_last, __digits_first);
@@ -461,8 +461,9 @@ _OutputIter _S_do_put(_OutputIter __s, bool  __intl, ios_base&  __str,
   size_t __value_length = __digits_last - __digits_first;
 #endif
 
-  size_t __length = __value_length + __sign.size();
-
+  size_t __length = __value_length;
+      
+  __length += __sign.size();
   if (__frac_digits != 0)
     ++__length;
 
@@ -474,7 +475,6 @@ _OutputIter _S_do_put(_OutputIter __s, bool  __intl, ios_base&  __str,
                                         : (__is_negative ? __punct.neg_format()
                                                          : __punct.pos_format());
   {
-    //For the moment the following is commented for decoding reason.
     //No reason to add a space last if the money symbol do not have to be display
     //if (__format.field[3] == (char) money_base::symbol && !__generate_curr) {
     //  if (__format.field[2] == (char) money_base::space) {
@@ -487,9 +487,7 @@ _OutputIter _S_do_put(_OutputIter __s, bool  __intl, ios_base&  __str,
       ++__length;
   }
 
-  const bool __need_fill = (((sizeof(streamsize) > sizeof(size_t)) && (__STATIC_CAST(streamsize, __length) < __width)) ||
-                            ((sizeof(streamsize) <= sizeof(size_t)) && (__length < __STATIC_CAST(size_t, __width))));
-  streamsize __fill_amt = __need_fill ? __width - __length : 0;
+  size_t __fill_amt = __length < __width ? __width - __length : 0;
 
   ios_base::fmtflags __fill_pos = __str.flags() & ios_base::adjustfield;
 
@@ -500,42 +498,40 @@ _OutputIter _S_do_put(_OutputIter __s, bool  __intl, ios_base&  __str,
   for (int __i = 0; __i < 4; ++__i) {
     char __ffield = __format.field[__i];
     switch (__ffield) {
-      case money_base::none:
-        if (__fill_amt != 0 && __fill_pos == ios_base::internal)
-          __s = __fill_n(__s, __fill_amt, __fill);
-        break;
-      case money_base::space:
-        *__s++ = __space;
-        if (__fill_amt != 0 && __fill_pos == ios_base::internal)
-          __s = __fill_n(__s, __fill_amt, __fill);
-        break;
-      case money_base::symbol:
-        if (__generate_curr)
-          __s = copy(__curr_sym.begin(), __curr_sym.end(), __s);
-        break;
-      case money_base::sign:
-        if (!__sign.empty())
-          *__s++ = __sign[0];
-        break;
-      case money_base::value:
-        if (__frac_digits == 0) {
+    case money_base::none:
+      if (__fill_amt != 0 && __fill_pos == ios_base::internal)
+        __s = __fill_n(__s, __fill_amt, __fill);
+      break;
+    case money_base::space:
+      *__s++ = __space;
+      if (__fill_amt != 0 && __fill_pos == ios_base::internal)
+        __s = __fill_n(__s, __fill_amt, __fill);
+      break;
+    case money_base::symbol:
+      if (__generate_curr)
+        __s = copy(__curr_sym.begin(), __curr_sym.end(), __s);
+      break;
+    case money_base::sign:
+      if (!__sign.empty())
+        *__s++ = __sign[0];
+      break;
+    case money_base::value:
+      if (__frac_digits == 0)
+        __s = copy(__digits_first, __digits_last, __s);
+      else {
+        if ((int)__value_length <= __frac_digits) {
+          *__s++ = __point;
           __s = copy(__digits_first, __digits_last, __s);
-        } else {
-          if ((int)__value_length <= __frac_digits) {
-            // if we see '9' here, we should out 0.09
-            *__s++ = __zero;  // integer part is zero
-            *__s++ = __point; // decimal point
-            __s =  __fill_n(__s, __frac_digits - __value_length, __zero); // zeros
-            __s = copy(__digits_first, __digits_last, __s); // digits
-          } else {
-            __s = copy(__digits_first, __digits_last - __frac_digits, __s);
-            if (__frac_digits != 0) {
-              *__s++ = __point;
-              __s = copy(__digits_last - __frac_digits, __digits_last, __s);
-            }
+          __s =  __fill_n(__s, __frac_digits - __value_length, __zero);
+        }
+        else {
+          __s = copy(__digits_first, __digits_last - __frac_digits, __s);
+          if (__frac_digits != 0) {
+            *__s++ = __point;
+            __s = copy(__digits_last - __frac_digits, __digits_last, __s);
           }
         }
-        break;
+      }
     } //Close for switch
   } // Close for loop
 
@@ -556,7 +552,7 @@ money_put<_CharT, _OutputIter>
           char_type __fill, _STLP_LONG_DOUBLE __units) const {
   _STLP_BASIC_IOSTRING(char_type) __digits;
   __get_money_digits(__digits, __str, __units);
-  return _S_do_put(__s, __intl, __str, __fill, __digits, false, __STATIC_CAST(string_type*, 0));
+  return _S_do_put(__s, __intl, __str, __fill, __digits, false, (string_type*)0);
 }
 
 template <class _CharT, class _OutputIter>
@@ -564,7 +560,7 @@ _OutputIter
 money_put<_CharT, _OutputIter>
  ::do_put(_OutputIter __s, bool __intl, ios_base& __str,
           char_type __fill, const string_type& __digits) const {
-  return _S_do_put(__s, __intl, __str, __fill, __digits, true, __STATIC_CAST(string_type*, 0));
+  return _S_do_put(__s, __intl, __str, __fill, __digits, true, (string_type*)0);
 }
 
 _STLP_END_NAMESPACE

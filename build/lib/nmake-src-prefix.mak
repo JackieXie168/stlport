@@ -4,10 +4,6 @@
 ALLOBJS = $(ALLOBJS:../../src/=)
 ALLRESS = $(ALLRESS:../../src/=)
 
-#
-# rules for .cpp --> .o
-#
-
 {../../src}.cpp{$(OUTPUT_DIR)}.o:
 	$(COMPILE_cc_REL) $(OUTPUT_OPTION) $<
 
@@ -18,17 +14,13 @@ ALLRESS = $(ALLRESS:../../src/=)
 	$(COMPILE_cc_STLDBG) $(OUTPUT_OPTION_STLDBG) $<
 
 {../../src}.cpp{$(OUTPUT_DIR_A)}.o:
-	$(COMPILE_cc_STATIC_REL) $(OUTPUT_OPTION_STATIC) $<
+	$(COMPILE_cc_STATIC_REL) $(OUTPUT_OPTION) $<
 
 {../../src}.cpp{$(OUTPUT_DIR_A_DBG)}.o:
 	$(COMPILE_cc_STATIC_DBG) $(OUTPUT_OPTION_STATIC_DBG) $<
 
 {../../src}.cpp{$(OUTPUT_DIR_A_STLDBG)}.o:
 	$(COMPILE_cc_STATIC_STLDBG) $(OUTPUT_OPTION_STATIC_STLDBG) $<
-
-#
-# rules for .c --> .o
-#
 
 {../../src}.c{$(OUTPUT_DIR)}.o:
 	$(COMPILE_c_REL) $(OUTPUT_OPTION) $<
@@ -37,20 +29,16 @@ ALLRESS = $(ALLRESS:../../src/=)
 	$(COMPILE_c_DBG) $(OUTPUT_OPTION_DBG) $<
 
 {../../src}.c{$(OUTPUT_DIR_STLDBG)}.o:
-	$(COMPILE_c_STLDBG) $(OUTPUT_OPTION_STLDBG) $<
+	$(COMPILE_c_DBG) $(OUTPUT_OPTION_STLDBG) $<
 
 {../../src}.c{$(OUTPUT_DIR_A)}.o:
-	$(COMPILE_c_STATIC_REL) $(OUTPUT_OPTION_STATIC) $<
+	$(COMPILE_c_STATIC_REL) $(OUTPUT_OPTION) $<
 
 {../../src}.c{$(OUTPUT_DIR_A_DBG)}.o:
 	$(COMPILE_c_STATIC_DBG) $(OUTPUT_OPTION_STATIC_DBG) $<
 
 {../../src}.c{$(OUTPUT_DIR_A_STLDBG)}.o:
-	$(COMPILE_c_STATIC_STLDBG) $(OUTPUT_OPTION_STATIC_STLDBG) $<
-
-#
-# rules for .rc --> .res
-#
+	$(COMPILE_c_STATIC_DBG) $(OUTPUT_OPTION_STATIC_STLDBG) $<
 
 {../../src}.rc{$(OUTPUT_DIR)}.res:
 	$(COMPILE_rc_REL) $(RC_OUTPUT_OPTION) $<

@@ -80,7 +80,6 @@ public:
 
 protected:
   __owned_list _M_iter_list;
-  _Base* _Get_base() { return this; }
   void _Invalidate_iterator(const iterator& __it) { 
     __invalidate_iterator(&_M_iter_list,__it);
   }
@@ -94,6 +93,8 @@ protected:
   typedef typename _Base::iterator _Base_iterator;
 
 public:
+  const _Base* _Get_base() const { return this; }
+  _Base* _Get_base() { return this; }
   explicit _DBG_list(const allocator_type& __a = allocator_type()) :
     _STLP_DBG_LIST_BASE(__a), _M_iter_list(_Get_base()) {}
 
@@ -275,7 +276,7 @@ public:
     for ( ; __i != _Base::end() && __len < __new_size; ++__i, ++__len);
     
     if (__len == __new_size)
-      erase(iterator(&_M_iter_list, __i), this->end());
+      erase(this->end());
     else                          // __i == end()
       _Base::insert(_Base::end(), __new_size - __len, __x);
   }
@@ -331,13 +332,13 @@ public:
     _STLP_DEBUG_CHECK(__check_if_owner(&_M_iter_list, __pos))
     _STLP_DEBUG_CHECK(__check_range(__first, __last, __x.begin(), __x.end()))
     _STLP_DEBUG_CHECK(this == &__x ? !__check_range(__pos, __first, __last) : true)
+    _Base::splice(__pos._M_iterator, __x, __first._M_iterator, __last._M_iterator);
 #if (_STLP_DEBUG_LEVEL == _STLP_STANDARD_DBG_LEVEL)
     // Std: 23.2.2.4:12
     __x._Invalidate_iterators(__first, __last);
 #else
     __change_range_owner(__first, __last, &_M_iter_list);
 #endif
-    _Base::splice(__pos._M_iterator, __x, __first._M_iterator, __last._M_iterator);
   }
 
   void merge(_Self& __x) {

@@ -17,7 +17,6 @@ class MapTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(mmap1);
   CPPUNIT_TEST(mmap2);
   CPPUNIT_TEST(iterators);
-  CPPUNIT_TEST(empty_equal_range);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -25,7 +24,6 @@ protected:
   void mmap1();
   void mmap2();
   void iterators();
-  void empty_equal_range();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MapTest);
@@ -43,25 +41,18 @@ void MapTest::map1()
   m['v'] = 5;
   m['i'] = 1;
 //  cout << "m['x'] = " << m['x'] << endl;
-  CPPUNIT_ASSERT( m['x']== 20 );
+  CPPUNIT_ASSERT( m['x']==20 );
   m['x'] = 10; // Correct mistake.
-  CPPUNIT_ASSERT( m['x']== 10 );
-  CPPUNIT_ASSERT( m['z']== 0 );
+  CPPUNIT_ASSERT( m['x']==10 );
+  CPPUNIT_ASSERT( m['z']==0 );
   //cout << "m['z'] = " << m['z'] << endl; // Note default value is added.
-  CPPUNIT_ASSERT( m.count('z') == 1 );
+  CPPUNIT_ASSERT( m.count('z')==1 );
   //cout << "m.count('z') = " << m.count('z') << endl;
   pair<maptype::iterator, bool> p = m.insert(pair<const char, int>('c', 100));
-  CPPUNIT_ASSERT( p.second );
+  CPPUNIT_ASSERT(p.second);
 
   p = m.insert(pair<const char, int>('c', 100));
-  CPPUNIT_ASSERT( !p.second ); // already existing pair
-
-  pair<maptype::iterator, maptype::iterator> ret;
-  ret = m.equal_range('x');
-  CPPUNIT_ASSERT( ret.first != ret.second );
-  CPPUNIT_ASSERT( (*(ret.first)).first == 'x' );
-  CPPUNIT_ASSERT( (*(ret.first)).second == 10 );
-  CPPUNIT_ASSERT( ++(ret.first) == ret.second );
+  CPPUNIT_ASSERT(!p.second); // already existing pair
 }
 void MapTest::mmap1()
 {
@@ -90,7 +81,7 @@ void MapTest::mmap1()
   i++;
   CPPUNIT_ASSERT(i==m.end());
 
-  size_t count = m.erase('X');
+  int count = m.erase('X');
   CPPUNIT_ASSERT(count==2);
 }
 void MapTest::mmap2()
@@ -208,21 +199,4 @@ void MapTest::iterators()
   CPPUNIT_ASSERT( (*rci++).second == 'f' );
   CPPUNIT_ASSERT( (*rci).first == 6 );
   CPPUNIT_ASSERT( (*rci).second == 'f' );
-}
-
-void MapTest::empty_equal_range()
-{
-  typedef map<char, int, less<char> > maptype;
-  maptype m;
-  pair<maptype::iterator, maptype::iterator> ret;
-
-  maptype::iterator i = m.lower_bound( 'x' );
-  CPPUNIT_ASSERT( i == m.end() );
-
-  i = m.upper_bound( 'x' );
-  CPPUNIT_ASSERT( i == m.end() );
-
-  ret = m.equal_range('x');
-  CPPUNIT_ASSERT( ret.first == m.end() );
-  CPPUNIT_ASSERT( ret.second == m.end() );
 }

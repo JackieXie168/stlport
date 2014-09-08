@@ -19,8 +19,9 @@
 #define _STLP_INTERNAL_STREAMBUF
 
 #ifndef _STLP_IOS_BASE_H
-#  include <stl/_ios_base.h>      // Needed for ios_base bitfield members.
-#endif                            // <ios_base> includes <iosfwd>.
+#include <stl/_ios_base.h>      // Needed for ios_base bitfield members.
+                                // <ios_base> includes <iosfwd>.
+#endif
 
 _STLP_BEGIN_NAMESPACE
 
@@ -45,9 +46,10 @@ _STLP_BEGIN_NAMESPACE
 // because C++ language rules do not allow it to be declared twice. 
 
 template <class _CharT, class _Traits>
-class basic_streambuf {
-  friend class basic_istream<_CharT, _Traits>;
-  friend class basic_ostream<_CharT, _Traits>;
+class basic_streambuf
+{
+    friend class basic_istream<_CharT, _Traits>;
+    friend class basic_ostream<_CharT, _Traits>;
 
 public:                         // Typedefs.
   typedef _CharT                     char_type;
@@ -76,7 +78,7 @@ public:                         // Destructor.
 
 protected:                      // The default constructor.
   basic_streambuf()
-#if defined (_STLP_MSVC) && (_STLP_MSVC < 1300) && defined (_STLP_USE_STATIC_LIB)
+#if defined (_STLP_MSVC) && (_STLP_MSVC <= 1200) && defined (_STLP_USE_STATIC_LIB)
     //We make it inline to avoid unresolved symbol.
     : _M_gbegin(0), _M_gnext(0), _M_gend(0),
       _M_pbegin(0), _M_pnext(0), _M_pend(0),
@@ -102,12 +104,13 @@ public:
   // An alternate public interface to the above functions
   // which allows us to avoid using templated friends which
   // are not supported on some compilers.
+
   char_type* _M_eback() const { return eback(); }
   char_type* _M_gptr()  const { return gptr(); }
   char_type* _M_egptr() const { return egptr(); }
   void _M_gbump(int __n)      { gbump(__n); }
   void _M_setg(char_type* __gbegin, char_type* __gnext, char_type* __gend)
-  { this->setg(__gbegin, __gnext, __gend); }
+    { this->setg(__gbegin, __gnext, __gend); }
 
 protected:                      // Protected interface to the put area
 
@@ -143,15 +146,15 @@ protected:                      // Virtual buffer management functions.
 
 public:                         // Buffer management.
   basic_streambuf<_CharT, _Traits>* pubsetbuf(char_type* __s, streamsize __n) 
-  { return this->setbuf(__s, __n); }
+    { return this->setbuf(__s, __n); }
 
   pos_type pubseekoff(off_type __offset, ios_base::seekdir __way,
                       ios_base::openmode __mod = ios_base::in | ios_base::out)
-  { return this->seekoff(__offset, __way, __mod); }
+    { return this->seekoff(__offset, __way, __mod); }
 
   pos_type pubseekpos(pos_type __sp,
                       ios_base::openmode __mod = ios_base::in | ios_base::out)
-  { return this->seekpos(__sp, __mod); }
+    { return this->seekpos(__sp, __mod); }
 
   int pubsync() { return this->sync(); }
 
@@ -205,14 +208,15 @@ public:                         // Public members for writing characters.
 
   // Write __n characters.
   streamsize sputn(const char_type* __s, streamsize __n)
-  { return this->xsputn(__s, __n); }
+    { return this->xsputn(__s, __n); }
 
   // Extension: write __n copies of __c.
   streamsize _M_sputnc(char_type __c, streamsize __n)
-  { return this->_M_xsputnc(__c, __n); }
+    { return this->_M_xsputnc(__c, __n); }
 
 private:                        // Helper functions.
   int_type _M_snextc_aux();
+
 
 public:                         // Public members for reading characters.
   streamsize in_avail() {
@@ -265,10 +269,10 @@ public:                         // Locale-related functions.
   locale pubimbue(const locale&);
   locale getloc() const { return _M_locale; }
 
-#if !defined (_STLP_NO_ANACHRONISMS)
+# ifndef _STLP_NO_ANACHRONISMS
   void stossc() { this->sbumpc(); }
-#endif
-#if defined (__MVS__) || defined (__OS400__)
+# endif
+#if defined(__MVS__) || defined(__OS400__)
 private: // Data members.
 
   char_type* _M_gbegin; // Beginning of get area
@@ -281,12 +285,12 @@ private: // Data members.
 #endif
 };
 
-#if defined (_STLP_USE_TEMPLATE_EXPORT)
+# if defined (_STLP_USE_TEMPLATE_EXPORT)
 _STLP_EXPORT_TEMPLATE_CLASS basic_streambuf<char, char_traits<char> >;
 #  if !defined (_STLP_NO_WCHAR_T)
 _STLP_EXPORT_TEMPLATE_CLASS basic_streambuf<wchar_t, char_traits<wchar_t> >;
 #  endif // _STLP_NO_WCHAR_T
-#endif // _STLP_USE_TEMPLATE_EXPORT
+# endif // _STLP_USE_TEMPLATE_EXPORT
 
 _STLP_END_NAMESPACE
 

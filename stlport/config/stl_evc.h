@@ -34,9 +34,12 @@
 // This is defined for all platforms using Windows CE
 # define _STLP_WCE
 
-// Ensure _DEBUG is defined.
-# if defined(DEBUG) && !defined(_DEBUG)
-#  define _DEBUG
+
+// When compiling on evc4 / ARM, _MSC_VER is 1201; change that
+# if defined(_STLP_WCE_NET) && (defined(_ARM_) || defined(_MIPS_))
+// pretend i am _MSC_VER 1200 not 1201
+#  undef _STLP_MSVC
+#  define _STLP_MSVC 1200
 # endif
 
 // inherit all msvc6 options
@@ -49,10 +52,6 @@
 
 // we don't have a static native runtime library
 # undef _STLP_USING_CROSS_NATIVE_RUNTIME_LIB
-
-// no *f and *l math functions available
-# define _STLP_NO_VENDOR_MATH_F
-# define _STLP_NO_VENDOR_MATH_L
 
 /*
  * Workaround Pocket PC 2003 missing RTTI support in OS image:
@@ -114,6 +113,11 @@
 #   define __PLACEMENT_NEW_INLINE
 #  endif
 
+// Ensure _DEBUG is defined.
+# if defined(DEBUG) && !defined(_DEBUG)
+#  define _DEBUG
+# endif
+
 // threads
 # undef _REENTRANT
 # define _REENTRANT
@@ -128,70 +132,60 @@
 #  define _STLP_NO_EXCEPTION_HEADER
 #  define _STLP_NO_EXCEPTIONS
 #  undef _STLP_USE_EXCEPTIONS
+#  ifdef _STLP_WINCE_USE_OUTPUTDEBUGSTRING
+#   define _STLP_WINCE_TRACE(msg)   OutputDebugString(msg)
+#  else
+#   define _STLP_WINCE_TRACE(msg)   MessageBox(NULL,(msg),NULL,MB_OK)
+#  endif
 #  ifndef __THROW_BAD_ALLOC
 #   define __THROW_BAD_ALLOC { _STLP_WINCE_TRACE(L"out of memory"); ExitThread(1); }
 #  endif
 # else
+#  define _STLP_WINCE_TRACE(msg)   OutputDebugString(msg)
 # endif
-
-#define _STLP_WINCE_TRACE(msg) OutputDebugString(msg)
 
 /*
  * eMbedded Visual C++ .NET specific settings
- *
- * Helper macros for including the native headers in cases where a file with
- * the same name also exists in the STLport include folder. The idea behind
- * this is that we first go up one directory and then down into a dir that
- * is only present in the native install but not in STLport.
- *
  */
-#if defined(_STLP_WCE_NET) && !defined(_STLP_NATIVE_INCLUDE_PATH)
-#  if defined (_X86_)
-#    if defined (emulator)
-#      define _STLP_NATIVE_INCLUDE_PATH ../Emulator
-#    else
-#      define _STLP_NATIVE_INCLUDE_PATH ../X86
-#    endif
-#  elif defined (_ARM_)
-#    if defined (ARMV4)
-#      define _STLP_NATIVE_INCLUDE_PATH ../Armv4
-#    elif defined (ARMV4I)
-#      define _STLP_NATIVE_INCLUDE_PATH ../Armv4i
-#    elif defined (ARMV4T)
-#      define _STLP_NATIVE_INCLUDE_PATH ../Armv4t
-#    else
-#      error Unknown ARM SDK.
-#    endif
-#  elif defined (_MIPS_)
-#    if defined (MIPS16)
-#      define _STLP_NATIVE_INCLUDE_PATH ../mips16
-#    elif defined (MIPSII)
-#      define _STLP_NATIVE_INCLUDE_PATH ../mipsII
-#    elif defined (MIPSII_FP)
-#      define _STLP_NATIVE_INCLUDE_PATH ../mipsII_fp
-#    elif defined (MIPSIV)
-#      define _STLP_NATIVE_INCLUDE_PATH ../mipsIV
-#    elif defined (MIPSIV_FP)
-#      define _STLP_NATIVE_INCLUDE_PATH ../mipsIV_fp
-#    else
-#      error Unknown MIPS SDK.
-#    endif
-/* MIPS itself is highly volatile and configurable as both big and little
- * endian, all Windows CE versions (at least until 4.2 for MIPS) run in 
- * little-endian configurations though. */
-#    define _STLP_LITTLE_ENDIAN
-#  elif defined (SHx)
-#    if defined (SH3)
-#      define _STLP_NATIVE_INCLUDE_PATH ../sh3
-#    elif defined (SH4)
-#      define _STLP_NATIVE_INCLUDE_PATH ../sh4
-#    else
-#      error Unknown SHx SDK.
-#    endif
-#  else
-#    error Unknown SDK.
+# ifdef _STLP_WCE_NET
+// include headers for ARM and emulator
+#  undef _STLP_NATIVE_HEADER
+#  undef _STLP_NATIVE_C_HEADER
+#  undef _STLP_NATIVE_CPP_C_HEADER
+#  undef _STLP_NATIVE_OLD_STREAMS_HEADER
+#  undef _STLP_NATIVE_CPP_RUNTIME_HEADER
+#  if defined(_X86_)
+#   define _STLP_NATIVE_HEADER(x) <../Emulator/##x>
+#   define _STLP_NATIVE_C_HEADER(x) <../Emulator/##x>
+#   define _STLP_NATIVE_CPP_C_HEADER(x) <../Emulator/##x>
+#   define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../Emulator/##x>
+#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../Emulator/##header>
+#  elif defined(_ARM_)
+#   define _STLP_NATIVE_HEADER(x) <../Armv4/##x>
+#   define _STLP_NATIVE_C_HEADER(x) <../Armv4/##x>
+#   define _STLP_NATIVE_CPP_C_HEADER(x) <../Armv4/##x>
+#   define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../Armv4/##x>
+#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../Armv4/##header>
+#  elif defined(_MIPS_) && defined(MIPS16)
+#   define _STLP_NATIVE_HEADER(header) <../mips16/##header>
+#   define _STLP_NATIVE_C_HEADER(header) <../mips16/##header>
+#   define _STLP_NATIVE_CPP_C_HEADER(header) <../mips16/##header>
+#   define _STLP_NATIVE_OLD_STREAMS_HEADER(header) <../mips16/##header>
+#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../mips16/##header>
+#  elif defined(_MIPS_) && defined(MIPSII)
+#   define _STLP_NATIVE_HEADER(header) <../mipsII/##header>
+#   define _STLP_NATIVE_C_HEADER(header) <../mipsII/##header>
+#   define _STLP_NATIVE_CPP_C_HEADER(header) <../mipsII/##header>
+#   define _STLP_NATIVE_OLD_STREAMS_HEADER(header) <../mipsII/##header>
+#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../mipsII/##header>
+#  elif defined(_MIPS_) && defined(MIPSIV)
+#   define _STLP_NATIVE_HEADER(header) <../mipsIV/##header>
+#   define _STLP_NATIVE_C_HEADER(header) <../mipsIV/##header>
+#   define _STLP_NATIVE_CPP_C_HEADER(header) <../mipsIV/##header>
+#   define _STLP_NATIVE_OLD_STREAMS_HEADER(header) <../mipsIV/##header>
+#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../mipsIV/##header>
 #  endif
-#endif
+# endif /* _STLP_WCE_NET */
 
 /*
  * eMbedded Visual C++ 3.0 specific settings
@@ -299,18 +293,12 @@ inline void __cdecl operator delete(void *, void *) { return; }
 #  define NOMINMAX
 # endif
 
-/*
- * original call: TerminateProcess(GetCurrentProcess(), 0);
- * we substitute the GetCurrentProcess() with the result of the inline function
- * defined in kfuncs.h, since we then can avoid including <windows.h> at all.
- * all needed Win32 API functions are defined in <stl/_windows.h>
- */
 # ifndef _ABORT_DEFINED
-#  define _STLP_ABORT() TerminateProcess(reinterpret_cast<HANDLE>(66), 0)
+#  define _STLP_ABORT() TerminateProcess(GetCurrentProcess(), 0)
 #  define _ABORT_DEFINED
 # endif
 
-// Notice: windows.h isn't included here anymore; all needed defines are in
-// stl/_windows.h now
+// needed for TerminateProcess and others
+# include <windows.h>
 
 #endif /* _STLP_EVC_H */

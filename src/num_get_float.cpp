@@ -16,63 +16,29 @@
  *
  */ 
 
-#include "stlport_prefix.h"
+# include "stlport_prefix.h"
 #include <stl/_limits.h>
 #include <stl/_num_get.h>
 #include <stl/_istream.h>
 
-#ifdef __APPLE__
-#include <stdint.h>
-#endif
-
 #ifdef __linux__
-#  include <ieee754.h>
-#  include <stdint.h>
+# include <ieee754.h>
+# include <stdint.h>
 
 union _ll {
   uint64_t i64;
   struct {
-#  ifdef _STLP_BIG_ENDIAN
+#ifdef _STLP_BIG_ENDIAN
     uint32_t hi;
     uint32_t lo;
-#  endif
-#  ifdef _STLP_LITTLE_ENDIAN
+#endif
+#ifdef _STLP_LITTLE_ENDIAN
     uint32_t lo;
     uint32_t hi;
-#  endif
-#  if !defined(_STLP_BIG_ENDIAN) && !defined(_STLP_LITTLE_ENDIAN)
-#    error Unknown endianness.
-#  endif
+#endif
   } i32;
 };
-#endif
 
-#ifdef N_PLAT_NLM
-#  include <nlm/nwintxx.h>
-
-#ifdef INT64
-typedef unsigned INT64 uint64_t;
-#else
-// #error "Can't find INT64"
-// 64-bit int really not defined in headers
-// (_INTEGRAL_MAX_BITS < 64 in any case?), but compiler indeed know __int64
-//        - ptr, 2005-05-06
-typedef unsigned __int64 uint64_t; 
-#endif
-
-#ifdef INT32
-typedef unsigned INT32 uint32_t;
-#else
-#error "Can't find INT32"
-#endif
-
-union _ll {
-  uint64_t i64;
-  struct {
-    uint32_t lo;
-    uint32_t hi;
-  } i32;
-};
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -82,12 +48,14 @@ _STLP_BEGIN_NAMESPACE
 
 // Helper functions for _M_do_get_float.
 
-#if !defined (_STLP_NO_WCHAR_T)
+# ifndef _STLP_NO_WCHAR_T
+
 void  _STLP_CALL
 _Initialize_get_float( const ctype<wchar_t>& ct,
                        wchar_t& Plus, wchar_t& Minus,
                        wchar_t& pow_e, wchar_t& pow_E,
-                       wchar_t* digits) {
+                       wchar_t* digits)
+{
   char ndigits[11] = "0123456789";
   Plus  = ct.widen('+');
   Minus = ct.widen('-');
@@ -95,7 +63,8 @@ _Initialize_get_float( const ctype<wchar_t>& ct,
   pow_E = ct.widen('E');
   ct.widen(ndigits + 0, ndigits + 10, digits);
 }
-#endif /* WCHAR_T */
+
+# endif /* WCHAR_T */
 
 /*
  * __string_to_double is just lifted from atof, the difference being
@@ -104,26 +73,26 @@ _Initialize_get_float( const ctype<wchar_t>& ct,
  * to us.
  */
 
-#if defined (_STLP_MSVC) || defined (__BORLANDC__) || defined (__ICL)
-typedef unsigned long uint32;
-typedef unsigned __int64 uint64;
-#  define ULL(x) x##Ui64
-#elif defined(__MRC__) || defined(__SC__)    //*TY 02/25/2000 - added support for MPW compilers
-typedef unsigned long uint32;
-#  include "uint64.h"    //*TY 03/25/2000 - added 64bit math type definition
-#elif defined(__unix) || defined (__MINGW32__) || defined(N_PLAT_NLM)
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-#  define ULL(x) x##ULL
-#else
-#  error "there should be some unsigned 64-bit integer on the system!"
-#endif
+typedef unsigned int uint32;
+# if defined (_STLP_MSVC) || defined (__BORLANDC__) || defined (__ICL)
+# define ULL(x) x##Ui64
+typedef unsigned _STLP_LONG_LONG uint64;
+# elif defined (_STLP_LONG_LONG)
+typedef unsigned _STLP_LONG_LONG uint64;
+# define ULL(x) x##ULL
+# elif defined(__MRC__) || defined(__SC__)		//*TY 02/25/2000 - added support for MPW compilers
+# include "uint64.h"		//*TY 03/25/2000 - added 64bit math type definition
+# else
+#  error "there should be some long long type on the system!"
+#  define NUMERIC_NO_64 1
+# endif
 
 // Multiplication of two 64-bit integers, giving a 128-bit result.
 // Taken from Algorithm M in Knuth section 4.3.1, with the loop 
 // hand-unrolled.
 void _Stl_mult64(const uint64 u, const uint64 v,
-                 uint64& high, uint64& low) {
+                 uint64& high, uint64& low)
+{
   const uint64 low_mask = ULL(0xffffffff);
   const uint64 u0 = u & low_mask;
   const uint64 u1 = u >> 32;
@@ -145,13 +114,10 @@ void _Stl_mult64(const uint64 u, const uint64 v,
 # define bit11 ULL(0x7ff)
 # define exponent_mask (bit11 << 52)
 
-#if !defined (__GNUC__) || (__GNUC__ != 3) || (__GNUC_MINOR__ != 4) || \
-    (!defined (__CYGWIN__) && !defined (__MINGW32__))
-//Generate bad code when compiled with -O2 option.
-inline
-#endif
-void _Stl_set_exponent(uint64 &val, uint64 exp)
-{ val = (val & ~exponent_mask) | ((exp & bit11) << 52); }
+inline void _Stl_set_exponent(uint64& val, uint64 exp)
+{
+  val = (val & ~exponent_mask) | ((exp & bit11) << 52);
+}
 
 /* Power of ten fractions for tenscale*/
 /* The constants are factored so that at most two constants
@@ -159,7 +125,7 @@ void _Stl_set_exponent(uint64 &val, uint64 exp)
  * is represented exactly - 10**n where 1<= n <= 27.
  */
 
-#if !defined(__SC__)    //*TY 03/25/2000 - no native 64bit integer under SCpp
+#if !defined(__SC__)		//*TY 03/25/2000 - no native 64bit integer under SCpp
 static const uint64 _Stl_tenpow[80] = {
 ULL(0xa000000000000000), /* _Stl_tenpow[0]=(10**1)/(2**4) */
 ULL(0xc800000000000000), /* _Stl_tenpow[1]=(10**2)/(2**7) */
@@ -214,7 +180,7 @@ ULL(0xe61acf033d1a45df), /* _Stl_tenpow[47]=(10**-308)/(2**-1023)    */
 ULL(0xe3e27a444d8d98b8), /* _Stl_tenpow[48]=(10**-336)/(2**-1116) */
 ULL(0xe1afa13afbd14d6e)  /* _Stl_tenpow[49]=(10**-364)/(2**-1209) */
 
-#else    //*TY 03/20/2000 - added support for SCpp which lacks native 64bit integer type
+#else		//*TY 03/20/2000 - added support for SCpp which lacks native 64bit integer type
 static const UnsignedWide _Stl_tenpow[80] = {
 ULL2(0xa0000000,0x00000000), /* _Stl_tenpow[0]=(10**1)/(2**4) */
 ULL2(0xc8000000,0x00000000), /* _Stl_tenpow[1]=(10**2)/(2**7) */
@@ -308,7 +274,7 @@ void _Stl_norm_and_round(uint64& p, int& norm, uint64 prodhi, uint64 prodlo)
     p = prodhi;
   }
 
-  if( (prodlo & _Stl_HIBITULL) != 0 ) {     /* first guard bit a one */    //*TY 03/25/2000 - added explicit comparison to zero to avoid reliance to the implicit conversion from uint64 to bool
+  if( (prodlo & _Stl_HIBITULL) != 0 ) {     /* first guard bit a one */		//*TY 03/25/2000 - added explicit comparison to zero to avoid reliance to the implicit conversion from uint64 to bool
 #if !defined(__SC__)                  //*TY 03/25/2000 - 
     if( ((p & 0x1) != 0) ||
        prodlo != _Stl_HIBITULL ) {    /* not borderline for round to even */
@@ -330,7 +296,9 @@ void _Stl_norm_and_round(uint64& p, int& norm, uint64 prodhi, uint64 prodlo)
 // p:    64-bit fraction
 // exp:  base-10 exponent
 // bexp: base-2 exponent (output parameter)
-void _Stl_tenscale(uint64& p, int exp, int& bexp) {
+
+void _Stl_tenscale(uint64& p, int exp, int& bexp)
+{
   uint64 prodhi, prodlo;        /* 128b product */
   int exp_hi, exp_lo;           /* exp = exp_hi*32 + exp_lo */
   int hi, lo, tlo, thi;         /* offsets in power of ten table */
@@ -338,26 +306,26 @@ void _Stl_tenscale(uint64& p, int exp, int& bexp) {
   int num_hi;                   /* number of high exponent powers */
 
   bexp = 0;
-  if (exp > 0) {                 /* split exponent */
+  if(exp > 0) {                 /* split exponent */
     exp_lo = exp;
     exp_hi = 0;
-    if (exp_lo > 27) {
+    if(exp_lo>27) {
       exp_lo++;
-      while (exp_lo > 27) {
+      while(exp_lo>27) {
         exp_hi++;
-        exp_lo -= 28;
+        exp_lo-=28;
       }
     }
     tlo = TEN_1;
     thi = TEN_27;
     num_hi = NUM_HI_P;
   }
-  else if (exp < 0) {
+  else if(exp < 0) {
     exp_lo = exp;
     exp_hi = 0;
-    while (exp_lo < 0) {
+    while(exp_lo<0) {
       exp_hi++;
-      exp_lo += 28;
+      exp_lo+=28;
     }
     tlo = TEN_1;
     thi = TEN_M28;
@@ -366,15 +334,15 @@ void _Stl_tenscale(uint64& p, int exp, int& bexp) {
   else {                        /* no scaling needed */
     return;
   }
-  while (exp_hi) {               /* scale */
-    hi = (min) (exp_hi, num_hi);    /* only a few large powers of 10 */
+  while(exp_hi) {               /* scale */
+    hi = (min) (exp_hi,num_hi);    /* only a few large powers of 10 */
     exp_hi -= hi;               /* could iterate in extreme case */
     hi += thi-1;
     _Stl_mult64(p, _Stl_tenpow[hi], prodhi, prodlo);
     _Stl_norm_and_round(p, norm, prodhi, prodlo);
     bexp += _Stl_twoexp[hi] - norm;
   }
-  if (exp_lo) {
+  if(exp_lo) {
     lo = tlo + exp_lo -1;
     _Stl_mult64(p, _Stl_tenpow[lo], prodhi, prodlo);
     _Stl_norm_and_round(p, norm, prodhi, prodlo);
@@ -392,18 +360,19 @@ void _Stl_tenscale(uint64& p, int exp, int& bexp) {
 
 //*TY 04/06/2000 - powermac's 68K emulator utilizes apple's SANE floating point, which is not compatible with IEEE format.
 _STLP_END_NAMESPACE
-#  include <fp.h>
+# include <fp.h>
 _STLP_BEGIN_NAMESPACE
-inline double _Stl_atod(char *buffer, int ndigit, int dexp) {
-  decimal d;  // ref. inside macintosh powerpc numerics p.9-13
+inline double _Stl_atod(char *buffer, int ndigit, int dexp)
+{
+  decimal d;	// ref. inside macintosh powerpc numerics p.9-13
 
   d.sgn = 0;
   d.exp = dexp;
   d.sig.length = ndigit;
-  for (int i = 0; i < ndigit; ++i) {
+  for( int i = 0; i < ndigit; ++i ) {
     d.sig.text[i] = buffer[i] + '0';
   }
-  return dec2num(&d);
+  return dec2num( &d );
 }
 
 #else  /* IEEE representation */
@@ -413,8 +382,10 @@ inline double _Stl_atod(char *buffer, int ndigit, int dexp) {
 #  pragma optimize "off"
 #endif
 
-#  ifndef __linux__
-double _Stl_atod(char *buffer, int ndigit, int dexp) {
+#ifndef __linux__
+double _Stl_atod(char *buffer, int ndigit, int dexp)
+{
+
   uint64 value;         /* Value develops as follows:
                                  * 1) decimal digits as an integer
                                  * 2) left adjusted fraction
@@ -442,22 +413,24 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
   bufferend = buffer + ndigit;
   value = 0;                    
 
-  while (buffer < bufferend) {
+  while( buffer < bufferend ) {
     value *= 10;
     value += *buffer++;
   }
 
   /* Check for zero and treat it as a special case */
-  if (value == 0) {
+
+  if (value == 0){
     return 0.0; 
   }
 
   /* Normalize value */
+
   bexp = 64;                    /* convert from 64b int to fraction */
 
   /* Count number of non-zeroes in value */
   nzero = 0;
-  if ( (value >> 32) !=0 ){ nzero  = 32; }    //*TY 03/25/2000 - added explicit comparison to zero to avoid uint64 to bool conversion operator
+  if ( (value >> 32) !=0 ){ nzero  = 32; }		//*TY 03/25/2000 - added explicit comparison to zero to avoid uint64 to bool conversion operator
   if ( (value >> (16 + nzero)) !=0 ){ nzero += 16; }
   if ( (value >> ( 8 + nzero)) !=0 ){ nzero +=  8; }
   if ( (value >> ( 4 + nzero)) !=0 ){ nzero +=  4; }
@@ -466,7 +439,7 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
   if ( (value >> (     nzero)) !=0 ){ nzero +=  1; }
 
   /* Normalize */
-  value <<= /*(uint64)*/ (64-nzero);    //*TY 03/25/2000 - removed extraneous cast to uint64
+  value <<= /*(uint64)*/ (64-nzero);		//*TY 03/25/2000 - removed extraneous cast to uint64
   bexp -= 64-nzero;
 
   /* At this point we have a 64b fraction and a binary exponent 
@@ -474,59 +447,68 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
    */
 
   /* multiply by 10^dexp */
+
   _Stl_tenscale(value, dexp, sexp);
   bexp += sexp;
 
   if (bexp <= -1022) {          /* HI denorm or underflow */
     bexp += 1022;
-    if (bexp < -53) {          /* guaranteed underflow */
+    if( bexp < -53 ) {          /* guaranteed underflow */
       value = 0;
     }
     else {                      /* denorm or possible underflow */
-      int lead0 = 12 - bexp;          /* 12 sign and exponent bits */
+    int lead0;
+
+      lead0 = 12-bexp;          /* 12 sign and exponent bits */
 
       /* we must special case right shifts of more than 63 */
-      if (lead0 > 64) {
-        rest = value;
-        guard = 0;
-        value = 0;
+
+      if ( lead0 > 64 )
+      {
+           rest = value;
+           guard = 0;
+           value = 0;
       }
-      else if (lead0 == 64) {
-        rest = value & ((ULL(1)<< 63)-1);
+      else if ( lead0 == 64 )
+      {
+           rest = value & ((ULL(1)<< 63)-1);
 #if !defined(__SC__)
-        guard = (uint32) ((value>> 63) & 1 );
+           guard = (uint32) ((value>> 63) & 1 );
 #else
-        guard = to_ulong((value>> 63) & 1 );   //*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
+           guard = to_ulong((value>> 63) & 1 );   //*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
 #endif
-        value = 0;
+           value = 0;
       }
-      else {
-        rest = value & (((ULL(1) << lead0)-1)-1);
+      else
+      {
+          rest = value & (((ULL(1) << lead0)-1)-1);
 #if !defined(__SC__)
-        guard = (uint32) (((value>> lead0)-1) & 1);
+          guard = (uint32) (((value>> lead0)-1) & 1);
 #else     //*TY 03/25/2000 - 
-        guard = to_ulong(((value>> lead0)-1) & 1); 
+          guard = to_ulong(((value>> lead0)-1) & 1); 
 #endif    //*TY 03/25/2000 - 
-        value >>= /*(uint64)*/ lead0; /* exponent is zero */
+          value >>= /*(uint64)*/ lead0; /* exponent is zero */
       }
 
       /* Round */
-      if (guard && ((value & 1) || rest) ) {
-        ++value;
-        if (value == (ULL(1) << 52)) { /* carry created normal number */
+      if (  guard && ( (value&1) || rest) ) {		
+        value++;
+        if( value == (ULL(1) << 52) ) { /* carry created normal number */
           value = 0;
           _Stl_set_exponent(value, 1);
         }
       }
     }
+
   }
   else {                        /* not zero or denorm */
     /* Round to 53 bits */
+
     rest = value & (1<<10)-1;
     value >>= 10;
 #if !defined(__SC__)
     guard = (uint32) value & 1;
-#else    //*TY 03/25/2000 - 
+#else		//*TY 03/25/2000 - 
     guard = to_ulong(value & 1);
 #endif
     value >>= 1;
@@ -538,12 +520,12 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
      *  0       1       0       none
      *  0       1       !=0     round
      */
-    if (guard) {
+    if(guard) {
       if(((value&1)!=0) || (rest!=0)) {
-        ++value;                        /* round */
-        if ((value >> 53) != 0) {       /* carry all the way across */    
+        value++;                        /* round */
+        if((value>>53)!=0) {         /* carry all the way across */		
           value >>= 1;          /* renormalize */
-          ++bexp;
+          bexp ++;
         }
       }
     }
@@ -573,16 +555,17 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
   return *((double *) &value);
 }
 
-#  else // __linux__
+# else // __linux__
 
-double _Stl_atod(char *buffer, int ndigit, int dexp) {
+double _Stl_atod(char *buffer, int ndigit, int dexp)
+{
   ieee754_double v;
 
   char *bufferend;              /* pointer to char after last digit */
   
   /* Check for zero and treat it as a special case */
 
-  if (buffer == 0) {
+  if (buffer == 0){
     return 0.0; 
   }
 
@@ -592,22 +575,24 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
   _ll vv;
   vv.i64 = 0L;
 
-  while (buffer < bufferend) {
+  while( buffer < bufferend ) {
     vv.i64 *= 10;
     vv.i64 += *buffer++;
   }
 
   /* Check for zero and treat it as a special case */
+
   if (vv.i64 == 0){
-    return 0.0;
+    return 0.0; 
   }
 
   /* Normalize value */
+
   int bexp = 64;                    /* convert from 64b int to fraction */
 
   /* Count number of non-zeroes in value */
   int nzero = 0;
-  if ( (vv.i64 >> 32) !=0 ) { nzero  = 32; }    //*TY 03/25/2000 - added explicit comparison to zero to avoid uint64 to bool conversion operator
+  if ( (vv.i64 >> 32) !=0 ) { nzero  = 32; }		//*TY 03/25/2000 - added explicit comparison to zero to avoid uint64 to bool conversion operator
   if ( (vv.i64 >> (16 + nzero)) !=0 ) { nzero += 16; }
   if ( (vv.i64 >> ( 8 + nzero)) !=0 ) { nzero +=  8; }
   if ( (vv.i64 >> ( 4 + nzero)) !=0 ) { nzero +=  4; }
@@ -617,7 +602,7 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
 
   /* Normalize */
   nzero = 64 - nzero;
-  vv.i64 <<= nzero;    //*TY 03/25/2000 - removed extraneous cast to uint64
+  vv.i64 <<= nzero;		//*TY 03/25/2000 - removed extraneous cast to uint64
   bexp -= nzero;
 
   /* At this point we have a 64b fraction and a binary exponent 
@@ -625,13 +610,14 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
    */
 
   /* multiply by 10^dexp */
+
   int sexp;
   _Stl_tenscale(vv.i64, dexp, sexp);
   bexp += sexp;
 
   if (bexp <= -1022) {          /* HI denorm or underflow */
     bexp += 1022;
-    if (bexp < -53) {           /* guaranteed underflow */
+    if( bexp < -53 ) {          /* guaranteed underflow */
       vv.i64 = 0;
     }
     else {                      /* denorm or possible underflow */
@@ -642,34 +628,38 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
       lead0 = 12-bexp;          /* 12 sign and exponent bits */
 
       /* we must special case right shifts of more than 63 */
-      if (lead0 > 64) {
-        rest = vv.i64;
-        guard = 0;
-        vv.i64 = 0;
+
+      if ( lead0 > 64 )
+      {
+           rest = vv.i64;
+           guard = 0;
+           vv.i64 = 0;
       }
-      else if (lead0 == 64) {
-        rest = vv.i64 & ((ULL(1) << 63)-1);
+      else if ( lead0 == 64 )
+      {
+           rest = vv.i64 & ((ULL(1) << 63)-1);
 #if !defined(__SC__)
-        guard = (uint32) ((vv.i64 >> 63) & 1 );
+           guard = (uint32) ((vv.i64 >> 63) & 1 );
 #else
-        guard = to_ulong((vv.i64 >> 63) & 1 );   //*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
+           guard = to_ulong((vv.i64 >> 63) & 1 );   //*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
 #endif
-        vv.i64 = 0;
+           vv.i64 = 0;
       }
-      else {
-        rest = vv.i64 & (((ULL(1) << lead0)-1)-1);
+      else
+      {
+          rest = vv.i64 & (((ULL(1) << lead0)-1)-1);
 #if !defined(__SC__)
-        guard = (uint32) (((vv.i64 >> lead0)-1) & 1);
+          guard = (uint32) (((vv.i64 >> lead0)-1) & 1);
 #else     //*TY 03/25/2000 - 
-        guard = to_ulong(((vv.i64 >> lead0)-1) & 1); 
+          guard = to_ulong(((vv.i64 >> lead0)-1) & 1); 
 #endif    //*TY 03/25/2000 - 
-        vv.i64 >>= /*(uint64)*/ lead0; /* exponent is zero */
+          vv.i64 >>= /*(uint64)*/ lead0; /* exponent is zero */
       }
 
       /* Round */
-      if (guard && ( (vv.i64 & 1) || rest)) {
+      if (  guard && ( (vv.i64 & 1) || rest) ) {		
         vv.i64++;
-        if (vv.i64 == (ULL(1) << 52)) { /* carry created normal number */
+        if( vv.i64 == (ULL(1) << 52) ) { /* carry created normal number */
           v.ieee.mantissa0 = 0;
           v.ieee.mantissa1 = 0;
           v.ieee.negative = 0;
@@ -678,14 +668,16 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
         }
       }
     }
+
   }
   else {                        /* not zero or denorm */
     /* Round to 53 bits */
+
     uint64_t rest = vv.i64 & (1<<10)-1;
     vv.i64 >>= 10;
 #if !defined(__SC__)
     uint32_t guard = (uint32) vv.i64 & 1;
-#else    //*TY 03/25/2000 - 
+#else		//*TY 03/25/2000 - 
     uint32_t guard = to_ulong(vv.i64 & 1);
 #endif
     vv.i64 >>= 1;
@@ -697,12 +689,12 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
      *  0       1       0       none
      *  0       1       !=0     round
      */
-    if (guard) {
-      if (((vv.i64&1)!=0) || (rest!=0)) {
+    if(guard) {
+      if(((vv.i64&1)!=0) || (rest!=0)) {
         vv.i64++;                        /* round */
-        if ((vv.i64>>53)!=0) {         /* carry all the way across */    
+        if((vv.i64>>53)!=0) {         /* carry all the way across */		
           vv.i64 >>= 1;          /* renormalize */
-          ++bexp;
+          bexp++;
         }
       }
     }
@@ -740,7 +732,7 @@ double _Stl_atod(char *buffer, int ndigit, int dexp) {
 
   return v.d;
 }
-#  endif // __linux__
+# endif // __linux__
 
 #endif
 

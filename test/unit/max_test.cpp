@@ -39,10 +39,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(MaxTest);
 void MaxTest::max1()
 {
   int r = max(42, 100);
-  CPPUNIT_ASSERT( r == 100 );
-
-  r = max(++r, r);
-  CPPUNIT_ASSERT( r == 101 );
+  CPPUNIT_ASSERT(r==100);
 }
 void MaxTest::max2()
 {

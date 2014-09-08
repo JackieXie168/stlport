@@ -1,6 +1,7 @@
 #include <vector>
 #include <list>
 #include <algorithm>
+#include <sstream>
 #include <numeric>
 
 #include "cppunit/cppunit_proxy.h"
@@ -50,13 +51,13 @@ void IterTest::iter1()
   for(i = v.begin(); i != v.end(); i++, counter++) {
     switch( counter ) {
       case 0:
-        CPPUNIT_ASSERT(!strcmp(*i,"zippy"));
+          CPPUNIT_ASSERT(!strcmp(*i,"zippy"));
       break;
       case 1:
-        CPPUNIT_ASSERT(!strcmp(*i,"motorboy"));
+          CPPUNIT_ASSERT(!strcmp(*i,"motorboy"));
       break;
       default:
-        CPPUNIT_ASSERT(false);
+          CPPUNIT_ASSERT(false);
       break;
     }
   }
@@ -72,13 +73,13 @@ void IterTest::iter3()
   for(it = v.rbegin(); it != v.rend(); it++, counter++) {
     switch( counter ) {
       case 1:
-        CPPUNIT_ASSERT(!strcmp(*it,"zippy"));
+          CPPUNIT_ASSERT(!strcmp(*it,"zippy"));
       break;
       case 0:
-        CPPUNIT_ASSERT(!strcmp(*it,"motorboy"));
+          CPPUNIT_ASSERT(!strcmp(*it,"motorboy"));
       break;
       default:
-        CPPUNIT_ASSERT(false);
+          CPPUNIT_ASSERT(false);
       break;
     }
   }

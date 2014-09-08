@@ -1,4 +1,4 @@
-# Time-stamp: <05/09/09 21:56:22 ptr>
+# Time-stamp: <04/03/09 20:14:25 ptr>
 # $Id$
 
 .SUFFIXES:
@@ -7,11 +7,13 @@
 
 PHONY ?=
 
+.PHONY: $(PHONY)
+
 RULESBASE ?= $(SRCROOT)/Makefiles
 
 ALL_TAGS ?= release-shared	dbg-shared	stldbg-shared
 
-all:	$(OUTPUT_DIRS) $(ALL_TAGS)
+all:	dirs $(ALL_TAGS)
 
 all-static:	release-static	dbg-static	stldbg-static
 all-shared:	release-shared	dbg-shared	stldbg-shared
@@ -20,14 +22,10 @@ all-shared:	release-shared	dbg-shared	stldbg-shared
 -include ${RULESBASE}/config.mak
 # define what make clone we use
 include ${RULESBASE}/make.mak
-ifndef OSNAME
 # identify OS and build date
 include ${RULESBASE}/$(USE_MAKE)/sysid.mak
-endif
-# OS-specific definitions, like ln, install, etc. (guest host)
-include ${RULESBASE}/$(USE_MAKE)/$(BUILD_OSNAME)/sys.mak
-# target OS-specific definitions, like ar, etc.
-include ${RULESBASE}/$(USE_MAKE)/$(OSNAME)/targetsys.mak
+# OS-specific definitions, like ar, ln, install, etc.
+include ${RULESBASE}/$(USE_MAKE)/$(OSNAME)/sys.mak
 # compiler, compiler options
 include ${RULESBASE}/$(USE_MAKE)/$(COMPILER_NAME).mak
 # rules to make dirs for targets
@@ -42,9 +40,7 @@ include ${RULESBASE}/$(USE_MAKE)/$(OSNAME)/extern.mak
 # build rules (including output catalogs)
 include ${RULESBASE}/$(USE_MAKE)/targets.mak
 # dependency
-ifneq ($(OSNAME),windows)
 include ${RULESBASE}/$(USE_MAKE)/depend.mak
-endif
 
 # general clean
 include ${RULESBASE}/clean.mak
@@ -58,5 +54,3 @@ endif
 ifdef PRGNAME
 include ${RULESBASE}/$(USE_MAKE)/app/top.mak
 endif
-
-.PHONY: $(PHONY)

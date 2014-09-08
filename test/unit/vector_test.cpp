@@ -291,8 +291,9 @@ void VectorTest::pointer()
 
 void VectorTest::auto_ref()
 {
+  size_t i;
   vector<int> ref;
-  for (int i = 0; i < 5; ++i) {
+  for (i = 0; i < 5; ++i) {
     ref.push_back(i);
   }
 

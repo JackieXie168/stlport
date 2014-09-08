@@ -2,22 +2,20 @@
 #include <deque>
 #include <string>
 #include <algorithm>
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-#  include <sstream>
-#endif
+//#include <sstream>
 
-#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+#if defined (_STLP_USE_EXCEPTIONS)
 #  include <stdexcept>
 #endif
 
-#if defined (STLPORT) && defined (_STLP_THREADS)
-#  ifdef _STLP_PTHREADS
-#    include <pthread.h>
-#  endif
+#ifdef _STLP_THREADS
+# ifdef _STLP_PTHREADS
+#  include <pthread.h>
+# endif
 
-#  ifdef _STLP_WIN32THREADS
-#    include <windows.h>
-#  endif
+# ifdef _STLP_WIN32THREADS
+#  include <windows.h>
+# endif
 #endif
 
 #include "cppunit/cppunit_proxy.h"
@@ -32,57 +30,49 @@ using namespace std;
 class StringTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(StringTest);
-  CPPUNIT_TEST(assign);
   CPPUNIT_TEST(erase);
   CPPUNIT_TEST(data);
   CPPUNIT_TEST(c_str);
-  CPPUNIT_TEST(null_char);
   CPPUNIT_TEST(insert);
   CPPUNIT_TEST(replace);
   CPPUNIT_TEST(resize);
   CPPUNIT_TEST(short_string);
   CPPUNIT_TEST(find);
-#if defined (STLPORT) && defined (_STLP_THREADS)
+  CPPUNIT_TEST(assign);
+#ifdef _STLP_THREADS
   CPPUNIT_TEST(mt);
 #endif
   CPPUNIT_TEST(short_string_optim_bug);
   CPPUNIT_TEST(compare);
   CPPUNIT_TEST(template_expresion);
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-  CPPUNIT_TEST(io);
-#endif
-  CPPUNIT_TEST(capacity);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
   void erase();
   void data();
   void c_str();
-  void null_char();
   void insert();
   void replace();
   void resize();
   void short_string();
   void find();
   void assign();
-#if defined (STLPORT) && defined (_STLP_THREADS)
+#ifdef _STLP_THREADS
   void mt();
 #endif
   void short_string_optim_bug();
   void compare();
   void template_expresion();
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-  void io();
-#endif
-  void capacity();
 
-  static string func(const string& par) {
+  static string func( const string& par )
+  {
     string tmp( par );
+
     return tmp;
   }
 
-#if defined (STLPORT) && defined (_STLP_THREADS)
-#  if defined (_STLP_PTHREADS)  || defined (_STLP_UITHREADS)
+#if defined (_STLP_THREADS)
+#  if defined (_STLP_PTHREADS)
   static void* f(void*)
 #  elif defined (_STLP_WIN32THREADS)
   static DWORD __stdcall f(void*)
@@ -107,7 +97,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(StringTest);
 //
 // tests implementation
 //
-#if defined (STLPORT) && defined (_STLP_THREADS)
+#ifdef _STLP_THREADS
 void StringTest::mt()
 {
   const int nth = 2;
@@ -150,7 +140,7 @@ void StringTest::mt()
   */
 #endif
 
-#if !defined(_STLP_PTHREADS) && !defined(_STLP_WIN32THREADS) && !defined (_STLP_UITHREADS)
+#if !defined(_STLP_PTHREADS) && !defined(_STLP_WIN32THREADS)
   // this test is useless without thread support!
   CPPUNIT_ASSERT(false);
 #endif
@@ -325,27 +315,6 @@ void StringTest::c_str()
   xx += ";";
   CPPUNIT_ASSERT( strcmp( xx.c_str(), "1234;" ) == 0 );
   // End of block B
-}
-
-void StringTest::null_char()
-{
-  // ISO/IEC 14882:1998(E), ISO/IEC 14882:2003(E), 21.3.4 ('... the const version')
-  const string s( "123456" );
-
-  CPPUNIT_CHECK( s[s.size()] == '\0' );
-
-#if defined (_STLP_USE_EXCEPTIONS)
-  try {
-    char c = s.at( s.size() );
-    CPPUNIT_ASSERT( false );
-  }
-  catch ( out_of_range& ) {
-    CPPUNIT_ASSERT( true );
-  }
-  catch ( ... ) {
-    CPPUNIT_ASSERT( false );
-  }
-#endif
 }
 
 void StringTest::insert()
@@ -532,16 +501,8 @@ void StringTest::find()
   CPPUNIT_ASSERT( s.find("one") == 0 );
   CPPUNIT_ASSERT( s.find('t') == 4 );
   CPPUNIT_ASSERT( s.find('t', 5) == 8 );
-  //We are trying to get a const reference to the npos string static member to
-  //force the compiler to allocate memory for this variable. It used to reveal
-  //a bug of STLport which was simply declaring npos without instanciating it.
-#if !defined (STLPORT) || !defined (_STLP_STATIC_CONST_INIT_BUG)
-  string::size_type const& npos_local = string::npos;
-#else
-#  define npos_local string::npos
-#endif
-  CPPUNIT_ASSERT( s.find("four") == npos_local );
-  CPPUNIT_ASSERT( s.find("one", string::npos) == npos_local );
+  CPPUNIT_ASSERT( s.find("four") == string::npos );
+  CPPUNIT_ASSERT( s.find("one", string::npos) == string::npos );
 
   CPPUNIT_ASSERT( s.rfind("two") == 18 );
   CPPUNIT_ASSERT( s.rfind("two", 0) == string::npos );
@@ -566,17 +527,6 @@ void StringTest::assign()
   string s2("other test string");
   s.assign(s2);
   CPPUNIT_ASSERT( s == s2 );
-
-  static std::string str1;
-  static std::string str2;
-
-  // short string optim:
-  str1 = "123456";
-  // longer than short string:
-  str2 = "1234567890123456789012345678901234567890";
-
-  CPPUNIT_ASSERT(str1[5] == '6');
-  CPPUNIT_ASSERT(str2[29] == '0'); 
 }
 
 /* This test is to check if std::string properly supports the short string
@@ -733,7 +683,7 @@ void StringTest::template_expresion()
     result = (one + ' ' + two).at(3);
     CPPUNIT_CHECK( result == ' ' );
 
-#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+#ifdef _STLP_USE_EXCEPTIONS
     for (;;) {
       try {
         result = (one + ' ' + two).at(10);
@@ -750,54 +700,4 @@ void StringTest::template_expresion()
     }
 #endif
   }
-}
-
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-void StringTest::io()
-{
-  string str("STLport");
-  {
-    ostringstream ostr;
-    ostr << str;
-    CPPUNIT_ASSERT( ostr.good() );
-    CPPUNIT_ASSERT( ostr.str() == str );
-  }
-  {
-    istringstream istr(str);
-    string istr_content;
-    istr >> istr_content;
-    CPPUNIT_ASSERT( !istr.fail() && istr.eof() );
-    CPPUNIT_ASSERT( istr_content == str );
-  }
-  {
-    istringstream istr(str);
-    istr.width(3);
-    string istr_content;
-    istr >> istr_content;
-    CPPUNIT_ASSERT( !istr.fail() && !istr.eof() );
-    CPPUNIT_ASSERT( istr_content == "STL" );
-  }
-}
-#endif
-
-void StringTest::capacity()
-{
-  string s;
-
-  CPPUNIT_CHECK( s.capacity() >= 0 );
-  CPPUNIT_CHECK( s.capacity() < s.max_size() );
-  CPPUNIT_CHECK( s.capacity() >= s.size() );
-#ifdef _STLP_USE_SHORT_STRING_OPTIM
-
-# ifndef _STLP_SHORT_STRING_SZ
-#   define _STLP_SHORT_STRING_SZ 16 // see stlport/stl/_string_base.h
-# endif
-
-  for ( int i = 0; i < _STLP_SHORT_STRING_SZ + 2; ++i ) {
-    s += ' ';
-    CPPUNIT_CHECK( s.capacity() >= 0 );
-    CPPUNIT_CHECK( s.capacity() < s.max_size() );
-    CPPUNIT_CHECK( s.capacity() >= s.size() );
-  }
-#endif
 }

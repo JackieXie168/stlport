@@ -2,9 +2,9 @@
 #define _unary_h
 #include <cmath>
 #include <cfloat>
-#include <functional>    //*TY 12/26/1998 - added to get unary_function
+#include <functional>		//*TY 12/26/1998 - added to get unary_function
 
-#if !defined (STLPORT) || defined (_STLP_USE_NAMESPACES)
+#if !defined (STLPORT) || defined(__STL_USE_NAMESPACES)
 using std::unary_function;
 #endif
 
@@ -29,6 +29,9 @@ struct square_root : public unary_function<double, double>
   square_root() {}
   square_root(const square_root &) {}
   double operator()(double x_) const { 
+  # if !defined(STLPORT) || defined (__STL_USE_NAMESPACES)
+    using namespace std;
+  # endif
     return sqrt(x_); 
   }
 };

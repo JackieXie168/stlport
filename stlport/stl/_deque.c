@@ -260,19 +260,11 @@ __iterator__ _DEQUE_IMPL<_Tp,_Alloc>::_M_erase(iterator __first, iterator __last
         _STLP_STD::_Destroy(&(*__dst));
         _STLP_STD::_Move_Construct(&(*__dst), *__src);
       }
-      if (__dst >= __first) {
-        //There are more elements to erase than elements to move
-        _STLP_STD::_Destroy_Range(__first, ++__dst);
-        _STLP_STD::_Destroy_Moved_Range(this->_M_start, __first);
+      for (; __src >= this->_M_start; --__src, --__dst) {
+        _STLP_STD::_Destroy_Moved(&(*__dst));
+        _STLP_STD::_Move_Construct(&(*__dst), *__src);
       }
-      else {
-        //There are more elements to move than elements to erase
-        for (; __src >= this->_M_start; --__src, --__dst) {
-          _STLP_STD::_Destroy_Moved(&(*__dst));
-          _STLP_STD::_Move_Construct(&(*__dst), *__src);
-        }
-        _STLP_STD::_Destroy_Moved_Range(this->_M_start, ++__dst);
-      }
+      _STLP_STD::_Destroy_Moved_Range(this->_M_start, ++__dst);
     }
     else {
       _STLP_STD::_Destroy_Range(this->_M_start, __last);
@@ -288,19 +280,11 @@ __iterator__ _DEQUE_IMPL<_Tp,_Alloc>::_M_erase(iterator __first, iterator __last
         _STLP_STD::_Destroy(&(*__dst));
         _STLP_STD::_Move_Construct(&(*__dst), *__src);
       }
-      if (__dst != __last) {
-        //There are more elements to erase than elements to move
-        _STLP_STD::_Destroy_Range(__dst, __last);
-        _STLP_STD::_Destroy_Moved_Range(__last, this->_M_finish);
+      for (; __src != this->_M_finish; ++__src, ++__dst) {
+        _STLP_STD::_Destroy_Moved(&(*__dst));
+        _STLP_STD::_Move_Construct(&(*__dst), *__src);
       }
-      else {
-        //There are more elements to move than elements to erase
-        for (; __src != this->_M_finish; ++__src, ++__dst) {
-          _STLP_STD::_Destroy_Moved(&(*__dst));
-          _STLP_STD::_Move_Construct(&(*__dst), *__src);
-        }
-        _STLP_STD::_Destroy_Moved_Range(__dst, this->_M_finish);
-      }
+      _STLP_STD::_Destroy_Moved_Range(__dst, this->_M_finish);
     }
     else {
       _STLP_STD::_Destroy_Range(__first, this->_M_finish);

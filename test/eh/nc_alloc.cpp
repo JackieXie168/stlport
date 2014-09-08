@@ -18,19 +18,19 @@
 #include <string>
 
 #if defined (EH_NEW_HEADERS)
-#  include <new>
-#  include <cassert>
-#  include <cstdlib>
+# include <new>
+# include <cassert>
+# include <cstdlib>
 #else
-#  include <assert.h>
-#  include <stdlib.h>
-#  include <new.h>
+# include <assert.h>
+# include <stdlib.h>
+# include <new.h>
 #endif
 
 #if defined (EH_NEW_IOSTREAMS)
-#  include <iostream>
+# include <iostream>
 #else
-#  include <iostream.h>
+# include <iostream.h>
 #endif
 
 long alloc_count = 0;
@@ -46,119 +46,143 @@ bool  TestController::leak_detection_enabled = false;
 TestController gTestController;
 
 //************************************************************************************************
-void TestController::maybe_fail(long) {
-  if (never_fail || Failure_threshold() == kNotInExceptionTest)
-    return;
+void TestController::maybe_fail(long)
+{
+    if ( never_fail || Failure_threshold() == kNotInExceptionTest )
+        return;
 
-  // throw if allocation would satisfy the threshold
-  if (possible_failure_count++ >= Failure_threshold()) {
-    // what about doing some standard new_handler() behavior here (to test it!) ???
+    // throw if allocation would satisfy the threshold
+    if ( possible_failure_count++ >= Failure_threshold() )
+    {
 
-    // reset and simulate an out-of-memory failure
-    Failure_threshold() = kNotInExceptionTest;
-#ifndef EH_NO_EXCEPTIONS
-    throw EH_STD::bad_alloc();
-#endif
-  }
+        // what about doing some standard new_handler() behavior here (to test it!) ???
+
+        // reset and simulate an out-of-memory failure
+        Failure_threshold() = kNotInExceptionTest;
+# ifndef EH_NO_EXCEPTIONS
+        throw EH_STD::bad_alloc();
+# endif
+    }
 }
 
-#if defined (EH_HASHED_CONTAINERS_IMPLEMENTED)
-#  if defined (__SGI_STL)
-#    if defined (EH_NEW_HEADERS)
-#      include <hash_set>
-#    else
-#      include <hash_set.h>
-#    endif
-#  elif defined (__MSL__)
-#    include <hashset.h>
-#  else
-#    error what do I include to get hash_set?
-#  endif
-#else
-#  if defined (EH_NEW_HEADERS)
-#    include <set>
-#  else
-#    include <set.h>
-#  endif
-#endif
+# if defined( EH_HASHED_CONTAINERS_IMPLEMENTED )
 
-#if !defined (EH_HASHED_CONTAINERS_IMPLEMENTED)
+#  if defined (__SGI_STL )
+
+#   if defined (EH_NEW_HEADERS)
+#    include <hash_set>
+#   else
+#    include <hash_set.h>
+#   endif
+#  elif defined (__MSL__)
+#   include <hashset.h>
+#  else
+#   error what do I include to get hash_set?
+#  endif
+
+# else
+
+#  if defined (EH_NEW_HEADERS)
+#   include <set>
+#  else
+#  include <set.h>
+#  endif
+# endif
+
+# if !defined( EH_HASHED_CONTAINERS_IMPLEMENTED )
 typedef EH_STD::set<void*, EH_STD::less<void*> > allocation_set;
 #else
 
 USING_CSTD_NAME(size_t)
 
-struct hash_void {
+struct hash_void
+{
   size_t operator()(void* x) const { return (size_t)x; }
 };
 
 typedef EH_STD::hash_set<void*, ::hash_void, EH_STD::equal_to<void*> > allocation_set;
-#endif
+# endif
 
-static allocation_set& alloc_set() {
-  static allocation_set s;
-  return s;
+static allocation_set& alloc_set()
+{
+	static allocation_set s;
+	return s;
 }
 
 // Prevents infinite recursion during allocation
 static bool using_alloc_set = false;
 
-#if !defined (NO_FAST_ALLOCATOR)
+# if defined(_STLP_ASSERTIONS) || defined(_STLP_DEBUG)
+#  define _STLP_FILE_UNIQUE_ID NC_ALLOC_CPP
+_STLP_INSTRUMENT_FILE();
+# endif
+
+# if !defined (NO_FAST_ALLOCATOR)
 //
-//  FastAllocator -- speeds up construction of TestClass objects when
+//	FastAllocator -- speeds up construction of TestClass objects when
 // TESTCLASS_DEEP_DATA is enabled, and speeds up tracking of allocations
 // when the suite is run with the -t option.
 //
-class FastAllocator {
+class FastAllocator
+{
 public:
-  //FastAllocator() : mFree(0), mUsed(0) {}
-  static void *Allocate(size_t s) {
-    void *result = 0;
+//	FastAllocator() : mFree(0), mUsed(0) {}
 
-    if (s <= sizeof(Block)) {
-      if (mFree != 0) {
-        result = mFree;
-        mFree = mFree->next;
-      }
-      else if (mBlocks != 0 && mUsed < kBlockCount) {
-        result =  (void*)&mBlocks[mUsed++];
-      }
-    }
-    return result;
-  }
-  
-  static bool Free(void* p) {
-    Block* b = (Block*)p;
-    if (mBlocks == 0 || b < mBlocks || b >= mBlocks + kBlockCount)
-      return false;
-    b->next = mFree;
-    mFree = b;
-    return true;
-  }
-  
-  struct Block;
-  friend struct Block;
+	
+	static void *Allocate( size_t s )
+	{
+	  void *result = 0;
 
-  enum {
-    // Number of fast allocation blocks to create.
-    kBlockCount = 1500,
-    
-    // You may need to adjust this number for your platform.
-    // A good choice will speed tests. A bad choice will still work.
-    kMinBlockSize = 48
-  };
-  
-  struct Block {
-    union { 
-      Block *next;
-      double dummy; // fbp - force alignment
-      char dummy2[kMinBlockSize];
-    };
-  };
-  
-  static Block* mBlocks;
-  static Block *mFree;
-  static size_t mUsed;
+		if ( s <= sizeof( Block ) )
+		{
+			if ( mFree != 0 )
+			{
+				result = mFree;
+				mFree = mFree->next;
+			}
+			else if ( mBlocks != 0 && mUsed < kBlockCount )
+			{
+				result =  (void*)&mBlocks[mUsed++];
+			}
+		}
+	 	return result;
+	}
+	
+	static bool Free( void* p )
+	{
+		Block* b = (Block*)p;
+		if ( mBlocks == 0 || b < mBlocks || b >= mBlocks + kBlockCount )
+			return false;
+		b->next = mFree;
+		mFree = b;
+		return true;
+	}
+	
+	struct Block;
+	friend struct Block;
+	
+	enum
+	{
+		// Number of fast allocation blocks to create.
+		kBlockCount = 1500,
+		
+		// You may need to adjust this number for your platform.
+		// A good choice will speed tests. A bad choice will still work.
+		kMinBlockSize = 48
+	};
+	
+	struct Block
+	{
+		union { 
+                    Block *next;
+                    double dummy; // fbp - force alignment
+                    char dummy2[kMinBlockSize];
+                };
+	};
+	
+	static Block* mBlocks;
+	static Block *mFree;
+	static size_t mUsed;
 };
 
 FastAllocator::Block *FastAllocator::mBlocks = 
@@ -168,32 +192,34 @@ size_t FastAllocator::mUsed;
 
 
 static FastAllocator gFastAllocator;
-#endif
+# endif
 
-inline char* AllocateBlock(size_t s) {
-#if !defined (NO_FAST_ALLOCATOR)  
-  char * const p = (char*)gFastAllocator.Allocate( s );
-  if (p != 0)
-    return p;
-#endif
+inline char* AllocateBlock( size_t s )
+{
+# if !defined (NO_FAST_ALLOCATOR)    
+    char * const p = (char*)gFastAllocator.Allocate( s );
+    if ( p != 0 )
+      return p;
+# endif    
 
-  return (char*)EH_CSTD::malloc(s);
+    return (char*)EH_CSTD::malloc(s);
 }
 
-static void* OperatorNew( size_t s ) {
-  if (!using_alloc_set) {
+static void* OperatorNew( size_t s )
+{
+  if ( !using_alloc_set ) {
     simulate_possible_failure();
     ++alloc_count;
   }
     
   char *p = AllocateBlock(s);
 
-  if (gTestController.TrackingEnabled() &&
-      gTestController.LeakDetectionEnabled() &&
-      !using_alloc_set) {
+  if ( gTestController.TrackingEnabled()
+    && gTestController.LeakDetectionEnabled()
+    && !using_alloc_set ) {
     using_alloc_set = true;
-    bool inserted = alloc_set().insert(p).second;
-    EH_ASSERT(inserted);
+    EH_ASSERT( alloc_set().find( p ) == alloc_set().end() );
+    alloc_set().insert( p );
     using_alloc_set = false;
   }
 
@@ -204,44 +230,55 @@ void* _STLP_CALL operator new(size_t s)
 #ifdef EH_DELETE_HAS_THROW_SPEC
 throw(EH_STD::bad_alloc)
 #endif
-{ return OperatorNew( s ); }
+{
+	return OperatorNew( s );
+}
 
 #ifdef EH_USE_NOTHROW
-void* _STLP_CALL operator new(size_t size, const EH_STD::nothrow_t&) throw() {
-  try {
-    return OperatorNew( size );
-  }
-  catch (...) {
-    return 0;
-  }
+void* _STLP_CALL operator new(size_t size, const EH_STD::nothrow_t&) throw()
+{
+	try
+	{
+		return OperatorNew( size );
+	}
+	catch(...)
+	{
+		return 0;
+	}
 }
 #endif
 
-#if defined (EH_VECTOR_OPERATOR_NEW)
-void* _STLP_CALL operator new[](size_t size ) throw(EH_STD::bad_alloc) {
-  return OperatorNew( size );
+# if defined (EH_VECTOR_OPERATOR_NEW)
+void* _STLP_CALL operator new[](size_t size ) throw(EH_STD::bad_alloc)
+{
+	return OperatorNew( size );
 }
 
-#  ifdef EH_USE_NOTHROW
-void* _STLP_CALL operator new[](size_t size, const EH_STD::nothrow_t&) throw() {
-  try {
-    return OperatorNew(size);
-  }
-  catch (...) {
-    return 0;
-  }
+#ifdef EH_USE_NOTHROW
+void* _STLP_CALL operator new[](size_t size, const EH_STD::nothrow_t&) throw()
+{
+	try
+	{
+		return OperatorNew( size );
+	}
+	catch(...)
+	{
+		return 0;
+	}
 }
-#  endif
+#endif
 
 void _STLP_CALL operator delete[](void* ptr) throw()
-{ operator delete( ptr ); }
-#endif
+{
+	operator delete( ptr );
+}
+# endif
 
-#if defined (EH_DELETE_HAS_THROW_SPEC)
+# if defined (EH_DELETE_HAS_THROW_SPEC)
 void _STLP_CALL operator delete(void* s) throw()
-#else
+# else
 void _STLP_CALL operator delete(void* s)
-#endif
+# endif
 {
   if ( s != 0 ) {
     if ( !using_alloc_set ) {
@@ -255,7 +292,7 @@ void _STLP_CALL operator delete(void* s)
         using_alloc_set = false;
       }
     }
-# if ! defined (NO_FAST_ALLOCATOR)  
+# if ! defined (NO_FAST_ALLOCATOR)	
     if ( !gFastAllocator.Free( s ) )
 # endif   
       EH_CSTD::free(s);
@@ -264,64 +301,78 @@ void _STLP_CALL operator delete(void* s)
 
 
 /*===================================================================================
-  ClearAllocationSet  (private helper)
+	ClearAllocationSet  (private helper)
 
-  EFFECTS:  Empty the set of allocated blocks.
+	EFFECTS:  Empty the set of allocated blocks.
 ====================================================================================*/
-void TestController::ClearAllocationSet() {
-  if (!using_alloc_set) {
-    using_alloc_set = true;
-    alloc_set().clear();
-    using_alloc_set = false;
-  }
+void TestController::ClearAllocationSet()
+{
+	if ( !using_alloc_set )
+	{
+		using_alloc_set = true;
+		alloc_set().clear();
+		using_alloc_set = false;
+	}
 }
 
 
-bool TestController::ReportLeaked() {
-  EndLeakDetection();
-  
-  if (using_alloc_set)
-    EH_ASSERT( alloc_count == static_cast<int>(alloc_set().size()) );
+bool TestController::ReportLeaked()
+{
 
-  if (alloc_count != 0 || object_count != 0) {
-    EH_STD::cerr<<"\nEH TEST FAILURE !\n";
-    PrintTestName(true);
-    if (alloc_count)
-      EH_STD::cerr << "ERROR : " << alloc_count << " outstanding allocations.\n";
-    if (object_count)
-      EH_STD::cerr << "ERROR : " << object_count << " non-destroyed objects.\n";
-    alloc_count = object_count = 0;
+  EndLeakDetection();
+	
+  if (using_alloc_set)
+	  EH_ASSERT( alloc_count == static_cast<int>(alloc_set().size()) );
+
+    if ( alloc_count!=0 || object_count!=0 )
+    {
+        EH_STD::cerr<<"\nEH TEST FAILURE !\n";
+        PrintTestName(true);
+        if (alloc_count)
+            EH_STD::cerr<<"ERROR : "<<alloc_count<<" outstanding allocations.\n";
+        if (object_count)
+          EH_STD::cerr<<"ERROR : "<<object_count<<" non-destroyed objects.\n";
+	alloc_count = object_count = 0;
+
     return true;
-  }
-  return false;
+
+    }
+    return false;
+
 }
 
 
 
 /*===================================================================================
-  PrintTestName
+	PrintTestName
 
-  EFFECTS: Prints information about the current test. If err is false, ends with
-    an ellipsis, because the test is ongoing. If err is true an error is being
-    reported, and the output ends with an endl.
+	EFFECTS: Prints information about the current test. If err is false, ends with
+		an ellipsis, because the test is ongoing. If err is true an error is being
+		reported, and the output ends with an endl.
 ====================================================================================*/
 
-void TestController::PrintTestName(bool err) {
-  if (current_container)
-    EH_STD::cerr<<"["<<current_container<<"] :";
-  EH_STD::cerr<<"testing "<<current_test <<" (" << current_test_category <<")";
-  if (err)
-    EH_STD::cerr<<EH_STD::endl;
-  else
-    EH_STD::cerr<<" ... ";
+void
+TestController::PrintTestName(bool err) {
+    if (current_container)
+        EH_STD::cerr<<"["<<current_container<<"] :";
+    EH_STD::cerr<<"testing "<<current_test <<" (" << current_test_category <<")";
+    if (err)
+        EH_STD::cerr<<EH_STD::endl;
+    else
+        EH_STD::cerr<<" ... ";
 }
 
 void TestController::ReportSuccess(int count) {
-  if (nc_verbose)
-    EH_STD::cerr<<(count+1)<<" try successful"<<EH_STD::endl;
+    if (nc_verbose)
+        EH_STD::cerr<<(count+1)<<" try successful"<<EH_STD::endl;
 }
 
-long& TestController::Failure_threshold() {
-  static long failure_threshold = kNotInExceptionTest;
-  return failure_threshold;
+long& TestController::Failure_threshold()
+{
+	static long failure_threshold = kNotInExceptionTest;
+	return failure_threshold;
 }
+
+# if defined(_STLP_ASSERTIONS) || defined(_STLP_DEBUG)
+#  undef _STLP_FILE_UNIQUE_ID
+# endif

@@ -1,6 +1,6 @@
 /***********************************************************************************
-  Main.cpp
-  
+	Main.cpp
+	
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -148,22 +148,13 @@ static void usage(const char* name)
 #  include <set.h>
 # endif
 
-#if defined(_WIN32_WCE)
-#include <fstream>
-#endif
-
 int _STLP_CALL main(int argc, char** argv)
 {
-#if defined(_WIN32_WCE)
-  std::ofstream file( "\\eh_test.txt" );
-  std::streambuf* old_cout_buf = cout.rdbuf(file.rdbuf());
-  std::streambuf* old_cerr_buf = cerr.rdbuf(file.rdbuf());
-#endif
-#if defined( __MWERKS__ ) && defined( macintosh )  // Get command line.
-  argc = ccommand(&argv);
-  // Allow the i/o window to be repositioned.
-//  EH_STD::string s;
-//  getline(EH_STD::cin, s);
+#if defined( __MWERKS__ ) && defined( macintosh )	// Get command line.
+	argc = ccommand(&argv);
+	// Allow the i/o window to be repositioned.
+//	EH_STD::string s;
+//	getline(EH_STD::cin, s);
 #endif
     unsigned int niters=2;
     bool run_all=true;
@@ -205,7 +196,7 @@ int _STLP_CALL main(int argc, char** argv)
             case 'v':
                 gTestController.SetVerbose(true);
                 break;
-#if 0  // This option was never actually used -- dwa 9/22/97
+#if 0	// This option was never actually used -- dwa 9/22/97
             case 'i':
                 gTestController.IgnoreLeaks(true);
                 break;
@@ -218,8 +209,8 @@ int _STLP_CALL main(int argc, char** argv)
                     usage(argv[0]);
                 break;
             case 't':
-              track_allocations = true;
-              break;
+            	track_allocations = true;
+            	break;
             case 'e':
                 gTestController.TurnOffExceptions();
                 break;
@@ -272,12 +263,12 @@ int _STLP_CALL main(int argc, char** argv)
         }
     }
 
-  gTestController.TrackAllocations( track_allocations );
+	gTestController.TrackAllocations( track_allocations );
 
     // Over and over...
     for ( unsigned i = 0; i < niters ; i++ )
     {
-     cerr << "iteration #" << i << "\n";
+   	cerr << "iteration #" << i << "\n";
         if (run_all || run_algobase) {
             gTestController.SetCurrentContainer("algobase");
             cerr << "EH test : algobase" << endl;
@@ -361,7 +352,7 @@ int _STLP_CALL main(int argc, char** argv)
 #endif // EH_HASHED_CONTAINERS_IMPLEMENTED
 
 #if defined( EH_ROPE_IMPLEMENTED )
-  // CW1.8 can't compile this for some reason!
+	// CW1.8 can't compile this for some reason!
 #if !( defined(__MWERKS__) && __MWERKS__ < 0x1900 )
         if (run_all || run_rope) {
             gTestController.SetCurrentContainer("rope");
@@ -393,16 +384,9 @@ int _STLP_CALL main(int argc, char** argv)
 #endif
     }
 
-  gTestController.TrackAllocations( false );
-  
+	gTestController.TrackAllocations( false );
+	
     cerr << "EH test : Done\n";
-
-#if defined(_WIN32_WCE)
-   cout.rdbuf(old_cout_buf);
-   cerr.rdbuf(old_cerr_buf);
-   file.close();
-#endif
-
     return 0;
 }
 

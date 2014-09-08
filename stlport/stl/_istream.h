@@ -47,9 +47,9 @@ class _Isentry;
 struct _No_Skip_WS {};        // Dummy class used by sentry.
 
 template <class _CharT, class _Traits>
-bool _M_init_skip(basic_istream<_CharT, _Traits>& __istr);
+bool _M_init_skip(basic_istream<_CharT, _Traits>& __is);
 template <class _CharT, class _Traits>
-bool _M_init_noskip(basic_istream<_CharT, _Traits>& __istr);
+bool _M_init_noskip(basic_istream<_CharT, _Traits>& __is);
 
 //----------------------------------------------------------------------
 // Class basic_istream, a class that performs formatted input through
@@ -63,11 +63,9 @@ template <class _CharT, class _Traits>
 class basic_istream : virtual public basic_ios<_CharT, _Traits> {
   typedef basic_istream<_CharT, _Traits> _Self;
 
-#if defined (_STLP_MSVC) && (_STLP_MSVC >= 1300 && _STLP_MSVC <= 1310)
   //explicitely defined as private to avoid warnings:
   basic_istream(_Self const&);
   _Self& operator = (_Self const&);
-#endif
   
 public:
                          // Types
@@ -198,25 +196,24 @@ class _Isentry {
   public:
     typedef _Traits traits_type;
     
-    explicit sentry(basic_istream<_CharT, _Traits>& __istr,
+    explicit sentry(basic_istream<_CharT, _Traits>& __is,
                     bool __noskipws = false) : 
-      _M_ok((__noskipws || !(__istr.flags() & ios_base::skipws)) ? _M_init_noskip(__istr) : _M_init_skip(__istr) )
-      /* , _M_buf(__istr.rdbuf()) */
+      _M_ok((__noskipws || !(__is.flags() & ios_base::skipws)) ? _M_init_noskip(__is) : _M_init_skip(__is) )
+      /* , _M_buf(__is.rdbuf()) */
       {}
     
     // Calling this constructor is the same as calling the previous one with 
     // __noskipws = true, except that it doesn't require a runtime test.
-    sentry(basic_istream<_CharT, _Traits>& __istr, _No_Skip_WS) : /* _M_buf(__istr.rdbuf()), */
-      _M_ok(_M_init_noskip(__istr)) {}
+    sentry(basic_istream<_CharT, _Traits>& __is, _No_Skip_WS) : /* _M_buf(__is.rdbuf()), */
+      _M_ok(_M_init_noskip(__is)) {}
     
     ~sentry() {}
     
     operator bool() const { return _M_ok; }
     
   private:                        // Disable assignment and copy constructor.
-    //Implementation is here only to avoid warning with some compilers.
     sentry(const _Self&) : _M_ok(false) {}
-    _Self& operator=(const _Self&) { return *this; }
+    void operator=(const _Self&) {}
   };
   
 # if defined (_STLP_USE_TEMPLATE_EXPORT)
@@ -238,87 +235,87 @@ _STLP_EXPORT_TEMPLATE_CLASS basic_istream<wchar_t, char_traits<wchar_t> >;
 // Non-member character and string extractor functions.
 template <class _CharT, class _Traits>
 inline basic_istream<_CharT, _Traits>& _STLP_CALL  
-operator>>(basic_istream<_CharT, _Traits>& __in_str, _CharT& __c) {
-  __in_str._M_formatted_get(__c);
-  return __in_str;
+operator>>(basic_istream<_CharT, _Traits>& __in, _CharT& __c) {
+  __in._M_formatted_get(__c);
+  return __in;
 }
 
 template <class _Traits>
 inline basic_istream<char, _Traits>& _STLP_CALL  
-operator>>(basic_istream<char, _Traits>& __in_str, unsigned char& __c) {
-  __in_str._M_formatted_get(__REINTERPRET_CAST(char&,__c));
-  return __in_str;
+operator>>(basic_istream<char, _Traits>& __in, unsigned char& __c) {
+  __in._M_formatted_get(__REINTERPRET_CAST(char&,__c));
+  return __in;
 }
 
 template <class _Traits>
 inline basic_istream<char, _Traits>& _STLP_CALL 
-operator>>(basic_istream<char, _Traits>& __in_str, signed char& __c) {
-  __in_str._M_formatted_get(__REINTERPRET_CAST(char&,__c));
-  return __in_str;
+operator>>(basic_istream<char, _Traits>& __in, signed char& __c) {
+  __in._M_formatted_get(__REINTERPRET_CAST(char&,__c));
+  return __in;
 }
 
 template <class _CharT, class _Traits>
 inline basic_istream<_CharT, _Traits>& _STLP_CALL 
-operator>>(basic_istream<_CharT, _Traits>& __in_str, _CharT* __s) {
-  __in_str._M_formatted_get(__s);
-  return __in_str;
+operator>>(basic_istream<_CharT, _Traits>& __in, _CharT* __s) {
+  __in._M_formatted_get(__s);
+  return __in;
 }
 
 template <class _Traits>
 inline basic_istream<char, _Traits>& _STLP_CALL 
-operator>>(basic_istream<char, _Traits>& __in_str, unsigned char* __s) {
-  __in_str._M_formatted_get(__REINTERPRET_CAST(char*,__s));
-  return __in_str;
+operator>>(basic_istream<char, _Traits>& __in, unsigned char* __s) {
+  __in._M_formatted_get(__REINTERPRET_CAST(char*,__s));
+  return __in;
 }
 
 template <class _Traits>
 inline basic_istream<char, _Traits>& _STLP_CALL 
-operator>>(basic_istream<char, _Traits>& __in_str, signed char* __s) {
-  __in_str._M_formatted_get(__REINTERPRET_CAST(char*,__s));
-  return __in_str;
+operator>>(basic_istream<char, _Traits>& __in, signed char* __s) {
+  __in._M_formatted_get(__REINTERPRET_CAST(char*,__s));
+  return __in;
 }
 
 //----------------------------------------------------------------------
 // istream manipulator.
 template <class _CharT, class _Traits>
 basic_istream<_CharT, _Traits>& _STLP_CALL
-ws(basic_istream<_CharT, _Traits>& __istr) {
+ws(basic_istream<_CharT, _Traits>& __is) {
   typedef typename basic_istream<_CharT, _Traits>::sentry      _Sentry;
-  _Sentry __sentry(__istr, _No_Skip_WS()); // Don't skip whitespace.
+  _Sentry __sentry(__is, _No_Skip_WS()); // Don't skip whitespace.
   if (__sentry)
-    __istr._M_skip_whitespace(false);
-  return __istr;
+    __is._M_skip_whitespace(false);
+  return __is;
 }
 
 // Helper functions for istream<>::sentry constructor.
 template <class _CharT, class _Traits>
-inline bool _M_init_skip(basic_istream<_CharT, _Traits>& __istr) {
-  if (__istr.good()) {
-    if (__istr.tie())
-      __istr.tie()->flush();
+inline bool _M_init_skip(basic_istream<_CharT, _Traits>& __is) {
+  if (__is.good()) {
+    if (__is.tie())
+      __is.tie()->flush();
     
-    __istr._M_skip_whitespace(true);
+    __is._M_skip_whitespace(true);
   }
   
-  if (!__istr.good()) {
-    __istr.setstate(ios_base::failbit);
+  if (!__is.good()) {
+    __is.setstate(ios_base::failbit);
     return false;
   } else
     return true;
 }
 
 template <class _CharT, class _Traits>
-inline bool _M_init_noskip(basic_istream<_CharT, _Traits>& __istr) {
-  if (__istr.good()) {
-    if (__istr.tie())
-      __istr.tie()->flush();
+inline bool _M_init_noskip(basic_istream<_CharT, _Traits>& __is) {
+  if (__is.good()) {
+    if (__is.tie())
+      __is.tie()->flush();
     
-    if (!__istr.rdbuf())
-      __istr.setstate(ios_base::badbit);
+    if (!__is.rdbuf())
+      __is.setstate(ios_base::badbit);
   }
   else
-    __istr.setstate(ios_base::failbit);
-  return __istr.good();
+    __is.setstate(ios_base::failbit);
+  return __is.good();
 }
 
 //----------------------------------------------------------------------
@@ -344,8 +341,8 @@ _STLP_EXPORT_TEMPLATE_CLASS basic_iostream<wchar_t, char_traits<wchar_t> >;
 # endif /* _STLP_USE_TEMPLATE_EXPORT */
 
 template <class _CharT, class _Traits>
-basic_streambuf<_CharT, _Traits>* _STLP_CALL _M_get_istreambuf(basic_istream<_CharT, _Traits>& __istr) 
-{ return __istr.rdbuf(); }
+basic_streambuf<_CharT, _Traits>* _STLP_CALL _M_get_istreambuf(basic_istream<_CharT, _Traits>& __is) 
+{ return __is.rdbuf(); }
 
 _STLP_END_NAMESPACE
 

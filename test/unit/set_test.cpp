@@ -21,7 +21,6 @@ class SetTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(bounds);
   CPPUNIT_TEST(specialized_less);
   CPPUNIT_TEST(implementation_check);
-  CPPUNIT_TEST(reverse_iterator_test);
   CPPUNIT_TEST_SUITE_END();
 
   protected:
@@ -33,7 +32,6 @@ class SetTest : public CPPUNIT_NS::TestCase
     void bounds();
     void specialized_less();
     void implementation_check();
-    void reverse_iterator_test();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SetTest);
@@ -50,7 +48,7 @@ void SetTest::set1()
   CPPUNIT_ASSERT (s.count(42) == 1);
   s.insert(42);
   CPPUNIT_ASSERT (s.count(42) == 1);
-  size_t count = s.erase(42);
+  int count = s.erase(42);
   CPPUNIT_ASSERT (count == 1);
 }
 
@@ -87,7 +85,7 @@ void SetTest::erase()
   s.erase(s.begin());
   CPPUNIT_ASSERT( s.empty() );
   
-  size_t nb = s.erase(1);
+  unsigned int nb = s.erase(1);
   CPPUNIT_ASSERT(nb == 0);
 }
 
@@ -221,35 +219,8 @@ void SetTest::implementation_check()
   set<int> tree;
   tree.insert(1);
   set<int>::iterator it = tree.begin();
-  int const& int_ref = *it++;
-  CPPUNIT_ASSERT( int_ref == 1 );
+  ++it;
 
   CPPUNIT_ASSERT( it == tree.end() );
   CPPUNIT_ASSERT( it != tree.begin() );
-
-  set<int>::const_iterator cit = tree.begin();
-  int const& int_cref = *cit++;
-  CPPUNIT_ASSERT( int_cref == 1 );
-}
-
-void SetTest::reverse_iterator_test()
-{
-  set<int> tree;
-  tree.insert(1);
-  tree.insert(2);
-
-  {
-    set<int>::reverse_iterator rit(tree.rbegin());
-    CPPUNIT_ASSERT( *(rit++) == 2 );
-    CPPUNIT_ASSERT( *(rit++) == 1 );
-    CPPUNIT_ASSERT( rit == tree.rend() );
-  }
-
-  {
-    set<int> const& ctree = tree;
-    set<int>::const_reverse_iterator rit(ctree.rbegin());
-    CPPUNIT_ASSERT( *(rit++) == 2 );
-    CPPUNIT_ASSERT( *(rit++) == 1 );
-    CPPUNIT_ASSERT( rit == ctree.rend() );
-  }
 }

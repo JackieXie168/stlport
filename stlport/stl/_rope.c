@@ -24,24 +24,22 @@
 // if necessary.  Assumes path_end[leaf_index] and leaf_pos are correct.
 // Results in a valid buf_ptr if the iterator can be legitimately
 // dereferenced.
-#ifndef _STLP_ROPEIMPL_H
-#define _STLP_ROPEIMPL_H
+# ifndef _STLP_ROPEIMPL_H
+# define _STLP_ROPEIMPL_H
 
 #ifndef _STLP_INTERNAL_ROPE_H
-#  include <stl/_rope.h>
+# include <stl/_rope.h>
 #endif
 
-#ifndef _STLP_CSTDIO
+# ifndef _STLP_CSTDIO
 #  include <cstdio>
+# endif
+
+#ifndef _STLP_IOSTREAM
+# include <iostream>
 #endif
 
-#if !defined (_STLP_USE_NO_IOSTREAMS)
-#  ifndef _STLP_IOSTREAM
-#    include <iostream>
-#  endif
-#endif
-
-#include <stl/_range_errors.h>
+# include <stl/_range_errors.h>
 
 _STLP_BEGIN_NAMESPACE
 
@@ -387,7 +385,7 @@ void _Terminate_RopeLeaf(_Rope_RopeLeaf<_CharT,_Alloc> *__r,
                          size_t __size, const __true_type& /*basic char type*/) {
   _S_construct_null(__r->_M_data + __size);
   _STLP_ASSERT(__r->_M_c_string == __r->_M_data)
-}
+};
 
 template <class _CharT, class _Alloc>
 void _Terminate_RopeLeaf(_Rope_RopeLeaf<_CharT,_Alloc> *__r, 
@@ -396,7 +394,7 @@ void _Terminate_RopeLeaf(_Rope_RopeLeaf<_CharT,_Alloc> *__r,
     __r->_M_free_c_string();
     __r->_M_c_string = 0;
   }
-}
+};
 
 // As above, but it's OK to clobber original if refcount is 1
 template <class _CharT, class _Alloc>
@@ -409,7 +407,7 @@ rope<_CharT,_Alloc>::_S_destr_leaf_concat_char_iter (_RopeLeaf* __r, const _Char
   }
   __r->_M_decr(); // - ptr, __r->_M_ref_count == 1 or 0
   size_t __old_len = __r->_M_size._M_data;
-  if (_S_rounded_up_size(__old_len) == _S_rounded_up_size(__old_len + __len)) {
+  if (_S_allocated_capacity(__old_len) >= __old_len + __len) {
     // The space has been partially initialized for the standard
     // character types.  But that doesn't matter for those types.
     uninitialized_copy_n(__iter, __len, __r->_M_data + __old_len);
@@ -519,9 +517,10 @@ rope<_CharT,_Alloc>::_S_destr_concat_char_iter(
     return _S_concat_char_iter(__r, __s, __slen);
   }
   if (0 == __slen) {
+    // __r->_M_ref_count = 2;      // One more than before
+    __r->_M_incr();
     return __r;
   }
-  __r->_M_decr();
   if (__orig_size + __slen <= _S_copy_max && _RopeRep::_S_leaf == __r->_M_tag) {
     return _S_destr_leaf_concat_char_iter((_RopeLeaf*)__r, __s, __slen);
   }
@@ -743,12 +742,24 @@ public:
 };
 
 #if !defined (_STLP_USE_NO_IOSTREAMS)      
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
 template<class _CharT, class _Traits>
 // Here _CharT is both the stream and rope character type.
+#  else
+template<class _CharT>
+// Here _CharT is the rope character type.  Unlike in the
+// above case, we somewhat handle the case in which it doesn't
+// match the stream character type, i.e. char.
+#  endif
 class _Rope_insert_char_consumer : public _Rope_char_consumer<_CharT> {
 private:
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
   typedef basic_ostream<_CharT,_Traits> _Insert_ostream;
   typedef _Rope_insert_char_consumer<_CharT,_Traits> _Self;
+#  else
+  typedef ostream _Insert_ostream;
+  typedef _Rope_insert_char_consumer<_CharT> _Self;
+#  endif
   _Insert_ostream& _M_o;
 
   //explicitely defined as private to avoid warnings:
@@ -766,10 +777,11 @@ public:
   // Returns true to continue traversal.
 };
       
-#  if defined (__MRC__) || (defined (__SC__) && !defined (__DMC__))    //*TY 05/23/2000 - added support for mpw compiler's trigger function approach to generate vtable
+#  if defined ( _STLP_USE_NEW_IOSTREAMS )
+#    if defined(__MRC__) || (defined(__SC__) && !defined(__DMC__))    //*TY 05/23/2000 - added support for mpw compiler's trigger function approach to generate vtable
 template<class _CharT, class _Traits>
 _Rope_insert_char_consumer<_CharT, _Traits>::  ~_Rope_insert_char_consumer() {}
-#  endif    //*TY 05/23/2000 - 
+#    endif    //*TY 05/23/2000 - 
 
 template<class _CharT, class _Traits>
 bool _Rope_insert_char_consumer<_CharT, _Traits>::operator()
@@ -779,10 +791,37 @@ bool _Rope_insert_char_consumer<_CharT, _Traits>::operator()
   for (__i = 0; __i < __n; ++__i) _M_o.put(__leaf[__i]);
   return true;
 }
-#endif /* !_STLP_USE_NO_IOSTREAMS */
+#  else
+#    if defined(__MRC__)||(defined(__SC__) && !defined(__DMC__))    //*TY 05/23/2000 - added support for mpw compiler's trigger function approach to generate vtable
+template<class _CharT>
+_Rope_insert_char_consumer<_CharT>::  ~_Rope_insert_char_consumer() {}
+#    endif    //*TY 05/23/2000 - 
+
+template<class _CharT>
+bool _Rope_insert_char_consumer<_CharT>::operator()
+  (const _CharT* __leaf, size_t __n) {
+  size_t __i;
+  //  We assume that formatting is set up correctly for each element.
+  for (__i = 0; __i < __n; ++__i) _M_o << __leaf[__i];
+  return true;
+}
+
+#   if !defined (_STLP_NO_METHOD_SPECIALIZATION)
+_STLP_TEMPLATE_NULL
+inline bool 
+_Rope_insert_char_consumer<char>::operator()
+  (const char* __leaf, size_t __n) {
+  size_t __i;
+  for (__i = 0; __i < __n; ++__i) _M_o.put(__leaf[__i]);
+  return true;
+}
+
+#    endif /* _STLP_METHOD_SPECIALIZATION */
+#  endif /* _STLP_USE_NEW_IOSTREAM */
+#endif /* if !defined (_STLP_USE_NO_IOSTREAMS) */
 
 template <class _CharT, class _Alloc, class _CharConsumer>
-bool _S_apply_to_pieces(_CharConsumer& __c,
+bool _S_apply_to_pieces(_CharConsumer __c,
                         _Rope_RopeRep<_CharT, _Alloc> * __r,
                         size_t __begin, size_t __end) {
   typedef _Rope_RopeRep<_CharT, _Alloc> _RopeRep;
@@ -844,24 +883,43 @@ bool _S_apply_to_pieces(_CharConsumer& __c,
 }
 
 #if !defined (_STLP_USE_NO_IOSTREAMS)
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
 template<class _CharT, class _Traits>
-inline void _Rope_fill(basic_ostream<_CharT, _Traits>& __o, streamsize __n) {
+inline void _Rope_fill(basic_ostream<_CharT, _Traits>& __o, size_t __n)
+#  else
+inline void _Rope_fill(ostream& __o, size_t __n)
+#  endif
+{
   char __f = __o.fill();
-  for (streamsize __i = 0; __i < __n; ++__i) __o.put(__f);
+  size_t __i;
+  for (__i = 0; __i < __n; ++__i) __o.put(__f);
 }
+    
 
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
 template<class _CharT, class _Traits, class _Alloc>
 basic_ostream<_CharT, _Traits>& _S_io_get(basic_ostream<_CharT, _Traits>& __o,
-                                          const rope<_CharT, _Alloc>& __r, const __true_type& /*_IsBasicCharType*/) {
-  streamsize __w = __o.width();
-  const bool __left = (__o.flags() & ios::left) != 0;
+                                         const rope<_CharT, _Alloc>& __r, const __true_type& /*_IsBasicCharType*/)
+#  else
+template<class _CharT, class _Alloc>
+ostream& _S_io_get (ostream& __o, const rope<_CharT, _Alloc>& __r, const __true_type& /*_IsBasicCharType*/)
+#  endif
+{
+  size_t __w = __o.width();
+  bool __left = bool(__o.flags() & ios::left);
+  size_t __pad_len;
   size_t __rope_len = __r.size();
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
   _Rope_insert_char_consumer<_CharT, _Traits> __c(__o);
+#  else
+  _Rope_insert_char_consumer<_CharT> __c(__o);
+#  endif
     
-  const bool __need_pad = (((sizeof(streamsize) > sizeof(size_t)) && (__STATIC_CAST(streamsize, __rope_len) < __w)) ||
-                           ((sizeof(streamsize) <= sizeof(size_t)) && (__rope_len < __STATIC_CAST(size_t, __w))));
-  streamsize __pad_len = __need_pad ? __w - __rope_len : 0;
-
+  if (__rope_len < __w) {
+    __pad_len = __w - __rope_len;
+  } else {
+    __pad_len = 0;
+  }
   if (!__left && __pad_len > 0) {
     _Rope_fill(__o, __pad_len);
   }
@@ -872,14 +930,24 @@ basic_ostream<_CharT, _Traits>& _S_io_get(basic_ostream<_CharT, _Traits>& __o,
   return __o;
 }
 
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
 template<class _CharT, class _Traits, class _Alloc>
 basic_ostream<_CharT, _Traits>& _S_io_get(basic_ostream<_CharT, _Traits>& __o,
-                                         const rope<_CharT, _Alloc>& __r, const __false_type& /*_IsBasicCharType*/) {
-  streamsize __w = __o.width();
+                                         const rope<_CharT, _Alloc>& __r, const __false_type& /*_IsBasicCharType*/)
+#  else
+template<class _CharT, class _Alloc>
+ostream& _S_io_get (ostream& __o, const rope<_CharT, _Alloc>& __r, const __false_type& /*_IsBasicCharType*/)
+#  endif
+{
+  size_t __w = __o.width();
   size_t __rope_len = __r.size();
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
   _Rope_insert_char_consumer<_CharT, _Traits> __c(__o);
-
-  __o.width(__w /__rope_len);
+#  else
+  _Rope_insert_char_consumer<_CharT> __c(__o);
+#  endif
+    
+  __o.width(__w/__rope_len);
   _STLP_TRY {
     __r.apply_to_pieces(0, __rope_len, __c);
     __o.width(__w);
@@ -888,12 +956,19 @@ basic_ostream<_CharT, _Traits>& _S_io_get(basic_ostream<_CharT, _Traits>& __o,
   return __o;
 }
 
+#  if defined (_STLP_USE_NEW_IOSTREAMS)
 template<class _CharT, class _Traits, class _Alloc>
 basic_ostream<_CharT, _Traits>& operator<<(basic_ostream<_CharT, _Traits>& __o,
-                                           const rope<_CharT, _Alloc>& __r) {
+                                           const rope<_CharT, _Alloc>& __r)
+#  else
+template<class _CharT, class _Alloc>
+ostream& operator<< (ostream& __o, const rope<_CharT, _Alloc>& __r)
+#  endif
+{
   typedef typename _Is_integer<_CharT>::_Integral _Char_Is_Integral;
   return _S_io_get(__o, __r, _Char_Is_Integral());
 }
+
 #endif /* NO_IOSTREAMS */
 
 template <class _CharT, class _Alloc>
@@ -1325,12 +1400,6 @@ __DECLARE_INSTANCE(wchar_t, wrope::_S_empty_c_str[1], ={0});
 # endif /* _STLP_STATIC_TEMPLATE_DATA */
 // # endif
 
-#if !defined (_STLP_STATIC_CONST_INIT_BUG) && \
-   (!defined (__GNUC__) || (__GNUC__ != 2) || (__GNUC_MINOR__ != 96))
-template <class _CharT, class _Alloc>
-const size_t rope<_CharT, _Alloc>::npos;
-#endif
-
 template<class _CharT, class _Alloc>
 const _CharT* rope<_CharT,_Alloc>::c_str() const {
   if (0 == _M_tree_ptr._M_data) {
@@ -1339,13 +1408,14 @@ const _CharT* rope<_CharT,_Alloc>::c_str() const {
     return _S_empty_c_str;
   }
   _CharT* __old_c_string = _M_tree_ptr._M_data->_M_c_string;
-  if (0 != __old_c_string) return __old_c_string;
+  if (0 != __old_c_string) return(__old_c_string);
   size_t __s = size();
   _CharT* __result = _STLP_CREATE_ALLOCATOR(allocator_type,(const allocator_type&)_M_tree_ptr, _CharT).allocate(__s + 1);
   _S_flatten(_M_tree_ptr._M_data, __result);
   _S_construct_null(__result + __s);
-  __old_c_string = (_CharT*)_Atomic_swap_ptr((void**)&(_M_tree_ptr._M_data->_M_c_string), __result);
-  if (0 != __old_c_string) {
+  if ((__old_c_string = (_CharT*)
+        _Atomic_swap((__stl_atomic_t *)(&(_M_tree_ptr._M_data->_M_c_string)),
+                     (__stl_atomic_t)__result)) != 0) {
     // It must have been added in the interim.  Hence it had to have been
     // separately allocated.  Deallocate the old copy, since we just
     // replaced it.

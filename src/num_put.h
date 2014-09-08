@@ -30,7 +30,6 @@
 #include <stl/_iostream_string.h>
 #endif
 
-
 _STLP_BEGIN_NAMESPACE
 
 // Note that grouping[0] is the number of digits in the *rightmost* group.
@@ -87,7 +86,7 @@ __insert_grouping_aux( /* __basic_iostring<Char> */ Str& iostr, size_t __dec_pos
 {
   typedef string::size_type str_size;
 
-  if ( iostr.size() <= __dec_pos )
+  if (iostr.empty())
     return;
 
   size_t __first_pos = 0;
@@ -121,7 +120,3 @@ __insert_grouping_aux( /* __basic_iostring<Char> */ Str& iostr, size_t __dec_pos
 _STLP_END_NAMESPACE
 
 # endif
-
-// Local Variables:
-// mode:C++
-// End:

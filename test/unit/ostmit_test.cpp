@@ -1,5 +1,4 @@
 #include <iterator>
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -48,5 +47,3 @@ void OstreamIteratorTest::ostmit0()
   CPPUNIT_ASSERT(os.good());
   CPPUNIT_ASSERT(os.str() == "hello 1524");
 }
-
-#endif

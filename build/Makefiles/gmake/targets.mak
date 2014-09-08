@@ -1,11 +1,5 @@
-# Time-stamp: <05/11/27 17:27:04 ptr>
+# Time-stamp: <03/10/27 18:22:08 ptr>
 # $Id$
-
-# If we have no C++ sources, let's use C compiler for linkage instead of C++.
-ifeq ("$(sort ${SRC_CC} ${SRC_CPP} ${SRC_CXX})","")
-NOT_USE_NOSTDLIB := 1
-_C_SOURCES_ONLY := true
-endif
 
 # if sources disposed in several dirs, calculate
 # appropriate rules; here is recursive call!
@@ -14,17 +8,11 @@ DIRS_UNIQUE_SRC := $(dir $(SRC_CPP) $(SRC_CC) $(SRC_C) )
 ifeq (${OSNAME},cygming)
 DIRS_UNIQUE_SRC += $(dir $(SRC_RC) )
 endif
-ifeq (${OSNAME},windows)
-DIRS_UNIQUE_SRC += $(dir $(SRC_RC) )
-endif
 DIRS_UNIQUE_SRC := $(sort $(DIRS_UNIQUE_SRC) )
 include ${RULESBASE}/${USE_MAKE}/dirsrc.mak
 
 ALLBASE    := $(basename $(notdir $(SRC_CC) $(SRC_CPP) $(SRC_C)))
 ifeq (${OSNAME},cygming)
-RCBASE    += $(basename $(notdir $(SRC_RC)))
-endif
-ifeq (${OSNAME},windows)
 RCBASE    += $(basename $(notdir $(SRC_RC)))
 endif
 

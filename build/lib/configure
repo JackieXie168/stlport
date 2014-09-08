@@ -1,6 +1,8 @@
 #!/bin/sh
 
-# Time-stamp: <06/01/22 21:32:31 ptr>
+# Time-stamp: <04/04/30 22:04:48 ptr>
+# $Id$
+
 
 configmak=../Makefiles/config.mak
 
@@ -15,56 +17,6 @@ write_option() {
   echo $2 := $target >> ${configmak}
 }
 
-print_help() {
-  cat <<EOF
-Configuration utility.
-
-Usage:
-
-  configure [options]
-
-Available options:
-
-  --target=<target>     target platform (cross-compiling)
-  --help                print this help message and exit
-  --with-stlport=<dir>  use STLport in catalog <dir>
-  --with-mwcw=<dir>     Metrowerks CodeWarrior compiler catalog (useful for mw* compilers)
-                        i.e. something like "c:/Program Files/Metrowerks/CodeWarrior"
-  --with-nwsdk=<dir>    use Novell NDK/SDK from this catalog (useful for *-*-netware target)
-                        i.e. something like "c:/Novell/ndk/nwsdk"
-  --no-cygwin           Specific cygwin distribution option. Use it to build STLport using
-                        the cygwin tools but without dependency on the cygwin1.dll
-  --with-extra-cxxflags=<options>
-                        pass extra options to C++ compiler
-  --use-static-gcc      use static gcc libs instead of shared libgcc_s (useful for gcc compiler,
-                        that was builded with --enable-shared [default]; if compiler was builded
-                        with --disable-shared, static libraries will be used in any case)
-  --with-boost=<dir>    Request use of boost support (www.boost.org). For the moment only the boost
-                        type_traits library is used to get type information and to implement some
-                        specific workaround not directly implemented by STLport. To use the same
-                        support using STLport don't forget to define _STLP_USE_BOOST_SUPPORT in
-                        stlport/stl_user_config.h file.
-  --clean               remove custom settings (file ${configmak})
-                        and use default values
-
-EOF
-}
-
-case $# in
-  0)
-    exit 0
-    ;;
-esac
-
-case $1 in
-  --help)
-    print_help
-    exit 0
-    ;;
-esac
-
-rm -f ${configmak}
-
 while :
 do
   case $# in
@@ -75,6 +27,26 @@ do
   option=$1
   shift
   case $option in
+    --help)
+      cat <<EOF
+Configuration utility.
+
+Usage:
+
+  configure [options]
+
+Available options:
+
+  --target=<target>     target platform (cross-compiling)
+  --help                print this help message
+  --with-stlport=<dir>  use STLport in catalog <dir>
+  --with-msvc=<dir>     use MS VC from this catalog
+  --with-mssdk=<dir>    use MS SDK from this catalog
+  --clean               remove custom settings (file ${configmak})
+                        and use default values
+
+EOF
+      ;;
     --clean)
       rm -f ${configmak}
       ;; 
@@ -84,27 +56,11 @@ do
     --with-stlport=*)
       write_option "$option" STLPORT_DIR
       ;;
-    --with-extra-cxxflags=*)
-      write_option "$option" EXTRA_CXXFLAGS
+    --with-msvc=*)
+      write_option "$option" MSVC_DIR
       ;;
-    --with-nwsdk=*)
-      write_option "$option" NWSDK_DIR
-      ;;
-    --with-mwcw=*)
-      write_option "$option" MWCW_BASE
-      ;;
-    --no-cygwin)
-      write_option "-mno-cygwin" OPT
-      write_option -D_STLP_NO_CYGWIN DEFS
-      echo "--no-cygwin: Don't forget to uncomment _STLP_NO_CYGWIN macro"
-      echo "in stlport/stl/_site_config.h to use such a configuration."
-      ;;
-    --use-static-gcc)
-      write_option "$option" USE_STATIC_LIBGCC
-      ;;
-    --with-boost=*)
-      echo "Don't forget to define _STLP_USE_BOOST_SUPPORT in stlport/stl_user_config.h file"
-      write_option "$option" STLP_BUILD_BOOST_PATH
+    --with-mssdk=*)
+      write_option "$option" MSSDK_DIR
       ;;
   esac
 done

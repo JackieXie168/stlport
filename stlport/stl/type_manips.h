@@ -236,10 +236,8 @@ struct _AreSameUnCVTypes {
   typedef typename __bool2type<_Same>::_Ret _Ret;
 };
 
-/* Rather than introducing a new macro for the following constrution we use
- * an existing one that is used for a similar one.
- */
-#if !defined (_STLP_DONT_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS)
+#if defined(_STLP_USE_PARTIAL_SPEC_WORKAROUND)
+
 template <class _Derived, class _Base>
 struct _ConversionHelper {
   static char _Test(bool, _Base*);
@@ -254,23 +252,15 @@ struct _IsConvertible {
   enum {exists = (sizeof(char) == sizeof(_H::_Test(false, _H::_MakeDerived()))) };
 };
 
+
 template <class _Derived, class _Base>
 struct _IsConvertibleType {
   enum {exists = _IsConvertible<_Derived, _Base>::exists};
   typedef __bool2type< exists > _BT;
   typedef typename _BT::_Ret _Type;
 };
-#else
-template <class _Derived, class _Base>
-struct _IsConvertible {
-  enum {exists = 0 };
-};
 
-template <class _Derived, class _Base>
-struct _IsConvertibleType {
-  typedef __false_type _Type;
-};
-#endif
+#endif /* _STLP_USE_PARTIAL_SPEC_WORKAROUND */
 
 _STLP_END_NAMESPACE
 

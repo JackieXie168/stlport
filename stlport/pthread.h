@@ -35,8 +35,6 @@
 #  endif
 # endif
 
-/*
- Local Variables:
- mode:C++
- End:
-*/
+// Local Variables:
+// mode:C++
+// End:

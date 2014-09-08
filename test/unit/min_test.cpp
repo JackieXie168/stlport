@@ -38,10 +38,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(MinTest);
 void MinTest::min1()
 {
   int r = min(42, 100);
-  CPPUNIT_ASSERT( r == 42 );
-
-  r = min(--r, r);
-  CPPUNIT_ASSERT( r == 41 );
+  CPPUNIT_ASSERT(r==42);
 }
 void MinTest::min2()
 {

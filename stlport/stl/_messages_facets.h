@@ -40,10 +40,9 @@ _STLP_BEGIN_NAMESPACE
 
 // messages facets
 
-class messages_base
-{
-  public:
-    typedef int catalog;
+class messages_base {
+public:
+  typedef int catalog;
 };
 
 template <class _CharT> class messages {};
@@ -62,20 +61,19 @@ public:
   explicit messages(size_t __refs = 0);
 
   catalog open(const string& __fn, const locale& __loc) const
-  { return do_open(__fn, __loc); }
+    { return do_open(__fn, __loc); }
   string_type get(catalog __c, int __set, int __msgid,
-                  const string_type& __dfault) const
-  { return do_get(__c, __set, __msgid, __dfault); }
+		  const string_type& __dfault) const
+    { return do_get(__c, __set, __msgid, __dfault); }
   inline void close(catalog __c) const
-  { do_close(__c); }
+    { do_close(__c); }
 
   static _STLP_STATIC_MEMBER_DECLSPEC locale::id id;
 
-private:
   messages(_Messages*);
 
 protected:
-  messages(size_t, _Locale_messages*);
+   messages(size_t, _Locale_messages*);
   ~messages();
 
   virtual catalog     do_open(const string& __fn, const locale& __loc) const;
@@ -89,7 +87,7 @@ private:
   _Messages* _M_impl;
 };
 
-#if !defined (_STLP_NO_WCHAR_T)
+# if !defined (_STLP_NO_WCHAR_T)
 
 _STLP_TEMPLATE_NULL
 class _STLP_CLASS_DECLSPEC messages<wchar_t> : public locale::facet, public messages_base 
@@ -112,10 +110,10 @@ public:
 
   static _STLP_STATIC_MEMBER_DECLSPEC locale::id id;
 
-private:
   messages(_Messages*);
 
 protected:
+
   messages(size_t, _Locale_messages*);
   ~messages();
 

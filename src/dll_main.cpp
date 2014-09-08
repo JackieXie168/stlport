@@ -33,7 +33,7 @@
 // #endif
 
 #if !defined(_STLP_DEBUG) && ! defined (_STLP_ASSERTIONS)
-#  if !defined(__APPLE__) || !defined(__GNUC__) || (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 3))
+#  if !(defined(__APPLE__) && ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3))))
 #    define _STLP_ASSERTIONS 1
 #  endif
 #endif
@@ -57,7 +57,7 @@
 #  include <locale>
 #endif
 
-#if defined (_STLP_PTHREADS) && !defined (_STLP_NO_THREADS)
+#if defined (_STLP_UNIX) && !defined(_STLP_NO_THREADS)
 #  define _STLP_HAS_PERTHREAD_ALLOCATOR
 #  include <stl/_pthread_alloc.h>
 #endif
@@ -82,8 +82,8 @@
 #  endif
 #endif
 
-#if defined (_STLP_MSVC) && (_STLP_MSVC < 1310)
-#  pragma optimize("g", off)
+#ifdef _STLP_MSVC
+#  pragma optimize("g",off)
 #endif 
 
 _STLP_BEGIN_NAMESPACE
@@ -108,13 +108,18 @@ void _STLP_DECLSPEC _STLP_CALL __stl_throw_overflow_error(const char* __msg) {
   _STLP_THROW_MSG(overflow_error, __msg); 
 }
 
+_STLP_DECLSPEC const char*  _STLP_CALL
+__get_c_string(const string& __str) { 
+  return __str.c_str(); 
+}
+
 #if defined (_STLP_NO_EXCEPTION_HEADER) || defined (_STLP_BROKEN_EXCEPTION_CLASS)
 exception::exception() _STLP_NOTHROW {}
 exception::~exception() _STLP_NOTHROW {}
 bad_exception::bad_exception() _STLP_NOTHROW {}
 bad_exception::~bad_exception() _STLP_NOTHROW {}
-const char* exception::what() const _STLP_NOTHROW { return "class exception"; }
-const char* bad_exception::what() const _STLP_NOTHROW { return "class bad_exception"; }
+const char* exception::what() const _STLP_NOTHROW {return "class exception";}
+const char* bad_exception::what() const _STLP_NOTHROW {return "class bad_exception";}
 #endif
 
 #ifdef _STLP_OWN_STDEXCEPT
@@ -215,17 +220,11 @@ template class _STLP_CLASS_DECLSPEC _STLP_alloc_proxy<_List_node_base, _VoidPtr_
 template class _STLP_CLASS_DECLSPEC _List_base<void*,allocator<void*> >;
 template class _STLP_CLASS_DECLSPEC _List_impl<void*,allocator<void*> >;
 
-_STLP_MOVE_TO_PRIV_NAMESPACE
-template class _STLP_CLASS_DECLSPEC _Slist_node<void*>;
-_STLP_MOVE_TO_STD_NAMESPACE
-
+template class _STLP_CLASS_DECLSPEC _STLP_PRIV::_Slist_node<void*>;
 typedef _STLP_PRIV::_Slist_node<void*> _VoidPtrSNode;
 template class _STLP_CLASS_DECLSPEC _STLP_alloc_proxy<_STLP_PRIV::_Slist_node_base, _VoidPtrSNode, allocator<_VoidPtrSNode> >;
-
-_STLP_MOVE_TO_PRIV_NAMESPACE
-template class _STLP_CLASS_DECLSPEC _Slist_base<void*, allocator<void*> >;
-template class _STLP_CLASS_DECLSPEC _Slist_impl<void*, allocator<void*> >;
-_STLP_MOVE_TO_STD_NAMESPACE
+template class _STLP_CLASS_DECLSPEC _STLP_PRIV::_Slist_base<void*, allocator<void*> >;
+template class _STLP_CLASS_DECLSPEC _STLP_PRIV::_Slist_impl<void*, allocator<void*> >;
 
 template class _STLP_CLASS_DECLSPEC _STLP_alloc_proxy<size_t, void*, allocator<void*> >;
 template class _STLP_CLASS_DECLSPEC _STLP_alloc_proxy<void***, void**, allocator<void**> >;
@@ -237,10 +236,8 @@ template class _STLP_CLASS_DECLSPEC _Deque_impl<void*,allocator<void*> >;
 template class _STLP_CLASS_DECLSPEC _Rb_global<bool>;
 template class _STLP_CLASS_DECLSPEC _List_global<bool>;
 
-_STLP_MOVE_TO_PRIV_NAMESPACE
-template class _STLP_CLASS_DECLSPEC _Sl_global<bool>;
-template class _STLP_CLASS_DECLSPEC _Stl_prime<bool>;
-_STLP_MOVE_TO_STD_NAMESPACE
+template class _STLP_CLASS_DECLSPEC  _STLP_PRIV::_Sl_global<bool>;
+template class _STLP_CLASS_DECLSPEC  _STLP_PRIV::_Stl_prime<bool>;
 
 template class _STLP_CLASS_DECLSPEC _LimG<bool>;
 template class _STLP_CLASS_DECLSPEC _Bs_G<bool>;
@@ -253,8 +250,6 @@ template class _STLP_CLASS_DECLSPEC _String_base<char, allocator<char> >;
 
 #    if defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
 #      define basic_string _STLP_NON_DBG_NO_MEM_T_NAME(str)
-#    else
-#      define basic_string _STLP_NON_DBG_NAME(str)
 #    endif
 
 template class _STLP_CLASS_DECLSPEC basic_string<char, char_traits<char>, allocator<char> >;
@@ -269,11 +264,29 @@ template class _STLP_CLASS_DECLSPEC _STLP_CONSTRUCT_CHECKER<basic_string<char, c
 
 template class _STLP_CLASS_DECLSPEC basic_string<char, char_traits<char>, allocator<char> >;
 
-#  undef basic_string
+#undef basic_string
 
 #endif /* _STLP_NO_FORCE_INSTANTIATE */
 
 _STLP_END_NAMESPACE
+
+#if defined(_STLP_LEAKS_PEDANTIC) && defined(_STLP_USE_DYNAMIC_LIB)
+/*
+ * This small helper class purpose is to guaranty that the node
+ * allocator memory pool will only be returned to the system
+ * once the STLport library will have been unloaded.
+ */
+static struct _Node_alloc_helper {
+  _Node_alloc_helper() {
+    _STLP_STD::__node_alloc<false,0>::_S_alloc_call();
+    _STLP_STD::__node_alloc<true,0>::_S_alloc_call();
+  }
+  ~_Node_alloc_helper() {
+    _STLP_STD::__node_alloc<false,0>::_S_dealloc_call();
+    _STLP_STD::__node_alloc<true,0>::_S_dealloc_call();
+  }
+} _Node_alloc_helper_inst;
+#endif
 
 #define FORCE_SYMBOL extern
 

@@ -1,9 +1,9 @@
 **********************************************************************
-* 	README file for STLport 5.0                                    *
+* 	README file for STLport 5.0                                  *
 *                                                                    *
 **********************************************************************
 
-This directory contains the STLport-5.0 release.
+This directory contains STLport-5.0 release.
 
 What's inside :
 
@@ -16,10 +16,8 @@ bin              - installation directory for STLport unit tests;
 build/lib        - build directory for STLport library (if you use
                    STLport iostreams and/or locale only)
 build/test/unit  - build directory for regression (unit) tests
-build/test/eh    - build directory for exception handling tests
 stlport          - main STLport include directory
-src              - source for iostreams implementation and other parts
-                   that aren't pure template code
+src              - source and makefiles for iostreams implementation
 lib              - installation directory for STLport library (if you
                    use STLport iostreams and/or locale only);
                    it may contain more subdirs, if you use
@@ -31,7 +29,7 @@ etc              - miscellanous files (ChangeLog, TODO, scripts, etc.)
 GETTING STLPORT
 
 To download the latest version of STLport, please be sure to visit
-https://sourceforge.net/project/showfiles.php?group_id=146814
+http://www.stlport.com/download.html
 
 LEGALESE
 

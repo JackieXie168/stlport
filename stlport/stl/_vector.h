@@ -30,21 +30,25 @@
 #ifndef _STLP_INTERNAL_VECTOR_H
 #define _STLP_INTERNAL_VECTOR_H
 
-#ifndef _STLP_INTERNAL_ALGOBASE_H
+# ifndef _STLP_INTERNAL_ALGOBASE_H
 #  include <stl/_algobase.h>
-#endif
+# endif
 
-#ifndef _STLP_INTERNAL_ALLOC_H
+# ifndef _STLP_INTERNAL_ALLOC_H
 #  include <stl/_alloc.h>
-#endif
+# endif
 
-#ifndef _STLP_INTERNAL_ITERATOR_H
+# ifndef _STLP_INTERNAL_ITERATOR_H
 #  include <stl/_iterator.h>
-#endif
+# endif
 
-#ifndef _STLP_INTERNAL_UNINITIALIZED_H
+# ifndef _STLP_INTERNAL_UNINITIALIZED_H
 #  include <stl/_uninitialized.h>
-#endif
+# endif
+
+# ifndef _STLP_RANGE_ERRORS_H
+#  include <stl/_range_errors.h>
+# endif
 
 #undef  vector
 #define vector __WORKAROUND_DBG_RENAME(vector)
@@ -77,7 +81,7 @@ public:
 
   _Vector_base(__move_source<_Self> src)
     : _M_start(src.get()._M_start), _M_finish(src.get()._M_finish),
-      _M_end_of_storage(__move_source<_AllocProxy>(src.get()._M_end_of_storage)) {
+      _M_end_of_storage(_AsMoveSource<_AllocProxy>(src.get()._M_end_of_storage)) {
     //Set the source as empty:
     src.get()._M_start = 0;
     src.get()._M_finish = 0;
@@ -549,19 +553,11 @@ protected:
       _STLP_STD::_Destroy(__dst);
       _STLP_STD::_Move_Construct(__dst, *__src);
     }
-    if (__dst != __last) {
-      //There is more elements to erase than element to move:
-      _STLP_STD::_Destroy_Range(__dst, __last);
-      _STLP_STD::_Destroy_Moved_Range(__last, __end);
+    for (; __src != __end; ++__dst, ++__src) {
+      _STLP_STD::_Destroy_Moved(__dst);
+      _STLP_STD::_Move_Construct(__dst, *__src);
     }
-    else {
-      //There is more element to move than element to erase:
-      for (; __src != __end; ++__dst, ++__src) {
-        _STLP_STD::_Destroy_Moved(__dst);
-        _STLP_STD::_Move_Construct(__dst, *__src);
-      }
-      _STLP_STD::_Destroy_Moved_Range(__dst, __end);
-    }
+    _STLP_STD::_Destroy_Moved_Range(__dst, __end);
     this->_M_finish = __dst;
     return __first;
   }

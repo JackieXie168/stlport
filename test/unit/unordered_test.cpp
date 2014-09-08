@@ -78,12 +78,6 @@ void UnorderedTest::uset()
     }
   }
 
-  //A compilation time check to uncomment from time to time
-  {
-    //usettype::iterator it;
-    //CPPUNIT_ASSERT( it != lit );
-  }
-
   sort(us_val.begin(), us_val.end());
   for (i = 0; i < NB_ELEMS; ++i) {
     CPPUNIT_ASSERT( us_val[i] == i );
@@ -105,7 +99,7 @@ void UnorderedTest::umultiset()
     CPPUNIT_ASSERT( *ret == i );
   }
 
-  CPPUNIT_ASSERT( us.size() == 2 * NB_ELEMS );
+  CPPUNIT_ASSERT( us.size() == 4000 );
   vector<int> us_val;
 
   usettype::local_iterator lit, litEnd;
@@ -142,10 +136,9 @@ void UnorderedTest::umap()
     typedef unordered_map<int, umaptype> uumaptype;
     uumaptype uus;
     umaptype const& uref = uus[0];
-    umaptype ucopy = uus[0];
-    ucopy = uref;
     //Avoids warning:
-    //(void*)&uref;
+    (void*)&uref;
+    umaptype ucopy = uus[0];
   }
 
   int i;
@@ -210,7 +203,7 @@ void UnorderedTest::umultimap()
     CPPUNIT_ASSERT( *ret == p );
   }
 
-  CPPUNIT_ASSERT( us.size() == 2 * NB_ELEMS );
+  CPPUNIT_ASSERT( us.size() == 4000 );
   typedef pair<int, int> ptype;
   vector<ptype> us_val;
 
@@ -268,7 +261,7 @@ void UnorderedTest::hash_policy()
   CPPUNIT_ASSERT( int_uset.load_factor() == 0.0f );
 
   size_t nbInserts = int_uset.bucket_count() - 1;
-  for (int i = 0; (size_t)i < nbInserts; ++i) {
+  for (size_t i = 0; i < nbInserts; ++i) {
     int_uset.insert(i);
   }
   CPPUNIT_ASSERT( int_uset.size() == nbInserts );
@@ -288,16 +281,16 @@ void UnorderedTest::buckets()
 
   CPPUNIT_ASSERT( int_uset.bucket_count() < int_uset.max_bucket_count() );
 
-  int i;
+  size_t i;
   size_t nbBuckets = int_uset.bucket_count();
   size_t nbInserts = int_uset.bucket_count() - 1;
-  for (i = 0; (size_t)i < nbInserts; ++i) {
+  for (i = 0; i < nbInserts; ++i) {
     int_uset.insert(i);
   }
   CPPUNIT_ASSERT( nbBuckets == int_uset.bucket_count() );
 
   size_t bucketSizes = 0;
-  for (i = 0; (size_t)i < nbBuckets; ++i) {
+  for (i = 0; i < nbBuckets; ++i) {
     bucketSizes += int_uset.bucket_size(i);
   }
   CPPUNIT_ASSERT( bucketSizes == int_uset.size() );

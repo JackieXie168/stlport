@@ -42,7 +42,7 @@
 #  include <stl/_iterator.h>
 #endif
 
-#ifndef _STLP_INTERNAL_FUNCTION_BASE_H
+#ifndef _STLP_INTERNAL_FUNCTION_H
 #  include <stl/_function_base.h>
 #endif
 
@@ -59,10 +59,6 @@
  * hash_set, hash_map, hash_multiset, hash_multimap,
  * unordered_set, unordered_map, unordered_multiset, unordered_multimap.
  */
-
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_NO_EXTENSIONS)  && !(defined (__MRC__) || (defined (__SC__) && !defined (__DMC__)))
-#  define _STLP_DEFINE_HASH_EXTENSION
-#endif
 
 _STLP_BEGIN_NAMESPACE
 
@@ -201,11 +197,6 @@ template <class _Val, class _Key, class _HF,
           class _Traits, class _ExK, class _EqK, class _All>
 class hashtable {
   typedef hashtable<_Val, _Key, _HF, _Traits, _ExK, _EqK, _All> _Self;
-  typedef typename _Traits::_NonConstTraits _NonConstTraits;
-  typedef typename _Traits::_ConstTraits _ConstTraits;
-  typedef typename _Traits::_NonConstLocalTraits _NonConstLocalTraits;
-  typedef typename _Traits::_ConstLocalTraits _ConstLocalTraits;
-
 public:
   typedef _Key key_type;
   typedef _Val value_type;
@@ -214,9 +205,9 @@ public:
 
   typedef size_t            size_type;
   typedef ptrdiff_t         difference_type;
-  typedef typename _NonConstTraits::pointer pointer;
+  typedef value_type*       pointer;
   typedef const value_type* const_pointer;
-  typedef typename _NonConstTraits::reference reference;
+  typedef value_type&       reference;
   typedef const value_type& const_reference;
   typedef forward_iterator_tag _Iterator_category;
 
@@ -247,6 +238,11 @@ private:
   _BucketVector         _M_buckets;
   size_type             _M_num_elements;
   float                 _M_max_load_factor;
+
+  typedef typename _Traits::_NonConstTraits _NonConstTraits;
+  typedef typename _Traits::_ConstTraits _ConstTraits;
+  typedef typename _Traits::_NonConstLocalTraits _NonConstLocalTraits;
+  typedef typename _Traits::_ConstLocalTraits _ConstLocalTraits;
 
 public:
   typedef _STLP_PRIV::_Ht_iterator<_ElemsIte, _NonConstTraits> iterator;
@@ -308,8 +304,8 @@ public:
     : _M_hash(_AsMoveSource(src.get()._M_hash)),
       _M_equals(_AsMoveSource(src.get()._M_equals)),
       _M_get_key(_AsMoveSource(src.get()._M_get_key)),
-      _M_elems(__move_source<_ElemsCont>(src.get()._M_elems)),
-      _M_buckets(__move_source<_BucketVector>(src.get()._M_buckets)),
+      _M_elems(_AsMoveSource(src.get()._M_elems)),
+      _M_buckets(_AsMoveSource(src.get()._M_buckets)),
       _M_num_elements(src.get()._M_num_elements),
       _M_max_load_factor(src.get()._M_max_load_factor) {
   }
@@ -462,36 +458,37 @@ public:
   //reference find_or_insert(const value_type& __obj);
 
 private:
-#if defined (_STLP_DEFINE_HASH_EXTENSION)
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||(defined(__SC__)&&!defined(__DMC__)))
   template <class _KT> 
   _ElemsIte _M_find(const _KT& __key) const
-#else
+# else
   _ElemsIte _M_find(const key_type& __key) const
-#endif
+# endif
   {
     _ElemsCont &__mutable_elems = __CONST_CAST(_ElemsCont&, _M_elems);
     size_type __n = _M_bkt_num_key(__key);
     _ElemsIte __first(_M_buckets[__n]);
     _ElemsIte __last(_M_buckets[__n + 1]);
-    for ( ; (__first != __last) && !_M_equals(_M_get_key(*__first), __key); ++__first);
+    for ( ; (__first != __last) && !_M_equals(_M_get_key(*__first), __key);
+          ++__first);
     return __first != __last ? __first : __mutable_elems.end();
   } 
 
 public:
-#if defined (_STLP_DEFINE_HASH_EXTENSION)
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||(defined(__SC__)&&!defined(__DMC__)))
   template <class _KT> 
   iterator find(const _KT& __key) 
-#else
+# else
   iterator find(const key_type& __key) 
-#endif
+# endif
   { return _M_find(__key); } 
 
-#if defined (_STLP_DEFINE_HASH_EXTENSION)
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||(defined(__SC__)&&!defined(__DMC__)))
   template <class _KT> 
   const_iterator find(const _KT& __key) const
-#else
+# else
   const_iterator find(const key_type& __key) const
-#endif
+# endif
   { return _M_find(__key); } 
 
   size_type count(const key_type& __key) const {
@@ -520,9 +517,6 @@ public:
 
 private:
   void _M_rehash(size_type __num_buckets);
-#if defined (_STLP_DEBUG)
-  void _M_check() const;
-#endif
 
 public:
   void rehash(size_type __num_buckets_hint);
@@ -532,13 +526,11 @@ public:
   // this is for hash_map::operator[]
   reference _M_insert(const value_type& __obj);
 
-private:
   //__n is set to the first bucket that has to be modified if any
   //erase/insert operation is done after the returned iterator.
   iterator _M_before_begin(size_type &__n) const;
 
-  static iterator _S_before_begin(const _ElemsCont& __elems, const _BucketVector& __buckets,
-                                  size_type &__n);
+private:
 
   void _M_initialize_buckets(size_type __n) {
     const size_type __n_buckets = _STLP_PRIV::_Stl_prime_type::_S_next_size(__n) + 1;
@@ -546,23 +538,13 @@ private:
     _M_buckets.assign(__n_buckets, __STATIC_CAST(_BucketType*, 0));
   }
 
-#if defined (_STLP_DEFINE_HASH_EXTENSION)
-  template <class _KT>
-  size_type _M_bkt_num_key(const _KT& __key) const
-#else
   size_type _M_bkt_num_key(const key_type& __key) const
-#endif
   { return _M_bkt_num_key(__key, bucket_count()); }
 
   size_type _M_bkt_num(const value_type& __obj) const
   { return _M_bkt_num_key(_M_get_key(__obj)); }
 
-#if defined (_STLP_DEFINE_HASH_EXTENSION)
-  template <class _KT>
-  size_type _M_bkt_num_key(const _KT& __key, size_type __n) const
-#else
-  size_type _M_bkt_num_key(const key_type& __key, size_type __n) const
-#endif
+  size_type _M_bkt_num_key(const key_type& __key, size_t __n) const
   { return _M_hash(__key) % __n; }
 
   size_type _M_bkt_num(const value_type& __obj, size_t __n) const
@@ -574,8 +556,6 @@ private:
 #undef hashtable
 
 _STLP_END_NAMESPACE
-
-#undef _STLP_DEFINE_HASH_EXTENSION
 
 #if !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_hashtable.c>
@@ -595,7 +575,7 @@ _STLP_BEGIN_NAMESPACE
 
 #if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
 template <class _Val, class _Key, class _HF, class _Traits, class _ExK, class _EqK, class _All>
-struct __move_traits<hashtable<_Val, _Key, _HF, _Traits, _ExK, _EqK, _All> > {
+struct __move_traits<hashtable<_Val,_Key,_HF,_Traits,_ExK,_EqK,_All> > {
   //Hashtables are movable:
   typedef __true_type implemented;
 

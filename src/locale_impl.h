@@ -66,6 +66,11 @@ class _STLP_CLASS_DECLSPEC _Locale_impl :
 
     size_t size() const { return facets_vec.size(); }
 
+    static void make_classic_locale();
+#ifdef _STLP_LEAKS_PEDANTIC
+    static void free_classic_locale();
+#endif // _STLP_LEAKS_PEDANTIC
+  
     basic_string<char, char_traits<char>, allocator<char> > name;
 
     static void _STLP_CALL _M_throw_bad_cast();
@@ -74,20 +79,17 @@ class _STLP_CLASS_DECLSPEC _Locale_impl :
     void operator=(const _Locale_impl&);
 
   public:
-    class _STLP_CLASS_DECLSPEC Init {
+    class _STLP_CLASS_DECLSPEC Init
+    {
       public:
         Init();
         ~Init();
       private:
-        _Refcount_Base& _M_count() const;
+        static _Refcount_Base _S_count;
     };
 
     static void _STLP_CALL _S_initialize();
     static void _STLP_CALL _S_uninitialize();
-
-    static void make_classic_locale();
-    static void free_classic_locale();
-  
     friend class Init;
 
   public: // _Locale
@@ -103,13 +105,12 @@ class _STLP_CLASS_DECLSPEC _Locale_impl :
     void insert_monetary_facets(const char* name);
     void insert_messages_facets(const char* name);
 
-    bool operator != (const locale& __loc) const { return __loc._M_impl != this; }
-
   private:
 
     vector<locale::facet*> facets_vec;
 
   private:
+    friend struct _Locale_classic_free;
     friend _Locale_impl * _STLP_CALL _copy_Locale_impl( _Locale_impl * );
     friend _Locale_impl * _STLP_CALL _copy_Nameless_Locale_impl( _Locale_impl * );
     friend void _STLP_CALL _release_Locale_impl( _Locale_impl *& loc );

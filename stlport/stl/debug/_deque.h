@@ -77,8 +77,7 @@ public:                         // Iterators
 
 protected:
   __owned_list _M_iter_list;
-  _Base* _Get_base() { return this; }
-  void _Invalidate_iterator(const iterator& __it) {
+  void _Invalidate_iterator(const iterator& __it) { 
     __invalidate_iterator(&_M_iter_list,__it);
   }
   void _Invalidate_all() {
@@ -129,6 +128,9 @@ public:                         // Basic accessors
   }
 
 public:                         // Constructor, destructor.
+
+  const _Base* _Get_base() const { return (const _Base*)this; }
+
   explicit _DBG_deque(const allocator_type& __a = allocator_type()) :
     _STLP_DEQUE_SUPER(__a), _M_iter_list(_Get_base()) {}
   _DBG_deque(const _Self& __x) : 

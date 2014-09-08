@@ -22,9 +22,9 @@
 #  include <stl/_complex.h>
 #endif
 
-#if !defined (_STLP_USE_NO_IOSTREAMS)
-#  include <istream>
+#include <istream>
 
+#if !defined (_STLP_USE_NO_IOSTREAMS)
 #  include <sstream>
 
 #  ifndef _STLP_STRING_IO_H
@@ -107,7 +107,7 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __z) {
   // typedef ctype<_CharT> _Ctype;
   //  locale __loc = __is.getloc();
   //const _Ctype&  __c_type  = use_facet<_Ctype>(__loc);
-  const ctype<_CharT>& __c_type = *__STATIC_CAST(const ctype<_CharT>*, __is._M_ctype_facet());
+  const ctype<_CharT>& __c_type = *(const ctype<_CharT>*)__is._M_ctype_facet();
 
   const char __punct[4] = "(,)";
   _CharT __wpunct[3];
@@ -133,7 +133,7 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __z) {
   return __is;
 }
 
-#endif /* _STLP_USE_NO_IOSTREAMS */
+#endif /* _STLP_USE_NEW_IOSTREAMS */
 
 _STLP_END_NAMESPACE
 

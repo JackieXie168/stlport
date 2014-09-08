@@ -110,15 +110,7 @@ struct _Deque_iterator_base {
   _Deque_iterator_base(value_type* __x, _Map_pointer __y) 
     : _M_cur(__x), _M_first(*__y),
       _M_last(*__y + __buffer_size), _M_node(__y) {}
-
   _Deque_iterator_base() : _M_cur(0), _M_first(0), _M_last(0), _M_node(0) {}
-
-// see comment in doc/README.evc4
-#if defined(_MSC_VER) && _MSC_VER<1300 && defined(MIPS) && defined(NDEBUG)
-  _Deque_iterator_base(_Deque_iterator_base const& __other)
-	: _M_cur(__other._M_cur), _M_first(__other._M_first),
-	  _M_last(__other._M_last), _M_node(__other._M_node) {}
-#endif
 
   difference_type _M_subtract(const _Self& __x) const {
     return difference_type(__buffer_size) * (_M_node - __x._M_node - 1) +
@@ -367,11 +359,10 @@ public:
 
   _Deque_base(__move_source<_Self> src)
     : _M_start(src.get()._M_start), _M_finish(src.get()._M_finish),
-      _M_map(__move_source<_Map_alloc_proxy>(src.get()._M_map)),
-      _M_map_size(__move_source<_Alloc_proxy>(src.get()._M_map_size)) {
+      _M_map(_AsMoveSource<_Map_alloc_proxy>(src.get()._M_map)),
+      _M_map_size(_AsMoveSource<_Alloc_proxy>(src.get()._M_map_size)) {
     src.get()._M_map._M_data = 0;
     src.get()._M_map_size._M_data = 0;
-    src.get()._M_finish = src.get()._M_start;
   }
   
   ~_Deque_base();    
@@ -1061,10 +1052,15 @@ protected:                      // Allocation of _M_map and nodes
 
 #ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
 template <class _Tp, class _Alloc>
-struct __move_traits<deque<_Tp, _Alloc> > {
-  typedef __true_type implemented;
-  typedef typename __move_traits<_Alloc>::complete complete;
-};
+struct __move_traits<_Deque_base<_Tp, _Alloc> > :
+  __move_traits_help2<typename _Deque_base<_Tp, _Alloc>::_Map_alloc_proxy,
+                      typename _Deque_base<_Tp, _Alloc>::_Alloc_proxy>
+{};
+
+template <class _Tp, class _Alloc>
+struct __move_traits<deque<_Tp, _Alloc> > :
+  __move_traits_aux<_Deque_base<_Tp, _Alloc> >
+{};
 #endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
 
 _STLP_END_NAMESPACE 

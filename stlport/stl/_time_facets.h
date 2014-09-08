@@ -208,14 +208,14 @@ __write_formatted_time(char * __buf, char __format, char __modifier,
                        const _Time_Info& __table, const tm* __t);
 
 template <class _OuIt>
-inline _OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out_ite,
+inline _OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out,
                                    const ios_base& /* __loc */, char) {
-    return copy(__first, __last, __out_ite);
+    return copy(__first, __last, __out);
 }
 
 # ifndef _STLP_NO_WCHAR_T
 template <class _OuIt>
-_OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out_ite,
+_OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out,
                             const ios_base& __s, wchar_t);
 # endif
 
@@ -232,11 +232,11 @@ public:
   }
 
   _OutputIter put(iter_type __s, ios_base& __f, _Ch __fill,
-      const tm* __tmb,
-      const _Ch* __pat, const _Ch* __pat_end) const;
+		  const tm* __tmb,
+		  const _Ch* __pat, const _Ch* __pat_end) const;
   
   _OutputIter put(iter_type __s, ios_base& __f, _Ch  __fill,
-      const tm* __tmb, char __format, char __modifier = 0) const { 
+		  const tm* __tmb, char __format, char __modifier = 0) const { 
     return do_put(__s, __f,  __fill, __tmb, __format, __modifier); 
   }
   

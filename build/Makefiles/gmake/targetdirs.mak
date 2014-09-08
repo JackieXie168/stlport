@@ -1,4 +1,5 @@
-# Time-stamp: <05/12/13 23:12:03 ptr>
+# Time-stamp: <04/03/16 17:18:08 ptr>
+# $Id$
 
 ifdef TARGET_OS
 TARGET_NAME := ${TARGET_OS}-
@@ -28,13 +29,13 @@ INSTALL_BIN_DIR        ?= ${SRCROOT}/../$(TARGET_NAME)bin
 # want---if one is defined it will not be overlaped.
 ifeq ("${TARGET_NAME}","")
 ifneq (${OSNAME},cygming)
-ifneq ($(OSNAME),windows)
 INSTALL_BIN_DIR_DBG    ?= ${SRCROOT}/../$(TARGET_NAME)bin-g
 INSTALL_BIN_DIR_STLDBG ?= ${SRCROOT}/../$(TARGET_NAME)bin-stlg
+else
+INSTALL_BIN_DIR_DBG    ?= ${INSTALL_BIN_DIR}
+INSTALL_BIN_DIR_STLDBG ?= ${INSTALL_BIN_DIR}
 endif
-endif
-endif
-ifndef INSTALL_BIN_DIR_DBG
+else
 INSTALL_BIN_DIR_DBG    ?= ${INSTALL_BIN_DIR}
 INSTALL_BIN_DIR_STLDBG ?= ${INSTALL_BIN_DIR}
 endif
@@ -51,32 +52,19 @@ INSTALL_LIB_DIRS := $(sort $(INSTALL_LIB_DIRS))
 INSTALL_BIN_DIRS := $(sort $(INSTALL_BIN_DIRS))
 INSTALL_DIRS := $(sort $(INSTALL_LIB_DIRS) $(INSTALL_BIN_DIRS))
 
-PHONY += $(OUTPUT_DIRS) $(INSTALL_DIRS)
+PHONY += dirs $(OUTPUT_DIRS) $(INSTALL_LIB_DIRS) $(INSTALL_BIN_DIRS) $(INSTALL_DIRS)
 
-ifneq (${OSNAME},windows)
+dirs:	$(OUTPUT_DIRS)
+
+install-lib-dirs:	$(INSTALL_LIB_DIRS)
+install-bin-dirs:	$(INSTALL_BIN_DIRS)
+
 $(OUTPUT_DIRS):
-	@for d in $@ ; do \
-	  if ${EXT_TEST} -e $$d -a -f $$d ; then \
-	    echo "ERROR: Regular file $$d present, directory instead expected" ; \
-	    exit 1; \
-	  elif [ ! -d $$d ] ; then \
-	    mkdir -p $$d ; \
-	  fi ; \
-	done
+	@if [ ! -d $@ ] ; then \
+	  mkdir -p $@ ; \
+	fi
 
 $(INSTALL_DIRS):
-	@for d in $@ ; do \
-	  if ${EXT_TEST} -e $$d -a -f $$d ; then \
-	    echo "ERROR: Regular file $$d present, directory instead expected" ; \
-	    exit 1; \
-	  elif [ ! -d $$d ] ; then \
-	    mkdir -p $$d ; \
-	  fi ; \
-	done
-else
-$(OUTPUT_DIRS):
-	@if not exist $@ mkdir $(subst /,\,$@)
-
-$(INSTALL_DIRS):
-	@if not exist $@ mkdir $(subst /,\,$@)
-endif
+	@if [ ! -d $@ ] ; then \
+	  mkdir -p $@ ; \
+	fi

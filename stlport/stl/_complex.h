@@ -26,9 +26,11 @@
 // Note that the template class complex is declared within namespace
 // std, as called for by the draft C++ standard.  
 
-#ifndef _STLP_CMATH
-#  include <cmath>
+#ifndef _STLP_CMATH_H_HEADER
+#  include <stl/_cmath.h>
 #endif
+
+#include <iosfwd>
 
 _STLP_BEGIN_NAMESPACE
 
@@ -195,7 +197,7 @@ struct _STLP_CLASS_DECLSPEC complex<float> {
   typedef complex<float> _Self;
   // Constructors, destructor, assignment operator.
 
-  complex(value_type __x = 0.0f, value_type __y = 0.0f)
+  complex(value_type __x = 0.0, value_type __y = 0.0)
     : _M_re(__x), _M_im(__y) {}
 
   complex(const complex<float>& __z)    : _M_re(__z._M_re), _M_im(__z._M_im) {} 
@@ -212,7 +214,7 @@ struct _STLP_CLASS_DECLSPEC complex<float> {
 
   _Self& operator= (value_type __x) {
     _M_re = __x;
-    _M_im = 0.0f;
+    _M_im = 0;
     return *this;
   }
   _Self& operator+= (value_type __x) {
@@ -351,7 +353,7 @@ struct _STLP_CLASS_DECLSPEC complex<double> {
 
   _Self& operator= (value_type __x) {
     _M_re = __x;
-    _M_im = 0.0;
+    _M_im = 0;
     return *this;
   }
   _Self& operator+= (value_type __x) {
@@ -473,7 +475,7 @@ struct _STLP_CLASS_DECLSPEC complex<long double> {
   typedef complex<long double> _Self;
 
   // Constructors, destructor, assignment operator.
-  complex(value_type __x = 0.0l, value_type __y = 0.0l)
+  complex(value_type __x = 0.0, value_type __y = 0.0)
     : _M_re(__x), _M_im(__y) {}
 
   complex(const complex<long double>& __z)
@@ -489,7 +491,7 @@ struct _STLP_CLASS_DECLSPEC complex<long double> {
 
   _Self& operator= (value_type __x) {
     _M_re = __x;
-    _M_im = 0.0l;
+    _M_im = 0;
     return *this;
   }
   _Self& operator+= (value_type __x) {
@@ -821,13 +823,7 @@ _STLP_DECLSPEC complex<long double> _STLP_CALL polar(const long double&, const l
 #endif
 
 
-#if !defined (_STLP_USE_NO_IOSTREAMS)
-
-_STLP_END_NAMESPACE
-
-#  include <iosfwd>
-
-_STLP_BEGIN_NAMESPACE
+#ifndef _STLP_USE_NO_IOSTREAMS
 
 // Complex output, in the form (re,im).  We use a two-step process 
 // involving stringstream so that we get the padding right.  
@@ -857,7 +853,7 @@ _STLP_OPERATOR_TEMPLATE
 _STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL 
 operator<<(basic_ostream<char, char_traits<char> >& __is, const complex<double>& __z);
 
-#  if !defined (_STLP_NO_LONG_DOUBLE)
+#  if ! defined (_STLP_NO_LONG_DOUBLE)
 _STLP_OPERATOR_TEMPLATE
 _STLP_DECLSPEC basic_istream<char, char_traits<char> >& _STLP_CALL 
 operator>>(basic_istream<char, char_traits<char> >& __is, complex<long double>& __z);
@@ -870,23 +866,33 @@ operator<<(basic_ostream<char, char_traits<char> >& __is, const complex<long dou
 
 #  if defined (_STLP_USE_TEMPLATE_EXPORT) && ! defined (_STLP_NO_WCHAR_T)
 
-_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator>>(basic_istream<wchar_t, char_traits<wchar_t> >&, complex<double>&);
-_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<double>&);
-_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator>>(basic_istream<wchar_t, char_traits<wchar_t> >&, complex<float>&);
-_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<float>&);
+_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator>>(
+        basic_istream<wchar_t, char_traits<wchar_t> >&, complex<double>&);
+_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator<<(
+        basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<double>&);
+_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator>>(
+        basic_istream<wchar_t, char_traits<wchar_t> >&, complex<float>&);
+_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator<<(
+        basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<float>&);
 
-#    if !defined (_STLP_NO_LONG_DOUBLE)
-_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator>>(basic_istream<wchar_t, char_traits<wchar_t> >&, complex<long double>&);
-_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
-operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<long double>&);
+#    ifndef _STLP_NO_LONG_DOUBLE
+_STLP_EXPORT_TEMPLATE basic_istream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator>>(
+        basic_istream<wchar_t, char_traits<wchar_t> >&, complex<long double>&);
+_STLP_EXPORT_TEMPLATE basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL operator<<(
+        basic_ostream<wchar_t, char_traits<wchar_t> >&, const complex<long double>&);
 #    endif
-#  endif
-#endif
+
+#  endif /* USE_TEMPLATE_EXPORT */
+
+#else /* _STLP_USE_NO_IOSTREAMS */
+
+//template <class _Tp>
+//ostream& _STLP_CALL operator<<(ostream& s, const complex<_Tp>& __z);
+//
+//template <class _Tp>
+//istream& _STLP_CALL  operator>>(istream& s, complex<_Tp>& a);
+
+#endif /* _STLP_USE_NEW_IOSTREAMS */
 
 
 // Transcendental functions.  These are defined only for float, 

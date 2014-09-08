@@ -62,7 +62,8 @@ bool lexicographical_compare(_InputIter1 __first1, _InputIter1 __last1,
   return __first1 == __last1 && __first2 != __last2;
 }
 
-#if !defined (_STLP_NO_EXTENSIONS)
+# ifndef _STLP_NO_EXTENSIONS
+
 template <class _InputIter1, class _InputIter2>
 int __lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
                                    _InputIter2 __first2, _InputIter2 __last2) {
@@ -90,7 +91,7 @@ int lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
   _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
   return __lexicographical_compare_3way(__first1, __last1, __first2, __last2);
 }
-#endif
+# endif
 
 template <class _RandomAccessIter, class _Tp>
 _STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAccessIter __last,
@@ -127,19 +128,6 @@ _STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAcc
     return __last;
   }
 }
-
-#if !defined (__BORLANDC__)
-inline char* 
-__find(char* __first, char* __last, char __val, const random_access_iterator_tag &) {
-  void *res =  memchr(__first, __val, __last - __first);
-  return res != 0 ? __STATIC_CAST(char*,res) : __last;
-}
-inline const char* 
-__find(const char* __first, const char* __last, char __val, const random_access_iterator_tag &) {
-  const void *res =  memchr(__first, __val, __last - __first);
-  return res != 0 ? __STATIC_CAST(const char*,res) : __last;
-}
-#endif
 
 template <class _RandomAccessIter, class _Predicate>
 _STLP_INLINE_LOOP _RandomAccessIter __find_if(_RandomAccessIter __first, _RandomAccessIter __last,
@@ -366,9 +354,9 @@ find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
                     __comp);
 }
 
-template <class _ForwardIter, class _Tp, class _Compare1, class _Compare2, class _Distance>
-_ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp& __val,
-                           _Compare1 __comp1, _Compare2 __comp2, _Distance*) {
+template <class _ForwardIter, class _Tp, class _Compare, class _Distance>
+_ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last,
+                           const _Tp& __val, _Compare __comp, _Distance*) {
   _Distance __len = distance(__first, __last);
   _Distance __half;
   _ForwardIter __middle;
@@ -377,7 +365,7 @@ _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp&
     __half = __len >> 1;
     __middle = __first;
     advance(__middle, __half);
-    if (__comp1(*__middle, __val)) {
+    if (__comp(*__middle, __val)) {
       __first = __middle;
       ++__first;
       __len = __len - __half - 1;

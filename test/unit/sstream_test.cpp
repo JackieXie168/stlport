@@ -1,17 +1,14 @@
 #include <string>
-#include "math_aux.h"
+#include <sstream>
+#include <memory>
 
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-#  include <sstream>
-#  include <memory>
+#include "full_streambuf.h"
 
-#  include "full_streambuf.h"
+#include "cppunit/cppunit_proxy.h"
 
-#  include "cppunit/cppunit_proxy.h"
-
-#  if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
+#if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
 using namespace std;
-#  endif
+#endif
 
 //
 // TestCase class
@@ -21,7 +18,6 @@ class SstreamTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST_SUITE(SstreamTest);
   CPPUNIT_TEST(output);
   CPPUNIT_TEST(input);
-  CPPUNIT_TEST(input_char);
   CPPUNIT_TEST(io);
   CPPUNIT_TEST(err);
   CPPUNIT_TEST(err_long);
@@ -32,13 +28,11 @@ class SstreamTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(rdbuf);
   CPPUNIT_TEST(streambuf_output);
   CPPUNIT_TEST(seek);
-  CPPUNIT_TEST(pointer);
   CPPUNIT_TEST_SUITE_END();
 
   protected:
     void output();
     void input();
-    void input_char();
     void io();
     void err();
     void err_long();
@@ -49,7 +43,6 @@ class SstreamTest : public CPPUNIT_NS::TestCase
     void rdbuf();
     void streambuf_output();
     void seek();
-    void pointer();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SstreamTest);
@@ -92,18 +85,6 @@ void SstreamTest::input()
   CPPUNIT_ASSERT( s.eof() );
   CPPUNIT_ASSERT( str == "abcd ef" );
 }
-
-void SstreamTest::input_char()
-{
-  char buf[16] = { 0, '1', '2', '3' };
-  istringstream s( "0" );
-  s >> buf;
-
-  CPPUNIT_ASSERT( buf[0] == '0' );
-  CPPUNIT_ASSERT( buf[1] == 0 );
-  CPPUNIT_ASSERT( buf[2] == '2' );
-}
-
 
 void SstreamTest::io()
 {
@@ -197,20 +178,6 @@ void SstreamTest::init_in()
   is >> n;
   CPPUNIT_ASSERT( !is.fail() );
   CPPUNIT_ASSERT( n == 12345 );
-
-  istringstream dis( "1.2345" );
-  double d;
-
-  dis >> d;
-  CPPUNIT_ASSERT( !dis.fail() );
-  CPPUNIT_ASSERT( are_equals(d, 1.2345) );
-
-  istringstream fis( "1.2345" );
-  float f;
-
-  fis >> f;
-  CPPUNIT_ASSERT( !fis.fail() );
-  CPPUNIT_ASSERT( are_equals(f, 1.2345f) );
 }
 
 void SstreamTest::init_out()
@@ -302,7 +269,7 @@ void SstreamTest::streambuf_output()
     CPPUNIT_ASSERT( ostr.str() == "0123456789" );
   }
 
-#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+#if defined (_STLP_USE_EXCEPTIONS)
   {
     //If the output stream buffer throws:
     istringstream in("01234567890123456789");
@@ -329,7 +296,7 @@ void SstreamTest::streambuf_output()
     CPPUNIT_ASSERT( in );
     CPPUNIT_ASSERT( ostr.str() == "01234567890123456789" );
   }
-#  endif
+#endif
 }
 
 void SstreamTest::seek()
@@ -349,42 +316,3 @@ void SstreamTest::seek()
   is.seekg( -3, ios::cur );
   CPPUNIT_ASSERT( is.tellg() == stringstream::pos_type(3) );
 }
-
-void SstreamTest::pointer()
-{
-  // Problem with printing pointer to null
-  {
-    ostringstream s;
-    void *p = (void *)0xff00;
-    s << p;
-    CPPUNIT_ASSERT( s.good() );
-    if ( sizeof( p ) == 2 ) {
-      CPPUNIT_ASSERT( s.str() == "0xff00" );
-    } else if ( sizeof( p ) == 4 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000ff00" ); // this pass
-    } else if ( sizeof( p ) == 8 ) {
-      CPPUNIT_ASSERT( s.str() == "0x000000000000ff00" );
-    } else {
-      CPPUNIT_CHECK( sizeof( p ) == 2 || sizeof( p ) == 4 || sizeof( p ) == 8 );
-    }
-  }
-#if 0 // this fail, bad implementation; use STLport 5.1 or newer instead
-  {
-    ostringstream s;
-    void *p = 0;
-    s << p;
-    CPPUNIT_ASSERT( s.good() );
-    if ( sizeof( p ) == 2 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000" );
-    } else if ( sizeof( p ) == 4 ) {
-      CPPUNIT_ASSERT( s.str() == "0x00000000" ); // but this fail
-    } else if ( sizeof( p ) == 8 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000000000000000" );
-    } else {
-      CPPUNIT_CHECK( sizeof( p ) == 2 || sizeof( p ) == 4 || sizeof( p ) == 8 );
-    }
-  }
-#endif
-}
-
-#endif

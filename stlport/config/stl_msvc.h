@@ -1,21 +1,22 @@
 // STLport configuration file
 // It is internal STLport header - DO NOT include it directly
-// Microsoft Visual C++ 6.0, 7.0, 7.1, 8.0 Beta, ICL
+// Microsoft Visual C++ 4.0, 4.1, 4.2, 5.0, 6.0, 7.0, 7.1, ICL
 
-#if defined (_STLP_USING_PLATFORM_SDK_COMPILER)
-/* This is 64 bits platform SDK specific settings. There is no clear way to 
- * recognize the SDK coming with a compiler from the one freely available.
- * For the moment we hope that there is only one SDK for 64 bits windows so
- * we simply detect it using the _WIN64 macro.
- */
-#  define _STLP_NATIVE_INCLUDE_PATH ../crt
-#  define _STLP_VENDOR_GLOBAL_CSTD
-#  define _STLP_VENDOR_TERMINATE_STD
+
+// Common features for VC++ 4.0 and higher
+#if defined (_M_IA64)
+#  define _STLP_NATIVE_HEADER(x) <../crt/##x>
+#  define _STLP_NATIVE_C_HEADER(x) <../crt/##x>
+#  define _STLP_NATIVE_CPP_C_HEADER(x) <../crt/##x>
+#  define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../crt/##x>
+#  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../crt/##header>
 #  define _STLP_GLOBAL_NEW_HANDLER
-#  if (_MSC_VER <= 1400)
-//We hope this bug will be fixed in future versions.
-#    define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
-#  endif
+#else
+#  define _STLP_NATIVE_HEADER(x) <../include/##x>
+#  define _STLP_NATIVE_C_HEADER(x) <../include/##x>
+#  define _STLP_NATIVE_CPP_C_HEADER(x) <../include/##x>
+#  define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../include/##x>
+#  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../include/##header>
 #endif
 
 #define _STLP_CALL __cdecl
@@ -31,6 +32,10 @@
 #  define _STLP_DONT_USE_EXCEPTIONS 1
 #endif
 
+#ifndef _STLP_MSVC
+#  define _STLP_VENDOR_UNEXPECTED_STD
+#endif
+
 #if defined (_MT) && !defined (_STLP_NO_THREADS) && !defined (_REENTRANT)
 #  define _REENTRANT 1
 #endif
@@ -40,7 +45,6 @@
 #endif
 
 #define _STLP_MINIMUM_IMPORT_STD
-#define _STLP_NO_VENDOR_STDLIB_L 1
 
 #if defined (_STLP_MSVC)
 
@@ -60,18 +64,20 @@
 // # endif
 #  if (_STLP_MSVC <= 1400)
 #    define _STLP_STATIC_CONST_INIT_BUG   1
-#  endif  //  (_STLP_MSVC <= 1400)
+#  endif	//	(_STLP_MSVC <= 1400)
 
 #  if (_STLP_MSVC >= 1310)
 #    define _STLP_FULL_ADL_IMPLEMENTED 1
-#  endif  //  (_STLP_MSVC >= 1310)
+#  endif	//	(_STLP_MSVC >= 1310)
 
 #  if (_STLP_MSVC >= 1300)
+//Starting with MSVC 7.0 we concider that it is the new SDK that is granted:
+#    define _STLP_NEW_PLATFORM_SDK 1
 #    undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
 #    if !defined (_STLP_DONT_USE_EXCEPTIONS)
 #      define _STLP_NOTHROW throw()
 #    endif
-#  endif  //  (_STLP_MSVC >= 1300)
+#  endif	//	(_STLP_MSVC >= 1300)
 
 #  if (_STLP_MSVC <= 1300) 
 #    define _STLP_NO_CLASS_PARTIAL_SPECIALIZATION 1
@@ -87,24 +93,21 @@
 #    define _STLP_NO_QUALIFIED_FRIENDS    1
 #    define _STLP_NO_FRIEND_TEMPLATES
 // fails to properly resolve call to sin() from within sin()
+#    define _STLP_SAME_FUNCTION_NAME_RESOLUTION_BUG
 #  endif /* _STLP_MSVC <= 1300 */
 
 #  if (_STLP_MSVC >= 1200)
 #    define _STLP_HAS_NATIVE_FLOAT_ABS 1
 #  endif
 
-#  if (_STLP_MSVC == 1300)
-#    define _STLP_NO_MOVE_SEMANTIC
-#  endif
-
-#  if (_STLP_MSVC < 1300)
+#  if (_STLP_MSVC <= 1200)
 /*
  * dums: VC6 do not handle correctly member templates of class that are explicitely
  * instanciated to be exported. There is a workaround, seperate the non template methods
  * from the template ones within 2 different classes and only export the non template one.
  * It is implemented for basic_string and locale at the writing of this note. 
- * This problem has finally been considered as not important enough to not use this feature. 
- * Moreover Boost (www.boost.org) required it to be granted.
+ * This problem has finally been concidered as not important enough to not use this feature. 
+ * Moreover boost (www.boost.org) required it to be granted.
  * The workaround is activated thanks to the _STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND macro defined
  * later in this config file.
  */
@@ -122,48 +125,26 @@
 #    define _STLP_DONT_RETURN_VOID 1
 #  endif
 
-/*
- * MSVC6 is known to have many trouble with namespace management but
- * MSVC .Net 2003 and 2005 also have a bug difficult to reproduce without
- * STLport:
- * namespace stlp_std {
- *   typedef int foo_int;
- * }
- * #include <map>
- * const foo_int bar = 0;
- *
- * As you can see foo is available without namespace specification as if 
- * a using namespace stlp_std has been performed. Defining _STLP_USING_NAMESPACE_BUG
- * restore the expected compilation error.
- */
-#  define _STLP_USING_NAMESPACE_BUG 1
-
 #endif /* _STLP_MSVC */
 
 #if (_MSC_VER <= 1310) 
 #  define _STLP_VENDOR_GLOBAL_CSTD
 #endif /* (_MSC_VER <= 1310) */
 
-#if (_MSC_VER < 1300)
+#if (_MSC_VER <= 1200)
 #  define _STLP_NO_IEC559_SUPPORT 1
 #endif
 
-#if (_MSC_VER >= 1300)
-/* Starting with MSVC 7.0 and compilers simulating it,
- * we assume that the new SDK is granted:
- */
-#  define _STLP_NEW_PLATFORM_SDK 1
-#endif
-
-#if (_MSC_VER < 1300) || defined (UNDER_CE) // including MSVC 6.0
+#if (_MSC_VER <= 1200) || defined(UNDER_CE) // including MSVC 6.0
 //  these work, as long they are inline
 #  define _STLP_INLINE_MEMBER_TEMPLATES 1
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
 #  define _STLP_GLOBAL_NEW_HANDLER 1
 #  define _STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE 1
 #  define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
-#  define _STLP_VENDOR_UNEXPECTED_STD
-#endif
+#  define _STLP_VENDOR_UNEXPECTED_STD 1
+#  define _STLP_USING_NAMESPACE_BUG 1
+#endif /* (_MSC_VER <= 1200) */
 
 #if (_STLP_MSVC > 1100)
 typedef char __stl_char;
@@ -223,38 +204,37 @@ typedef char __stl_char;
 #  undef  _STLP_NO_AT_MEMBER_FUNCTION
 #  undef  _STLP_NO_MEMBER_TEMPLATES
 #  undef  _STLP_NO_MEMBER_TEMPLATE_CLASSES
-#  define _STLP_HAS_NO_NAMESPACES 1
-#  define _STLP_NO_AT_MEMBER_FUNCTION 1
-#  define _STLP_NO_MEMBER_TEMPLATES 1
-#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
+#  define  _STLP_HAS_NO_NAMESPACES 1
+#  define  _STLP_NO_AT_MEMBER_FUNCTION 1
+#  define  _STLP_NO_MEMBER_TEMPLATES 1
+#  define  _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
 #endif /* 1100 */
 
 // If we are under Windows CE, include appropriate config
-#if defined (UNDER_CE) && (_MSC_VER < 1200)
+
+#if defined(UNDER_CE) && (_MSC_VER < 1200)
     // Microsoft Visual C++ 5 with Windows CE Toolkit;
     // could also be Visual C++ 6 with toolkit, but we can't detect that.
     // the Windows CE Toolkit is obsolete, anyway
 #    include <config/stl_wince.h>
 #endif /* UNDER_CE */
 
-#if (_MSC_VER < 1300) // MSVC 6.0 and earlier
+#if (_MSC_VER <= 1200) // including MSVC 6.0
 // defined for DEBUG and NDEBUG too, to allow user mix own debug build with STLP release library
 #  define _STLP_USE_ABBREVS
 #endif
 
-#if !defined (_STLP_WINCE)
+#if !( defined(_STLP_WINCE) )
 #  define _STLP_EXPORT_DECLSPEC __declspec(dllexport)
 #  define _STLP_IMPORT_DECLSPEC __declspec(dllimport)
 #endif
 
-#if !(defined (_STLP_MSVC) && _STLP_MSVC < 1100)
+#if !( defined(_STLP_MSVC) && _STLP_MSVC < 1100)
 #  define _STLP_CLASS_EXPORT_DECLSPEC __declspec(dllexport)
 #  define _STLP_CLASS_IMPORT_DECLSPEC __declspec(dllimport)
 #endif
 
-//dums 12/05/2005: removed _WINDLL check, this macro means that the user is building a dll
-// but not what the user wants to be linked to.
-#if defined (__DLL) || defined (_DLL) || defined (_RTLDLL) || defined (_AFXDLL)
+#if defined (__DLL) || defined (_DLL) || defined (_WINDLL) || defined (_RTLDLL) || defined(_AFXDLL)
 #  if !defined (_STLP_USE_STATIC_LIB)
 #    if !defined (_STLP_USE_DYNAMIC_LIB)
 #      define _STLP_USE_DYNAMIC_LIB
@@ -281,7 +261,7 @@ typedef char __stl_char;
 #if defined(_STLP_USE_DYNAMIC_LIB)
 #  undef  _STLP_USE_DECLSPEC
 #  define _STLP_USE_DECLSPEC 1
-#  if (_STLP_MSVC >= 1200) && (_STLP_MSVC < 1300)
+#  if (_STLP_MSVC == 1200)
 #    define _STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND 1
 #  endif
 #endif
@@ -303,34 +283,33 @@ typedef char __stl_char;
 #  undef _STLP_NO_CUSTOM_IO
 #endif
 
-#if !defined (__BUILDING_STLPORT) && !defined (_STLP_DONT_USE_AUTO_LINK) && \
-    !defined (_STLP_NO_IOSTREAMS) && !defined (_STLP_USE_NO_IOSTREAMS)
+#if !defined (__BUILDING_STLPORT) && !defined (_STLP_NO_IOSTREAMS) && !defined (_STLP_DONT_USE_AUTO_LINK)
 
 #  define _STLP_STRINGIZE(X) _STLP_STRINGIZE_AUX(X)
 #  define _STLP_STRINGIZE_AUX(X) #X
+
+#  if defined (_STLP_USE_DYNAMIC_LIB)
+#    define _STLP_LIB_TYPE ""
+#  else
+#    define _STLP_LIB_TYPE "static_"
+#  endif
 
 #  if defined (_STLP_DEBUG)
 #    define _STLP_LIB_OPTIM_MODE "stld"
 #  elif defined (_DEBUG)
 #    define _STLP_LIB_OPTIM_MODE "d"
 #  else
-#    define _STLP_LIB_OPTIM_MODE ""
+#    define _STLP_LIB_OPTIM_MODE "r"
 #  endif
 
-#  if defined (_STLP_USE_DYNAMIC_LIB)
-#    define _STLP_LIB_TYPE ""
-#  else
-#    define _STLP_LIB_TYPE "_static"
-#  endif
+#  define _STLP_VERSION_STR _STLP_STRINGIZE(_STLPORT_MAJOR)_STLP_STRINGIZE(_STLPORT_MINOR)
 
-#  define _STLP_VERSION_STR _STLP_STRINGIZE(_STLPORT_MAJOR)"."_STLP_STRINGIZE(_STLPORT_MINOR)
-
-#  define _STLP_STLPORT_LIB "stlport"_STLP_LIB_OPTIM_MODE""_STLP_LIB_TYPE"."_STLP_VERSION_STR".lib"
+#  define _STLP_STLPORT_LIB "stlport_"_STLP_LIB_TYPE""_STLP_LIB_OPTIM_MODE""_STLP_VERSION_STR".lib"
 
 #  if defined (_STLP_VERBOSE_AUTO_LINK)
 #    pragma message ("STLport: Auto linking to "_STLP_STLPORT_LIB)
 #  endif
-#  pragma comment (lib, _STLP_STLPORT_LIB)
+#  pragma comment (lib , _STLP_STLPORT_LIB)
 
 #  undef _STLP_STLPORT_LIB
 #  undef _STLP_LIB_OPTIM_MODE
@@ -339,19 +318,6 @@ typedef char __stl_char;
 #  undef _STLP_STRINGIZE
 
 #endif /* _STLP_DONT_USE_AUTO_LINK */
-
-#if defined (_STLP_USING_PLATFORM_SDK_COMPILER)
-/* The Windows 64 bits SDK required for the moment link to bufferoverflowU.lib for
- * additional buffer overrun checks. Rather than require the STLport build system and
- * users to explicitely link with it we use the MSVC auto link feature.
- */
-#  if !defined (_STLP_DONT_USE_AUTO_LINK) || defined (__BUILDING_STLPORT)
-#    pragma comment (lib, "bufferoverflowU.lib")
-#    if defined (_STLP_VERBOSE_AUTO_LINK)
-#      pragma message ("STLport: Auto linking to bufferoverflowU.lib")
-#    endif
-#  endif
-#endif
 
 // Local Variables:
 // mode:C++

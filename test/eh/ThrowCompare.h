@@ -1,8 +1,8 @@
 /***********************************************************************************
-  ThrowCompare.h
-  
-    Interface for the ThrowCompare class
-    
+	ThrowCompare.h
+	
+		Interface for the ThrowCompare class
+		
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -13,34 +13,39 @@
  * in supporting documentation.  Mark of the Unicorn makes no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
-        
+				
 ***********************************************************************************/
 #ifndef ThrowCompare_H_
 #define ThrowCompare_H_
 
-#include "Prefix.h"
-#include "TestClass.h"
+# include "Prefix.h"
+# include "TestClass.h"
 
-struct ThrowCompare {
-  bool operator()( const TestClass& a, const TestClass& b ) const {
-    simulate_possible_failure();
-    return a < b;
-  }
+struct ThrowCompare
+{
+	bool operator()( const TestClass& a, const TestClass& b ) const {
+	  simulate_possible_failure();
+	  return a < b;
+	}
 };
 
 
-struct ThrowEqual {
-  inline bool operator()( const TestClass& a, const TestClass& b ) const {
-    simulate_possible_failure();
-    return a == b;
-  }
+struct ThrowEqual
+{
+	inline bool operator()( const TestClass& a, const TestClass& b ) const
+	{
+		simulate_possible_failure();
+		return a == b;
+	}
 };
 
-struct ThrowHash { // : private ThrowCompare
-  inline EH_CSTD::size_t operator()( const TestClass& a ) const {
-    simulate_possible_failure();
-    return EH_CSTD::size_t(a.value());
-  }
+struct ThrowHash // : private ThrowCompare
+{
+	inline EH_CSTD::size_t operator()( const TestClass& a ) const
+	{
+		simulate_possible_failure();
+		return EH_CSTD::size_t(a.value());
+	}
 };
 
 #endif // ThrowCompare_H_
