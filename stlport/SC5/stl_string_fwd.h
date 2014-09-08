@@ -1,1 +1,0 @@
-../stl_string_fwd.h

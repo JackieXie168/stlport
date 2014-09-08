@@ -1,1 +1,0 @@
-../stl_hashtable.c

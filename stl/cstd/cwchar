@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) 1999 
+ * Boris Fomitchev
+ *
+ * This material is provided "as is", with absolutely no warranty expressed
+ * or implied. Any use is at your own risk.
+ *
+ * Permission to use or copy this software for any purpose is hereby granted 
+ * without fee, provided the above notices are retained on all copies.
+ * Permission to modify the code and to distribute modified code is granted,
+ * provided the above notices are retained, and a notice that the code was
+ * modified is included with the above copyright notice.
+ *
+ */
+
+#ifndef __STLPORT_CWCHAR
+# define __STLPORT_CWCHAR
+
+# include <stl_config.h>
+# include __STL_NATIVE_C_HEADER(cwchar)
+
+// dwa 2/28/99 - Fix an MSL bug. We expect this to be fixed in the next release.
+# if defined( __MSL__ ) and __MSL__ <= 0x5006
+namespace std
+{ 
+	inline size_t wcsftime(wchar_t * str, size_t max_size, const wchar_t * format_str, const struct tm * timeptr)
+	{
+		return ::wcsftime( str, max_size, format_str, timeptr );
+	}
+}
+# endif
+
+# ifdef __STL_IMPORT_VENDOR_CSTD
+__STL_BEGIN_NAMESPACE
+
+using __STL_VENDOR_CSTD::wint_t;
+using __STL_VENDOR_CSTD::size_t;
+using __STL_VENDOR_CSTD::mbstate_t;
+
+// using __STL_VENDOR_CSTD::tm;
+// using __STL_VENDOR_CSTD::FILE;
+
+#if !defined(__MSL__) || __MSL__ > 0x5006	// dwa 2/28/99 - not yet implemented by MSL 
+using __STL_VENDOR_CSTD::btowc;
+using __STL_VENDOR_CSTD::mbrlen;
+using __STL_VENDOR_CSTD::mbrtowc;
+using __STL_VENDOR_CSTD::mbsinit;
+using __STL_VENDOR_CSTD::mbsrtowcs;
+using __STL_VENDOR_CSTD::wcrtomb;
+using __STL_VENDOR_CSTD::wcsrtombs;
+#endif
+
+using __STL_VENDOR_CSTD::fgetwc;
+using __STL_VENDOR_CSTD::fgetws;
+using __STL_VENDOR_CSTD::fputwc;
+using __STL_VENDOR_CSTD::fputws;
+
+using __STL_VENDOR_CSTD::fwide;
+using __STL_VENDOR_CSTD::fwprintf;
+using __STL_VENDOR_CSTD::fwscanf;
+
+using __STL_VENDOR_CSTD::getwc;
+using __STL_VENDOR_CSTD::getwchar;
+using __STL_VENDOR_CSTD::putwc;
+using __STL_VENDOR_CSTD::putwchar;
+using __STL_VENDOR_CSTD::swprintf;
+using __STL_VENDOR_CSTD::swscanf;
+using __STL_VENDOR_CSTD::ungetwc;
+using __STL_VENDOR_CSTD::vfwprintf;
+using __STL_VENDOR_CSTD::vwprintf;
+using __STL_VENDOR_CSTD::vswprintf;
+
+
+
+using __STL_VENDOR_CSTD::wcscat;
+using __STL_VENDOR_CSTD::wcsrchr;
+using __STL_VENDOR_CSTD::wcscmp;
+using __STL_VENDOR_CSTD::wcscoll;
+
+using __STL_VENDOR_CSTD::wcscpy;
+using __STL_VENDOR_CSTD::wcscspn;
+using __STL_VENDOR_CSTD::wcsstr;
+using __STL_VENDOR_CSTD::wcstod;
+using __STL_VENDOR_CSTD::wcsftime;
+using __STL_VENDOR_CSTD::wcslen;
+using __STL_VENDOR_CSTD::wcsncat;
+using __STL_VENDOR_CSTD::wcsncmp;
+using __STL_VENDOR_CSTD::wcsncpy;
+using __STL_VENDOR_CSTD::wcspbrk;
+using __STL_VENDOR_CSTD::wcschr;
+
+using __STL_VENDOR_CSTD::wcsspn;
+using __STL_VENDOR_CSTD::wcstok;
+using __STL_VENDOR_CSTD::wcstol;
+using __STL_VENDOR_CSTD::wcsxfrm;
+using __STL_VENDOR_CSTD::wctob;
+
+using __STL_VENDOR_CSTD::wmemchr;
+using __STL_VENDOR_CSTD::wmemcmp;
+using __STL_VENDOR_CSTD::wmemcpy;
+using __STL_VENDOR_CSTD::wmemmove;
+using __STL_VENDOR_CSTD::wmemset;
+using __STL_VENDOR_CSTD::wprintf;
+using __STL_VENDOR_CSTD::wscanf;
+
+__STL_END_NAMESPACE
+
+#endif /* __STL_IMPORT_VENDOR_CSTD */
+
+#endif /* __STLPORT_CWCHAR */

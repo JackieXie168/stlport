@@ -1,1 +1,0 @@
-../stl_self_config.h

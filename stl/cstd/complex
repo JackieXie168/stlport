@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 1999 
+ * Boris Fomitchev
+ *
+ * This material is provided "as is", with absolutely no warranty expressed
+ * or implied. Any use is at your own risk.
+ *
+ * Permission to use or copy this software for any purpose is hereby granted 
+ * without fee, provided the above notices are retained on all copies.
+ * Permission to modify the code and to distribute modified code is granted,
+ * provided the above notices are retained, and a notice that the code was
+ * modified is included with the above copyright notice.
+ *
+ */
+
+#ifndef __STLPORT_COMPLEX
+# define __STLPORT_COMPLEX
+
+# include <stl_config.h>
+# include __STL_NATIVE_C_HEADER(complex)
+
+# ifdef __STL_IMPORT_VENDOR_CSTD
+__STL_BEGIN_NAMESPACE
+
+using __STL_VENDOR_STD::complex;
+
+using __STL_VENDOR_STD::real;
+using __STL_VENDOR_STD::imag;
+using __STL_VENDOR_STD::abs;
+using __STL_VENDOR_STD::arg;
+using __STL_VENDOR_STD::norm;
+
+using __STL_VENDOR_STD::conj;
+using __STL_VENDOR_STD::polar;
+
+using __STL_VENDOR_STD::cos;
+using __STL_VENDOR_STD::cosh;
+using __STL_VENDOR_STD::exp;
+using __STL_VENDOR_STD::log;
+using __STL_VENDOR_STD::log10;
+using __STL_VENDOR_STD::pow;
+using __STL_VENDOR_STD::sin;
+using __STL_VENDOR_STD::sinh;
+using __STL_VENDOR_STD::sqrt;
+using __STL_VENDOR_STD::tan;
+using __STL_VENDOR_STD::tanh;
+
+__STL_END_NAMESPACE
+
+#endif /* __STL_IMPORT_VENDOR_CSTD */
+
+#endif /* __STLPORT_COMPLEX */
