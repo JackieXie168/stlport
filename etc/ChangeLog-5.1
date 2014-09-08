@@ -1,3 +1,239 @@
+2007-10-05  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/debug/_iterator.h, _string.h, src/string.cpp:
+	Removed useless and even invalid workaround used when
+	_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND is defined. There is now
+	only one construct check class __construct_checker,
+	__msvc6_construct_checker has been removed.
+
+2007-09-28  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Platform tested: gcc 4.1.2 20060928 (prerelease)
+	(Ubuntu 4.1.1-13ubuntu5), i686 GNU/Linux, glibc 2.4; 
+	
+	* release-shared: fail on list_test.cpp:392
+	[CPPUNIT_ASSERT(lint1.size() == 20)], suspected compiler's bug;
+	1 fail from 395 tests;
+
+	* stldbg-shared: passed 395 tests;
+
+	* Platform tested: gcc 4.1.2, i686 GNU/Linux, glibc 2.4;
+
+	* release-shared: fail on list_test.cpp:392
+	[CPPUNIT_ASSERT(lint1.size() == 20)], suspected compiler's bug;
+	1 fail from 395 tests;
+
+	* stldbg-shared: passed 395 tests;
+
+	* Platform tested: gcc 4.2.1, i686 GNU/Linux, glibc 2.4;
+
+	* release-shared: passed 395 tests;
+
+	* stldbg-shared: passed 395 tests;
+
+	* Platform tested: gcc 4.1.1, i686 athlon-4 i386 GNU/Linux,
+	glibc 2.3.6;
+
+	* release-shared: passed 395 tests;
+
+	* stldbg-shared: passed 395 tests;
+
+	* src/c_locale_glibc/c_locale_glibc2.c: this is a C, so
+	decl allowd only on top of block;
+
+	* Platform tested: gcc 2.95.4 (debian), i686 GNU/Linux,
+	glibc 2.3.2;
+
+	* release-shared: build success, as library as unit tests,
+	but run unit tests fail---stalling on spinlock during library
+	load; looks like problem with correct initialization of
+	statics;
+
+	* stldbg-shared: fail build library, stlport/stl/debug/_hashtable.h:49:
+	declaration of `operator ==' as non-function 
+
+2007-09-27  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/facets_byname.cpp: In collate::do_transform, consider
+	low == high as a special case, returns empty string in this
+	case.
+
+2007-09-27  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* test/unit/find_test.cpp: array initialization missed.
+
+2007-09-17  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/_num_get.h: Add _STLP_DECLSPEC specification to
+	several functions that might be access by external code when
+	num_get facet is instantiated with something else than the
+	Standard required instantiation.
+
+2007-09-11  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/c_locale_glibc/c_locale_glibc.c, c_locale_glibc2.c: Fix
+	_Locale_strxfrm and _Locale_wcxfrm implementation to take
+	into account strings that are not zero terminated.
+
+	* test/unit/locale_test.cpp: Add check that collate.tranform
+	method build a key only for chars in the range pass to method.
+
+2007-09-10  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/facets_byname.cpp: John Maddock bug report 1788618 fix.
+	Moreover remove use of an intermediate buffer to get result
+	of _Locale_strxfrm.
+
+	* test/unit/locale_test.cpp: Add tests for collate::transform
+	facet method.
+
+	* src/c_locale_win32/c_locale_win32.c: Small modification,
+	_Locale_strxfrm is supposed to return the number of chars
+	required to store the generated sorted key without the trailing
+	zero.
+
+	* src/c_locale_glibc/c_locale_glibc.c, c_locale_glibc2.c: Fix
+	implementation of _Locale_strxfrm, it should never return -1.
+
+2007-09-10  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* stlport/stl/_string.c: fix bugs in string rfind, find_last_of,
+	find_last_not_of [bug #1788700, position 0 was wrongly excluded];
+
+	* test/unit/string_test.cpp: test for problems above. Thanks
+	to Bred Bored for bug report and initial test.
+
+	* unit tests: Linux 2.6.16.26 (athlon-4), gcc 4.1.1, glibc 2.3.6
+	"OK 395 tests" for release-shared and stldbg-shared targets.
+
+2007-09-09  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* test/unit/rope_test.cpp, stlport/stl/_rope.h: test for
+	bug #1788615 [bug during copy of rope's iterator] and fix;
+	suggested by John Maddock.
+
+	* stlport/stl/_algobase.c: symmetry not required for
+	comparator in case of two different sequences comparison or
+	searching; symmetrical comparator just may not exist;
+
+	* stlport/stl/debug/_hashtable.h: symmetry not required for
+	comparator in hashtable in case of containers extention;
+	symmetrical comparator just may not exist;
+
+	* test/unit/alg_test.cpp: test for problem above, thanks
+	Oleg Obolenskiy.
+
+2007-09-06  Francois Dumont  <dums@users.sourceforge.net>
+
+	* test/unit/strstream_buffer_read_test.cpp: Remove useless
+	strdup call that was moreover introducing a memory leak.
+
+2007-09-04  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/allocators.cpp: Fix implementation of _S_chunk_dealloc when
+	lock free implementation is not in use. Thanks bug report 1787636
+	from Sergej Zagursky.
+
+2007-08-31  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/_cstdio.h, _ctime.h: Add missing macro definition
+	test before using _WIN32_WCE thanks bug report 1784174.
+
+	* stlport/stl/_bitset.h: Change macro tests in order to check
+	macro definition before using it thanks bug report 1785679.
+
+	* test/unit/bitset_test.cpp: Bitset::iostream new test to check
+	correct input/output of bitset class.
+
+	* build/Makefiles/gmake/gcc.mak: Add -Wundef gcc option when building
+	with gcc under Cygwin MinGW, it is an interesting option to detect
+	macro check errors.
+
+2007-08-26  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/config/user_config.h, host.h: Moved the administrative
+	_STLP_USE_DEFAULT_FILE_OFFSET macro from user_config.h to host.h.
+
+	* stlport/stl/config/_gcc.h: Under MinGW we now use C symbols in
+	global namespace. Tests with 4.2.1 gcc version shows that C symbols
+	are not necessarily put in std namespace.
+
+2007-08-23  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/_complex.h: As in _iosfwd.h, removed useless
+	_STLP_CLASS_DECLSPEC attribute on complex class declaration.
+
+2007-08-23  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* stlport/stl/debug/_vector.h: only random access iterators
+	allow operations 'less-than' and distance; for bidirectional
+	iterators removed usage of 'less-than', and for others
+	[like forward and input iterators] removed as usage of 'less-than'
+	as distance; thanks Oleg Obolenskiy for bug report;
+
+	* test/unit/ioiter_test.cpp: test for problem above.
+
+2007-08-18  Francois Dumont  <dums@users.sourceforge.net>
+
+	* stlport/stl/_iosfwd.h: Removed useless _STLP_CLASS_DECLSPEC attribute
+	on class declaration. Latest gcc versions are reporting a warning about
+	it.
+
+2007-08-16  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/dll_main.cpp: Removed useless _Atomic_swap_struct explicit
+	instantiation, moreover, MSVC 2005 do not support it.
+
+2007-08-15  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: bump lib version to 5.1.4;
+
+	* stlport/stl/char_traits.h, src/fstream.cpp: use 64-bits
+	file operations calls, if available on system; streamoff is
+	always off64_t, if _LARGEFILE_SOURCE or _LARGEFILE64_SOURCE
+	defined, i.e. if 64-bits file operations present;
+
+	* stlport/stl/config/user_config.h: add _STLP_USE_DEFAULT_FILE_OFFSET,
+	force use off_t for streamoff and appropriate file operations calls;
+	note, that this may lead to problems, for example if _FILE_OFFSET_BITS
+	defined as 64 somewhere in user's code;
+
+	* test/unit/fstream_test.cpp: test 64 bits type for filesize and
+	file offset.
+
+2007-07-22  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* src/fstream.cpp: force use lseek64/mmap64 for HP-UX, if _LARGEFILE64_SOURCE
+	defined; thanks for Michael Klein.
+
+2007-07-17  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* stlport/stl/_algo.c, stlport/stl/_algobase.c: search, the __tmp and
+	__p1 iterators always point at the same position, hence one of them
+	is redundant;
+
+	* stlport/stl/_algobase.c: in the main-loop of search there are two
+	successive while-loops doing exactly the same thing; one of them is
+	redundant and, since it is inside the main-loop, it slows down
+	the algorithm significantly;
+
+	* stlport/stl/_algo.c, stlport/stl/_algobase.c: in the search the main-loop 
+	condition "while (__first1 != __last1)" is always true and consequently
+	redundant; this is because the initial adn in-loop conditions virtually
+	act as guards and will never let the main-loop condition to fail; since
+	this condition is evaluated in every main-loop iteration, its removal
+	will also improve the performance of the algorithm; thanks for
+	Jim Xochellis for this suggestions.
+
+2007-07-15  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* src/strstream.cpp: "get end" pointer should be initialized
+	to the "begin of get + N" in obsolete strstream; bug #1536503,
+	thanks for Jean-Eric Cuendet;
+
+	* test/unit/strstream_buffer_read_test.cpp, build/test/unit/Makefile.inc:
+	test for bug above; [submitted by Jean-Eric Cuendet].
+
 2007-04-02  Francois Dumont  <dums@stlport...>
 
 	* 5.1.3 released based on revision 2983. STLport-5.1.3 tag created.
@@ -191,12 +427,12 @@
 
 2006-11-24  Francois Dumont  <dums@stlport...>
 
-        * stlport/stl/_fstream.h, src/fstream.cpp, iostream.cpp: Restore
-        computation of the system dependant page size that was hardcoded
-        to 4096. Initialisation code has been moved to a static method
-        called just after Standard iostream initialisation. This code used
-        to be in the _Filebuf_base constructor that might have been called
-        simultaneously by several threads.
+	* stlport/stl/_fstream.h, src/fstream.cpp, iostream.cpp: Restore
+	computation of the system dependant page size that was hardcoded
+	to 4096. Initialisation code has been moved to a static method
+	called just after Standard iostream initialisation. This code used
+	to be in the _Filebuf_base constructor that might have been called
+	simultaneously by several threads.
 
 2006-11-17  Francois Dumont  <dums@stlport...>
 

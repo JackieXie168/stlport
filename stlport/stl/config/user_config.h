@@ -141,8 +141,7 @@
  * Uncomment and provide a definition for the byte with which raw memory
  * will be filled if _STLP_DEBUG_ALLOC or _STLP_DEBUG_UNINITIALIZED is defined.
  * Choose a value which is likely to cause a noticeable problem if dereferenced
- * or otherwise abused. A good value may already be defined for your platform; see
- * stl/_config.h
+ * or otherwise abused. A good value may already be defined for your platform.
  */
 /*
 #define _STLP_SHRED_BYTE 0xA3
@@ -179,7 +178,7 @@
 */
 
 /*
- * You should define this macro if compiling with MFC - STLport <stl/_config.h>
+ * You should define this macro if compiling with MFC - STLport <stl/config/_windows.h>
  * then include <afx.h> instead of <windows.h> to get synchronisation primitives
  */
 /*

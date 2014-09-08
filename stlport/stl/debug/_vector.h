@@ -373,9 +373,18 @@ private:
   void _M_assign_dispatch(_InputIter __first, _InputIter __last,
                           const __false_type& /*_IsIntegral*/) {
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first,__last))
-    size_type __len = distance(__first, __last);
-    _M_check_assign(__len);
+    size_type __old_size = size();
+    size_type __old_capacity = capacity();
+    iterator __old_end = end();
     _M_non_dbg_impl.assign(_STLP_PRIV _Non_Dbg_iter(__first), _STLP_PRIV _Non_Dbg_iter(__last));
+    if (__old_capacity != 0) {
+      if (empty() || (capacity() > __old_capacity)) {
+        _Invalidate_all();
+      }
+      else if (size() < __old_size) {
+        _Invalidate_iterators(begin() + size(), __old_end);
+      }
+    }
   }
 
 public:

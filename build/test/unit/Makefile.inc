@@ -1,5 +1,4 @@
 # -*- makefile -*- Time-stamp: <06/10/13 23:47:44 ptr>
-# $Id: Makefile.inc 2667 2006-10-16 11:56:52Z complement $
 
 # this is the version number of needed STLport library for linking
 LIBMAJOR = 5
@@ -140,6 +139,7 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/stdexcept_header_test.cpp \
 	../../../test/unit/strstream_header_test.cpp \
 	../../../test/unit/string_test.cpp \
+        ../../../test/unit/strstream_buffer_read_test.cpp \
 	../../../test/unit/swap_test.cpp \
 	../../../test/unit/times_test.cpp \
 	../../../test/unit/transform_test.cpp \
