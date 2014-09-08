@@ -154,6 +154,9 @@ RES_MARKED=$(RES_MARKED:@=obj\evc8-x86\@)
 !elseif "$(TARGET_PROC)" == "mips"
 OBJ_MARKED=$(OBJ_MARKED:@=obj\evc8-mips\@)
 RES_MARKED=$(RES_MARKED:@=obj\evc8-mips\@)
+!elseif "$(TARGET_PROC)" == "sh4"
+OBJ_MARKED=$(OBJ_MARKED:@=obj\evc8-sh4\@)
+RES_MARKED=$(RES_MARKED:@=obj\evc8-sh4\@)
 !else
 !error Unknown target processor configured!
 !endif
@@ -173,6 +176,10 @@ RES_MARKED=$(RES_MARKED:@=obj\vc71\@)
 !elseif "$(COMPILER_NAME)" == "vc8"
 OBJ_MARKED=$(OBJ_MARKED:@=obj\vc8\@)
 RES_MARKED=$(RES_MARKED:@=obj\vc8\@)
+
+!elseif "$(COMPILER_NAME)" == "vc9"
+OBJ_MARKED=$(OBJ_MARKED:@=obj\vc9\@)
+RES_MARKED=$(RES_MARKED:@=obj\vc9\@)
 
 !elseif "$(COMPILER_NAME)" == "icl"
 OBJ_MARKED=$(OBJ_MARKED:@=obj\icl\@)

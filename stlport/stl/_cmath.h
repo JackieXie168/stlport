@@ -21,14 +21,22 @@
  * so cstdlib has to be included first.
  */
 #if defined (__GNUC__) && defined (_STLP_USE_NEW_C_HEADERS)
-#  include _STLP_NATIVE_CPP_C_HEADER(cstdlib)
+#  if defined (_STLP_HAS_INCLUDE_NEXT)
+#    include_next <cstdlib>
+#  else
+#    include _STLP_NATIVE_CPP_C_HEADER(cstdlib)
+#  endif
 #endif
 
 #if defined (_STLP_USE_NEW_C_HEADERS)
 #  if defined (_STLP_HAS_NO_NAMESPACES) && !defined (exception)
 #    define exception __math_exception
 #  endif
-#  include _STLP_NATIVE_CPP_C_HEADER(cmath)
+#  if defined (_STLP_HAS_INCLUDE_NEXT)
+#    include_next <cmath>
+#  else
+#    include _STLP_NATIVE_CPP_C_HEADER(cmath)
+#  endif
 #  if defined (_STLP_HAS_NO_NAMESPACES)
 #    undef exception
 #  endif
@@ -38,14 +46,12 @@
 
 #if (defined (__SUNPRO_CC) && (__SUNPRO_CC > 0x500)) || \
      !(defined (__IBMCPP__) && (__IBMCPP__ >= 500) || !(defined(__HP_aCC) && (__HP_aCC >= 30000) ))
-#  ifndef _STLP_HAS_NO_NAMESPACES
+#  if !defined(_STLP_HAS_NO_NAMESPACES) && !defined(__SUNPRO_CC)
+// All the other hypot stuff is going to be at file scope, so follow along here.
 namespace std {
 #  endif
-#if !defined(__SunOS_5_11) && !defined(__SunOS_5_10)
 extern "C" double hypot(double x, double y);
-#endif
-
-#  ifndef _STLP_HAS_NO_NAMESPACES
+#  if !defined(_STLP_HAS_NO_NAMESPACES) && !defined(__SUNPRO_CC)
 }
 #  endif
 
@@ -144,9 +150,6 @@ extern long double __sinhl(long double);
 extern long double __sqrtl(long double);
 extern long double __tanl(long double);
 extern long double __tanhl(long double);
-#if defined(__SunOS_5_11) || defined(__SunOS_5_10)
-#  include <math.h>
-#endif
 }
 #endif
 
@@ -346,7 +349,7 @@ Meaning of suffixes:
 #  define _STLP_RESTORE_FUNCTION_INTRINSIC
 #endif // _STLP_MSVC && _STLP_MSVC <= 1300 && !_STLP_WCE && _MSC_EXTENSIONS
 
-#if defined (__BORLANDC__) && defined (_STLP_USE_NEW_C_HEADERS)
+#if (defined (__BORLANDC__) || defined (__WATCOMC__)) && defined (_STLP_USE_NEW_C_HEADERS)
 /* In this config Borland native lib only define functions in std namespace.
  * In order to have all overloads in STLport namespace we need to add the
  * double overload in global namespace. We do not use a using statement to avoid
@@ -415,8 +418,9 @@ inline double ldexp(double __x, int __y) { return __stlp_ldexp(__x, __y); }
  * in global namespace.
  * HP-UX native lib has math functions in the global namespace.
  */
-#if (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1310) || defined(UNDER_CE) ) && !defined(__SunOS_5_11) && \
-    !defined(__SunOS_5_10) && (!defined (__HP_aCC) || (__HP_aCC < 30000))
+#if (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1310) || defined(UNDER_CE)) && \
+    (!defined (__HP_aCC) || (__HP_aCC < 30000)) && \
+    !defined (__WATCOMC__)
 inline double abs(double __x)
 { return ::fabs(__x); }
 #  if !defined (__MVS__)
@@ -490,13 +494,8 @@ inline long double pow(long double __x, int __y) { return (_Pow_int(__x, __y)); 
 #    pragma warning (push)
 #    pragma warning (disable : 4996) // hypot is deprecated.
 #  endif
-#if defined(__SunOS_5_11) || defined(__SunOS_5_10)
-inline float hypot(float x, float y) { return hypotf(x, y); }
-inline long double hypot(long double x, long double y) { return hypotl( x, y); }
-#else
 _STLP_MATH_INLINE2XX(float, hypot, hypot)
 inline long double hypot(long double x, long double y) { return sqrt(x * x + y * y); }
-#endif
 #  if defined (_STLP_MSVC) && (_STLP_MSVC >= 1400)
 #    pragma warning (pop)
 #  endif
@@ -558,7 +557,7 @@ using ::sqrt;
 using ::tan;
 using ::tanh;
 _STLP_END_NAMESPACE
-#  if defined (__BORLANDC__) && (__BORLANDC__ >= 0x560)
+#  if defined (__BORLANDC__) && (__BORLANDC__ >= 0x560) && !defined (__linux__)
 using _STLP_VENDOR_CSTD::_ecvt;
 using _STLP_VENDOR_CSTD::_fcvt;
 #  endif

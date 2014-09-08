@@ -7,11 +7,21 @@
 #include <sys/feature_tests.h>
 
 /* system-dependent defines */
-/* For SunOS greater than 5.7: */
+#define _STLP_USE_UNIX_IO
 
-# if defined (__SunOS_GT_7) && ! defined (_STLP_HAS_NO_NEW_C_HEADERS) && ( __cplusplus >= 199711L) && !defined (__linux__)
+#ifdef __GNUC__
+/* 
+ * See comments (and configuration defines) in the host.h
+ */
+#  if !(defined(__SunOS_5_5_1) || defined(__SunOS_5_6) || defined(__SunOS_5_7) || \
+        defined(__SunOS_5_8) || defined(__SunOS_5_9) || defined(__SunOS_5_10))
+#    error Uncomment one of the defines (__SunOS_5_x) in the file stlport/stl/config/host.h
+#  endif
+#endif
+
+#if defined (__SunOS_5_8) && ! defined (_STLP_HAS_NO_NEW_C_HEADERS) && ( __cplusplus >= 199711L)
 #  define _STLP_HAS_NATIVE_FLOAT_ABS
-# endif
+#endif
 
 #if defined(_XOPEN_SOURCE) && (_XOPEN_VERSION - 0 >= 4)
 # define _STLP_RAND48 1
@@ -40,12 +50,6 @@
 #  endif
 #endif
 
-#if defined (__sun ) && (defined(__SunOS_5_10) || defined(__SunOS_5_11)) 
-#define _STLP_AMD_SOLARIS_THREADS
-#undef _STLP_SPARC_SOLARIS_THREADS
-#    define _STLP_THREADS_DEFINED
-#endif
-
 /* gcc does not support ELF64 yet ; however; it supports ultrasparc + v8plus.
  * limits.h contains invalid values for this combination
  */
@@ -55,28 +59,19 @@
 #  endif
 #endif
 
-/*
- * Hmm, I don't found in Solaris 9 system headers definition like __SunOS_5_9
- * (defined in SunPro?); I also can't find functions like fmodf (again,
- * I found modff in libc, but no acosf etc.). Strange, I saw __cosf functions
- * (built-in?) at least with gcc some time ago, but don't see ones with
- * gcc 3.3.2 on SunOS sparc-solaris1 5.9 Generic_112233-03 sun4u sparc SUNW,Ultra-60
- * from Sorceforge's CF.
- *    2005-12-15, - ptr
+/* 
+ * Attention! See comments (and configuration defines) in the host.h
+ * (you host may has MATH_F and MATH_L functions)
  *
- * P.S. That's why I add two defines:
  */
-
-#ifdef __GNUC__ 
-#define _STLP_NO_VENDOR_MATH_F
-#define _STLP_NO_VENDOR_MATH_L
-#endif 
+#if !defined(__SunOS_5_10) && !defined(_STLP_SOLARIS_MATH_PATCH)
+#  define _STLP_NO_VENDOR_MATH_F
+#  define _STLP_NO_VENDOR_MATH_L
+#endif
 
 #ifdef __GNUC__
 #  define _STLP_WCHAR_BORLAND_EXCLUDE
 #  define _STLP_NO_NATIVE_WIDE_FUNCTIONS 1
 #endif
-
-#define _STLP_USE_MALLOC
 
 #endif /* __stl_config__solaris_h */

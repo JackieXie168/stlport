@@ -19,16 +19,6 @@
 #ifndef _STLP_VALARRAY_H
 #define _STLP_VALARRAY_H
 
-#if defined(__SunOS_5_11) || defined(__SunOS_5_10)
-#ifndef _STLP_INTERNAL_CONSTRUCT_H
-#  include <stl/_construct.h>
-#endif
-#ifndef _STLP_INTERNAL_UNINITIALIZED_H
-#  include <stl/_uninitialized.h>
-#endif
-#endif
-
-
 #ifndef _STLP_INTERNAL_CMATH
 #  include <stl/_cmath.h>
 #endif
@@ -47,11 +37,6 @@
 
 #ifndef _STLP_INTERNAL_LIMITS
 #  include <stl/_limits.h>
-#endif
-
-/* As we only need the _STLP_ASSERT macro from _debug.h we test it to include _debug.h */
-#ifndef _STLP_ASSERT
-#  include <stl/debug/_debug.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -76,8 +61,7 @@ template <class _Tp> class indirect_array;
 // representation for valarray<bool>.
 
 template <class _Tp>
-struct _Valarray_base
-{
+struct _Valarray_base {
   _Tp*   _M_first;
   size_t _M_size;
 
@@ -87,14 +71,8 @@ struct _Valarray_base
 
   void _M_allocate(size_t __n) {
     if (__n != 0) {
-      _M_first = __STATIC_CAST(_Tp*, (malloc(__n * sizeof(_Tp))));
+      _M_first = __STATIC_CAST(_Tp*, __stl_new(__n * sizeof(_Tp)));
       _M_size  = __n;
-#if !defined(_STLP_NO_BAD_ALLOC) && defined(_STLP_USE_EXCEPTIONS)
-      if (_M_first == 0) {
-        _M_size = 0;
-        throw _STLP_STD::bad_alloc();
-      }
-#endif
     }
     else {
       _M_first = 0;
@@ -103,7 +81,7 @@ struct _Valarray_base
   }
 
   void _M_deallocate() {
-    free(_M_first);
+    __stl_delete(_M_first);
     _M_first = 0;
     _M_size = 0;
   }
@@ -175,18 +153,24 @@ public:                         // Assignment
   valarray<_Tp>& operator=(const indirect_array<_Tp>&);
 
 public:                         // Element access
-  value_type  operator[](size_t __n) const { return this->_M_first[__n]; }
-  value_type& operator[](size_t __n)       { return this->_M_first[__n]; }
+  value_type  operator[](size_t __n) const {
+    _STLP_ASSERT(__n < this->size())
+    return this->_M_first[__n];
+  }
+  value_type& operator[](size_t __n) {
+    _STLP_ASSERT(__n < this->size())
+    return this->_M_first[__n];
+  }
   size_t size() const { return this->_M_size; }
 
 public:                         // Subsetting operations with auxiliary type
-  valarray<_Tp>            operator[](slice) const;
+  valarray<_Tp>       operator[](slice) const;
   slice_array<_Tp>    operator[](slice);
-  valarray<_Tp>            operator[](const gslice&) const;
+  valarray<_Tp>       operator[](const gslice&) const;
   gslice_array<_Tp>   operator[](const gslice&);
-  valarray<_Tp>            operator[](const _Valarray_bool&) const;
+  valarray<_Tp>       operator[](const _Valarray_bool&) const;
   mask_array<_Tp>     operator[](const _Valarray_bool&);
-  valarray<_Tp>            operator[](const _Valarray_size_t&) const;
+  valarray<_Tp>       operator[](const _Valarray_size_t&) const;
   indirect_array<_Tp> operator[](const _Valarray_size_t&);
 
 public:                         // Unary operators.
@@ -271,60 +255,70 @@ public:                         // Scalar computed assignment.
 
 public:                         // Array computed assignment.
   valarray<_Tp>& operator*= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] *= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator/= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] /= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator%= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] %= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator+= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] += __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator-= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] -= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator^= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] ^= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator&= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] &= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator|= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] |= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator<<= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] <<= __x[__i];
     return *this;
   }
 
   valarray<_Tp>& operator>>= (const valarray<_Tp>& __x) {
+    _STLP_ASSERT(__x.size() == this->size())
     for (size_t __i = 0; __i < this->size(); ++__i)
       (*this)[__i] >>= __x[__i];
     return *this;
@@ -334,16 +328,19 @@ public:                         // Other member functions.
 
   // The result is undefined for zero-length arrays
   value_type sum() const {
+    _STLP_ASSERT(this->size() != 0)
     return accumulate(this->_M_first + 1, this->_M_first + this->_M_size,
                       (*this)[0]);
   }
 
   // The result is undefined for zero-length arrays
   value_type (min) () const {
+    _STLP_ASSERT(this->size() != 0)
     return *min_element(this->_M_first + 0, this->_M_first + this->_M_size);
   }
 
   value_type (max) () const {
+    _STLP_ASSERT(this->size() != 0)
     return *max_element(this->_M_first + 0, this->_M_first + this->_M_size);
   }
 
@@ -380,6 +377,7 @@ public:                         // Other member functions.
 template <class _Tp>
 inline valarray<_Tp>  _STLP_CALL operator*(const valarray<_Tp>& __x,
                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -390,6 +388,7 @@ inline valarray<_Tp>  _STLP_CALL operator*(const valarray<_Tp>& __x,
 template <class _Tp>
 inline valarray<_Tp>  _STLP_CALL operator/(const valarray<_Tp>& __x,
                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -400,6 +399,7 @@ inline valarray<_Tp>  _STLP_CALL operator/(const valarray<_Tp>& __x,
 template <class _Tp>
 inline valarray<_Tp>  _STLP_CALL operator%(const valarray<_Tp>& __x,
                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -410,6 +410,7 @@ inline valarray<_Tp>  _STLP_CALL operator%(const valarray<_Tp>& __x,
 template <class _Tp>
 inline valarray<_Tp>  _STLP_CALL operator+(const valarray<_Tp>& __x,
                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -420,6 +421,7 @@ inline valarray<_Tp>  _STLP_CALL operator+(const valarray<_Tp>& __x,
 template <class _Tp>
 inline valarray<_Tp>  _STLP_CALL operator-(const valarray<_Tp>& __x,
                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -429,7 +431,8 @@ inline valarray<_Tp>  _STLP_CALL operator-(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline valarray<_Tp> _STLP_CALL operator^(const valarray<_Tp>& __x,
-                               const valarray<_Tp>& __y) {
+                                          const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -439,7 +442,8 @@ inline valarray<_Tp> _STLP_CALL operator^(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline valarray<_Tp> _STLP_CALL operator&(const valarray<_Tp>& __x,
-                               const valarray<_Tp>& __y) {
+                                          const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -449,7 +453,8 @@ inline valarray<_Tp> _STLP_CALL operator&(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline valarray<_Tp> _STLP_CALL operator|(const valarray<_Tp>& __x,
-                               const valarray<_Tp>& __y) {
+                                          const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -459,7 +464,8 @@ inline valarray<_Tp> _STLP_CALL operator|(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline valarray<_Tp> _STLP_CALL operator<<(const valarray<_Tp>& __x,
-                               const valarray<_Tp>& __y) {
+                                           const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -469,7 +475,8 @@ inline valarray<_Tp> _STLP_CALL operator<<(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline valarray<_Tp> _STLP_CALL operator>>(const valarray<_Tp>& __x,
-                               const valarray<_Tp>& __y) {
+                                           const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   typedef typename valarray<_Tp>::_NoInit _NoInit;
   valarray<_Tp> __tmp(__x.size(), _NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
@@ -665,8 +672,8 @@ inline valarray<_Tp> _STLP_CALL operator>>(const _Tp& __c, const valarray<_Tp>& 
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator==(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] == __y[__i];
@@ -675,8 +682,8 @@ inline _Valarray_bool _STLP_CALL operator==(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator<(const valarray<_Tp>& __x,
-                                const valarray<_Tp>& __y)
-{
+                                           const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] < __y[__i];
@@ -687,8 +694,8 @@ inline _Valarray_bool _STLP_CALL operator<(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator!=(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] != __y[__i];
@@ -697,8 +704,8 @@ inline _Valarray_bool _STLP_CALL operator!=(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator>(const valarray<_Tp>& __x,
-                                const valarray<_Tp>& __y)
-{
+                                           const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] > __y[__i];
@@ -707,8 +714,8 @@ inline _Valarray_bool _STLP_CALL operator>(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator<=(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] <= __y[__i];
@@ -717,8 +724,8 @@ inline _Valarray_bool _STLP_CALL operator<=(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator>=(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] >= __y[__i];
@@ -730,8 +737,8 @@ inline _Valarray_bool _STLP_CALL operator>=(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator&&(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] && __y[__i];
@@ -740,8 +747,8 @@ inline _Valarray_bool _STLP_CALL operator&&(const valarray<_Tp>& __x,
 
 template <class _Tp>
 inline _Valarray_bool _STLP_CALL operator||(const valarray<_Tp>& __x,
-                                 const valarray<_Tp>& __y)
-{
+                                            const valarray<_Tp>& __y) {
+  _STLP_ASSERT(__x.size() == __y.size())
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] || __y[__i];
@@ -751,8 +758,7 @@ inline _Valarray_bool _STLP_CALL operator||(const valarray<_Tp>& __x,
 // Logical operations between an array and a scalar.
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator==(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator==(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] == __c;
@@ -760,8 +766,7 @@ inline _Valarray_bool _STLP_CALL operator==(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator==(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator==(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c == __x[__i];
@@ -769,8 +774,7 @@ inline _Valarray_bool _STLP_CALL operator==(const _Tp& __c, const valarray<_Tp>&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator!=(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator!=(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] != __c;
@@ -778,8 +782,7 @@ inline _Valarray_bool _STLP_CALL operator!=(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator!=(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator!=(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c != __x[__i];
@@ -787,8 +790,7 @@ inline _Valarray_bool _STLP_CALL operator!=(const _Tp& __c, const valarray<_Tp>&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator<(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator<(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] < __c;
@@ -796,8 +798,7 @@ inline _Valarray_bool _STLP_CALL operator<(const valarray<_Tp>& __x, const _Tp& 
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator<(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator<(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c < __x[__i];
@@ -805,8 +806,7 @@ inline _Valarray_bool _STLP_CALL operator<(const _Tp& __c, const valarray<_Tp>& 
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator>(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator>(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] > __c;
@@ -814,8 +814,7 @@ inline _Valarray_bool _STLP_CALL operator>(const valarray<_Tp>& __x, const _Tp& 
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator>(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator>(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c > __x[__i];
@@ -823,8 +822,7 @@ inline _Valarray_bool _STLP_CALL operator>(const _Tp& __c, const valarray<_Tp>& 
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator<=(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator<=(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i]  <= __c;
@@ -832,8 +830,7 @@ inline _Valarray_bool _STLP_CALL operator<=(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator<=(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator<=(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c <= __x[__i];
@@ -841,8 +838,7 @@ inline _Valarray_bool _STLP_CALL operator<=(const _Tp& __c, const valarray<_Tp>&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator>=(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator>=(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] >= __c;
@@ -850,8 +846,7 @@ inline _Valarray_bool _STLP_CALL operator>=(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator>=(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator>=(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c >= __x[__i];
@@ -859,8 +854,7 @@ inline _Valarray_bool _STLP_CALL operator>=(const _Tp& __c, const valarray<_Tp>&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator&&(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator&&(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] && __c;
@@ -868,8 +862,7 @@ inline _Valarray_bool _STLP_CALL operator&&(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator&&(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator&&(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c && __x[__i];
@@ -877,8 +870,7 @@ inline _Valarray_bool _STLP_CALL operator&&(const _Tp& __c, const valarray<_Tp>&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator||(const valarray<_Tp>& __x, const _Tp& __c)
-{
+inline _Valarray_bool _STLP_CALL operator||(const valarray<_Tp>& __x, const _Tp& __c) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __x[__i] || __c;
@@ -886,8 +878,7 @@ inline _Valarray_bool _STLP_CALL operator||(const valarray<_Tp>& __x, const _Tp&
 }
 
 template <class _Tp>
-inline _Valarray_bool _STLP_CALL operator||(const _Tp& __c, const valarray<_Tp>& __x)
-{
+inline _Valarray_bool _STLP_CALL operator||(const _Tp& __c, const valarray<_Tp>& __x) {
   _Valarray_bool __tmp(__x.size(), _Valarray_bool::_NoInit());
   for (size_t __i = 0; __i < __x.size(); ++__i)
     __tmp[__i] = __c || __x[__i];
@@ -1202,19 +1193,24 @@ public:
       _M_array[__index] = __c;
   }
 
+  // C++ Standard defect 253, copy constructor must be public.
+  slice_array(const slice_array &__x)
+    : _M_slice(__x._M_slice), _M_array(__x._M_array)
+    {}
+
   ~slice_array() {}
 
 private:
-  slice_array(const slice& __slice, valarray<_Tp>& __array)
+  slice_array(const slice& __slice, valarray<_Tp> &__array)
     : _M_slice(__slice), _M_array(__array)
     {}
 
   slice          _M_slice;
   valarray<_Tp>& _M_array;
 
-private:                        // Disable assignment and default constructor
+private:
+  // Disable default constructor and assignment
   slice_array();
-  slice_array(const slice_array&);
   slice_array& operator=(const slice_array&);
 };
 
@@ -1231,9 +1227,8 @@ inline valarray<_Tp>::valarray(const slice_array<_Tp>& __x)
 
 
 template <class _Tp>
-inline slice_array<_Tp> valarray<_Tp>::operator[](slice __slice) {
-  return slice_array<_Tp>(__slice, *this);
-}
+inline slice_array<_Tp> valarray<_Tp>::operator[](slice __slice)
+{ return slice_array<_Tp>(__slice, *this); }
 
 //----------------------------------------------------------------------
 // gslice and gslice_array
@@ -1244,7 +1239,7 @@ struct _Gslice_Iter_tmpl;
 class gslice {
   friend struct _Gslice_Iter_tmpl<size_t>;
 public:
-  gslice() : _M_start(0), _M_lengths(0), _M_strides(0) {}
+  gslice() : _M_start(0), _M_lengths(), _M_strides() {}
   gslice(size_t __start,
          const _Valarray_size_t& __lengths, const _Valarray_size_t& __strides)
     : _M_start(__start), _M_lengths(__lengths), _M_strides(__strides)
@@ -1395,17 +1390,24 @@ public:
     }
   }
 
+  // C++ Standard defect 253, copy constructor must be public.
+  gslice_array(const gslice_array& __x)
+    : _M_gslice(__x._M_gslice), _M_array(__x._M_array)
+    {}
+
   ~gslice_array() {}
 
 private:
-  gslice_array(const gslice& __gslice, valarray<_Tp>& __array)
+  gslice_array(const gslice &__gslice, valarray<_Tp> &__array)
     : _M_gslice(__gslice), _M_array(__array)
     {}
 
   gslice                _M_gslice;
   valarray<value_type>& _M_array;
 
-private:                        // Disable assignment
+private:
+  // Disable default constructor and assignment
+  gslice_array();
   void operator=(const gslice_array<_Tp>&);
 };
 
@@ -1423,9 +1425,8 @@ inline valarray<_Tp>::valarray(const gslice_array<_Tp>& __x)
 }
 
 template <class _Tp>
-inline gslice_array<_Tp> valarray<_Tp>::operator[](const gslice& __slice) {
-  return gslice_array<_Tp>(__slice, *this);
-}
+inline gslice_array<_Tp> valarray<_Tp>::operator[](const gslice& __slice)
+{ return gslice_array<_Tp>(__slice, *this); }
 
 
 //----------------------------------------------------------------------
@@ -1508,8 +1509,6 @@ public:
       if (_M_mask[__i]) _M_array[__i] = __c;
   }
 
-  ~mask_array() {}
-
   // Extension: number of true values in the mask
   size_t _M_num_true() const {
     size_t __result = 0;
@@ -1518,15 +1517,23 @@ public:
     return __result;
   }
 
+  // C++ Standard defect 253, copy constructor must be public.
+  mask_array(const mask_array& __x)
+    : _M_mask(__x._M_mask), _M_array(__x._M_array)
+    {}
+
+  ~mask_array() {}
+
 private:
   mask_array(const _Valarray_bool& __mask, valarray<_Tp>& __array)
     : _M_mask(__mask), _M_array(__array)
     {}
-
   _Valarray_bool _M_mask;
   valarray<_Tp>& _M_array;
 
-private:                        // Disable assignment
+private:
+  // Disable default constructor and assignment
+  mask_array();
   void operator=(const mask_array<_Tp>&);
 };
 
@@ -1534,8 +1541,7 @@ private:                        // Disable assignment
 
 template <class _Tp>
 inline valarray<_Tp>::valarray(const mask_array<_Tp>& __x)
-  : _Valarray_base<_Tp>(__x._M_num_true())
-{
+  : _Valarray_base<_Tp>(__x._M_num_true()) {
   typedef typename __type_traits<_Tp>::has_trivial_default_constructor
           _Is_Trivial;
   _M_initialize(_Is_Trivial());
@@ -1552,11 +1558,10 @@ inline valarray<_Tp>& valarray<_Tp>::operator=(const mask_array<_Tp>& __x) {
 }
 
 template <class _Tp>
-inline mask_array<_Tp> valarray<_Tp>::operator[](const _Valarray_bool& __mask)
-{
+inline mask_array<_Tp> valarray<_Tp>::operator[](const _Valarray_bool& __mask) {
+  _STLP_ASSERT(__mask.size() == this->size())
   return mask_array<_Tp>(__mask, *this);
 }
-
 
 //----------------------------------------------------------------------
 // indirect_array
@@ -1627,17 +1632,24 @@ public:
       _M_array[_M_addr[__i]] = __c;
   }
 
+  // C++ Standard defect 253, copy constructor must be public.
+  indirect_array(const indirect_array& __x)
+    : _M_addr(__x._M_addr), _M_array(__x._M_array)
+    {}
+
   ~indirect_array() {}
 
 private:
   indirect_array(const _Valarray_size_t& __addr, valarray<_Tp>& __array)
     : _M_addr(__addr), _M_array(__array)
-    {}
+  {}
 
   _Valarray_size_t _M_addr;
   valarray<_Tp>&   _M_array;
 
-private:                        // Disable assignment
+private:
+  // Disable default constructor and assignment
+  indirect_array();
   void operator=(const indirect_array<_Tp>&);
 };
 
@@ -1645,8 +1657,7 @@ private:                        // Disable assignment
 
 template <class _Tp>
 inline valarray<_Tp>::valarray(const indirect_array<_Tp>& __x)
-  : _Valarray_base<_Tp>(__x._M_addr.size())
-{
+  : _Valarray_base<_Tp>(__x._M_addr.size()) {
   typedef typename __type_traits<_Tp>::has_trivial_default_constructor
           _Is_Trivial;
   _M_initialize(_Is_Trivial());
@@ -1657,9 +1668,7 @@ inline valarray<_Tp>::valarray(const indirect_array<_Tp>& __x)
 template <class _Tp>
 inline indirect_array<_Tp>
 valarray<_Tp>::operator[](const _Valarray_size_t& __addr)
-{
-  return indirect_array<_Tp>(__addr, *this);
-}
+{ return indirect_array<_Tp>(__addr, *this); }
 
 _STLP_END_NAMESPACE
 
