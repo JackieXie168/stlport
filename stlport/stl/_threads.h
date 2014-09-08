@@ -169,8 +169,7 @@ inline long _STLP_atomic_add_gcc_x86(long volatile* p, long addend) {
  * should define _WIN32_WINDOWS to a value lower that the one of Win 98, see Platform SDK documentation for
  * more informations:
  */
-#      if defined (_STLP_NEW_PLATFORM_SDK) && (!defined (WINVER) || (WINVER >= 0x0410)) && \
-                                              (!defined (_WIN32_WINDOWS) || (_WIN32_WINDOWS >= 0x0410))
+#      if defined (_STLP_NEW_PLATFORM_SDK) && (!defined (_STLP_WIN32_VERSION) || (_STLP_WIN32_VERSION >= 0x0410))
 #        define _STLP_ATOMIC_ADD(__dst, __val) InterlockedExchangeAdd(__dst, __val)
 #      endif
 #    endif
@@ -462,7 +461,10 @@ public:
 #endif
   _STLP_VOLATILE __stl_atomic_t _M_ref_count;
 
-#if !defined (_STLP_ATOMIC_EXCHANGE)
+#if defined (_STLP_THREADS) && \
+    ((!defined (_STLP_ATOMIC_INCREMENT) || !defined (_STLP_ATOMIC_DECREMENT)) || \
+      (defined (_STLP_WIN32_VERSION) && (_STLP_WIN32_VERSION <= 0x0400)))
+#  define _STLP_USE_MUTEX
   _STLP_mutex _M_mutex;
 #endif
 
@@ -472,22 +474,23 @@ public:
 
   // _M_incr and _M_decr
 #if defined (_STLP_THREADS)
-#  if defined (_STLP_ATOMIC_EXCHANGE)
-   int _M_incr() { return _STLP_ATOMIC_INCREMENT(&_M_ref_count); }
-   int _M_decr() { return _STLP_ATOMIC_DECREMENT(&_M_ref_count); }
+#  if !defined (_STLP_USE_MUTEX)
+   __stl_atomic_t _M_incr() { return _STLP_ATOMIC_INCREMENT(&_M_ref_count); }
+   __stl_atomic_t _M_decr() { return _STLP_ATOMIC_DECREMENT(&_M_ref_count); }
 #  else
-  int _M_incr() {
+#    undef _STLP_USE_MUTEX
+  __stl_atomic_t _M_incr() {
     _STLP_auto_lock l(_M_mutex);
     return ++_M_ref_count;
   }
-  int _M_decr() {
+  __stl_atomic_t _M_decr() {
     _STLP_auto_lock l(_M_mutex);
     return --_M_ref_count;
   }
 #  endif
 #else  /* No threads */
-  int _M_incr() { return ++_M_ref_count; }
-  int _M_decr() { return --_M_ref_count; }
+  __stl_atomic_t _M_incr() { return ++_M_ref_count; }
+  __stl_atomic_t _M_decr() { return --_M_ref_count; }
 #endif
 };
 
@@ -542,7 +545,8 @@ public:
 #  elif defined (_STLP_ATOMIC_EXCHANGE)
   _STLP_STATIC_ASSERT(sizeof(__stl_atomic_t) == sizeof(void*))
   return __REINTERPRET_CAST(void*, _STLP_ATOMIC_EXCHANGE(__REINTERPRET_CAST(volatile __stl_atomic_t*, __p),
-                                                         __REINTERPRET_CAST(__stl_atomic_t, __q));
+                                                         __REINTERPRET_CAST(__stl_atomic_t, __q))
+                            );
 #  elif defined (_STLP_USE_ATOMIC_SWAP_MUTEX)
   _S_swap_lock._M_acquire_lock();
   void *__result = *__p;
@@ -601,6 +605,11 @@ public:
 #if defined (_STLP_THREADS)
 #  if defined (_STLP_ATOMIC_EXCHANGE_PTR)
   return _STLP_ATOMIC_EXCHANGE_PTR(__p, __q);
+#  elif defined (_STLP_ATOMIC_EXCHANGE)
+  _STLP_STATIC_ASSERT(sizeof(__stl_atomic_t) == sizeof(void*))
+  return __REINTERPRET_CAST(void*, _STLP_ATOMIC_EXCHANGE(__REINTERPRET_CAST(volatile __stl_atomic_t*, __p),
+                                                         __REINTERPRET_CAST(__stl_atomic_t, __q))
+                            );
 #  elif defined (_STLP_USE_ATOMIC_SWAP_MUTEX)
   _S_swap_lock._M_acquire_lock();
   void *__result = *__p;

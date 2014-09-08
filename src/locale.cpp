@@ -31,12 +31,12 @@ locale::facet::~facet() {}
 // members that fail to be templates
 bool locale::operator()(const string& __x,
                         const string& __y) const
-{ return __locale_do_operator_call(this, __x, __y); }
+{ return __locale_do_operator_call(*this, __x, __y); }
 
 #  if !defined (_STLP_NO_WCHAR_T)
 bool locale::operator()(const wstring& __x,
                         const wstring& __y) const
-{ return __locale_do_operator_call(this, __x, __y); }
+{ return __locale_do_operator_call(*this, __x, __y); }
 #  endif
 #endif
 
@@ -69,7 +69,8 @@ void _STLP_CALL locale::_M_throw_runtime_error(const char* name) {
 // value is always positive.
 static size_t _Stl_loc_get_index(locale::id& id) {
   if (id._M_index == 0) {
-#if defined (_STLP_ATOMIC_INCREMENT)
+#if defined (_STLP_ATOMIC_INCREMENT) && \
+   (!defined (_STLP_WIN32_VERSION) || (_STLP_WIN32_VERSION > 0x0400))
     static _STLP_VOLATILE __stl_atomic_t _S_index = __STATIC_CAST(__stl_atomic_t, locale::id::_S_max);
     id._M_index = _STLP_ATOMIC_INCREMENT(&_S_index);
 #else
@@ -83,13 +84,14 @@ static size_t _Stl_loc_get_index(locale::id& id) {
 }
 
 // Default constructor: create a copy of the global locale.
-locale::locale() : _M_impl(_get_Locale_impl(_Stl_get_global_locale()->_M_impl))
+locale::locale() _STLP_NOTHROW
+  : _M_impl(_get_Locale_impl(_Stl_get_global_locale()->_M_impl))
 {}
 
 // Copy constructor
 locale::locale(const locale& L) _STLP_NOTHROW
-  : _M_impl( _get_Locale_impl( L._M_impl ) ) {
-}
+  : _M_impl( _get_Locale_impl( L._M_impl ) )
+{}
 
 void locale::_M_insert(facet* f, locale::id& n) {
   if (f)

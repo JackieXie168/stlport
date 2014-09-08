@@ -1,7 +1,116 @@
+2007-02-14  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/config/_intel.h: Configuration fix, Intel compiler
+	before 8.1 have problem with template method specialization. Thanks
+	Dragan Tubic.
+
+2007-02-09  Francois Dumont  <dums@stlport...>
+
+	* test/unit/locale_test.cpp: Enhance LocaleTest::collate_facet
+	test case to reveal a bug in glibc localization portage.
+
+	* src/c_locale_glibc/c_locale_glibc2.c: Fixed _Locale_strcmp
+	and _Locale_strcmp and _Locale_strwcmp implementation to take
+	into account buffer size, comparison used to always been done on the
+	whole input strings up to the termination character.
+
+	* stlport/stl/type_manips.h, test/unit/mvctor_test.cpp,
+	type_traits_test.cpp: Remove relation between STLport __true_type and
+	__false_type and homonyms ones in libstd++. Add workaround in the 2
+	test suite requiring use of those types.
+
+2007-02-08  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_threads.h, src/locale.cpp: Add missing parenthesis
+	in some macro checks thanks Jan Echternash bug report 1653966.
+
+	* test/unit/locale_test.cpp: Made LocaleTest::collate_facet test
+	really meaningful even if it requires french locale support for
+	part of it.
+
+2007-02-01  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* stlport/stl/config/_solaris.h: __LONG_MAX__ defined on
+	64-bits SPARCs. Thanks Aleksey Sanin.
+
+	* stlport/stl/_sparc_atomic.h, stlport/stl/_threads.h: fixes
+	for modern SPARCs. Thanks Aleksey Sanin.
+
+2007-01-28  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/debug/_deque.h: Fix iterator invalidation in erase
+	of an iterator range thanks to Steve Lobasso indirect report (bug
+	1645657).
+
+	* test/unit/deque_test.cpp: New test case for deque erase methods.
+	
+2007-01-19  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_locale.h, src/locale.cpp: Add throw() specification
+	on locale default constructor. Add const qualifier on locale::combine
+	method. Fixed combine implementation to correctly combine
+	*this with other locale instance.
+
+	* src/locale_impl.h: Removed _get_Locale_impl and
+	_copy_Nameless_Locale_impl already defined in stlport/stl/_locale.h.
+
+	* src/locale_impl.cpp: In _Locale_impl::insert add check that we
+	are working on 2 different facet instances before substitution.
+
+	* test/unit/locale_test.cpp: Add test case for locale::combine
+	method.
+
+2007-01-12  Francois Dumont  <dums@stlport...>
+
+	* c_locale.h, c_locale_dummy.c, c_locale_glibc.c, c_locale_glibc2.c,
+	c_locale_win32.c: Creation of 2 new functions in the localization
+	framework _Locale_init and _Locale_final to allow localization
+	implementations to initialize and release any necessary resources.
+
+	* src/iostream.cpp: Call _Locale_init during io streams initialization
+	and _Locale_final at end.
+
+	* c_locale_win32/c_locale_win32.c: Add synchronization for locale
+	lcid look up from name required in multithreaded environment. Two
+	threads instanciating two facet instances from a given name might
+	have collide resulting in an undefined behavior. Critical section
+	used for synchronization is initialized in _Locale_init and freed
+	in _Locale_final.
+
+	* c_locale_win32/c_locale_win32.c: Add several fields in
+	_Locale_time struct to avoid use of static buffers in some locale
+	support functions like _Locale_d_t_fmt _Locale_long_d_t_fmt...
+	Moreover time format cannot be truncated anymore.
+
+	* stlport/stl/config/_windows.h: Introduce _STLP_WIN32_VERSION
+	macro set to WINVER or _WIN32_WINDOWS value depending on what
+	macro is defined.
+
+	* stlport/stl/_threads.h, src/locale.cpp: Add _STLP_WIN32_VERSION
+	checks to detect Windows 95 platform having a special
+	_STLP_ATOMIC_INCREMENT and _STLP_ATOMIC_DECREMENT behavior.
+
+2007-01-08  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_deque.c: Patch from Kevin Lin to fix iterator
+	returned by insert at position method.
+
+	* test/unit/deque_test.cpp: Add test case for the deque::insert
+	methods.
+
 2006-11-27  Francois Dumont  <dums@stlport...>
 
 	* stlport/stl/config/_windows.h: Patch from Michael Fink to check
 	inclusion of winbase.h and windows.h.
+
+2006-11-24  Francois Dumont  <dums@stlport...>
+
+        * stlport/stl/_fstream.h, src/fstream.cpp, iostream.cpp: Restore
+        computation of the system dependant page size that was hardcoded
+        to 4096. Initialisation code has been moved to a static method
+        called just after Standard iostream initialisation. This code used
+        to be in the _Filebuf_base constructor that might have been called
+        simultaneously by several threads.
 
 2006-11-17  Francois Dumont  <dums@stlport...>
 
