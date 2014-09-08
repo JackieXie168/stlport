@@ -1,7 +1,9 @@
 # -*- makefile -*- Time-stamp: <04/03/16 17:23:52 ptr>
-# $Id$
+# $Id: rules-install-a.mak,v 1.1.2.2 2005/11/01 07:17:21 complement Exp $
 
 PHONY += install-release-static install-dbg-static install-stldbg-static
+
+install-static: install-release-static install-dbg-static install-stldbg-static
 
 install-release-static:	release-static
 	@if [ ! -d $(INSTALL_LIB_DIR) ] ; then \
