@@ -21,16 +21,37 @@
 
 #include <windows.h>
 #include <limits.h>
-#if defined (_STLP_MSVC) || defined (__ICL) || defined (__BORLANDC__)
-# include <memory.h>
+#if defined (_STLP_MSVC) || defined (__ICL)
+#  include <memory.h>
 #endif
 #include <string.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __cplusplus
-// _STLP_BEGIN_NAMESPACE
+#if defined (_STLP_USE_SAFE_STRING_FUNCTIONS)
+#  define _STLP_STRCPY(D, S) strcpy_s(_STLP_ARRAY_AND_SIZE(D), S)
+#  define _STLP_STRCPY2(D, DS, S) strcpy_s(D, DS, S)
+#  define _STLP_RETURN_STRCPY2(D, DS, S) strcpy_s(D, DS, S); return D
+#  define _STLP_STRNCPY(D, DS, S, C) strncpy_s(D, DS, S, C)
+#  define _STLP_STRCAT(D, S) strcat_s(_STLP_ARRAY_AND_SIZE(D), S)
+#  define _STLP_STRCAT2(D, DS, S) strcat_s(D, DS, S)
+#  if !defined (_STLP_NO_WCHAR_T)
+#    define _STLP_WCSNCPY(D, DS, S, C) wcsncpy_s(D, DS, S, C)
+#  endif
+#else
+#  define _STLP_STRCPY(D, S) strcpy(D, S)
+#  define _STLP_STRCPY2(D, DS, S) strcpy(D, S)
+#  define _STLP_RETURN_STRCPY2(D, DS, S) return strcpy(D, S)
+#  define _STLP_STRNCPY(D, DS, S, C) strncpy(D, S, C)
+#  define _STLP_STRCAT(D, S) strcat(D, S)
+#  define _STLP_STRCAT2(D, DS, S) strcat(D, S)
+#  if !defined (_STLP_NO_WCHAR_T)
+#    define _STLP_WCSNCPY(D, DS, S, C) wcsncpy(D, S, C)
+#  endif
+#endif
+
+#if defined (__cplusplus)
 extern "C" {
 #endif
 
@@ -43,13 +64,12 @@ extern "C" {
 
 */
 
-#ifndef _LEADBYTE
+#if !defined (_LEADBYTE)
 /* multibyte leadbyte */
-#define _LEADBYTE       0x8000
+#  define _LEADBYTE 0x8000
 #endif
 
-typedef struct _LOCALECONV
-{
+typedef struct _LOCALECONV {
   const char* name;
   const char* abbrev;
 } LOCALECONV;
@@ -64,14 +84,13 @@ typedef struct _LOCALECONV
 
 /* Metrowerks has different define here */
 #if !defined (LC_MAX)
-# if defined (LC_LAST)
-#  define LC_MAX LC_LAST
-# endif
+#  if defined (LC_LAST)
+#    define LC_MAX LC_LAST
+#  endif
 #endif
 
 /*  non-NLS language string table */
-static LOCALECONV __rg_language[] =
-{
+static LOCALECONV __rg_language[] = {
   {"american",                    "ENU"},
   {"american english",            "ENU"},
   {"american-english",            "ENU"},
@@ -140,8 +159,7 @@ static LOCALECONV __rg_language[] =
 };
 
 /*  non-NLS country string table */
-static LOCALECONV __rg_country[] =
-{
+static LOCALECONV __rg_country[] = {
   {"america",                     "USA"},
   {"britain",                     "GBR"},
   {"china",                       "CHN"},
@@ -167,23 +185,27 @@ static LOCALECONV __rg_country[] =
   {"us",                          "USA"},
 };
 
+typedef struct _Locale_name_hint {
+  LCID id;
+} _Locale_lcid_t;
+
 typedef struct _Locale_ctype {
-  LCID lcid;
+  _Locale_lcid_t lc;
   UINT cp;
   unsigned int ctable[256];
 } _Locale_ctype_t;
 
 typedef struct _Locale_numeric {
-  LCID lcid;
-  char cp[MAX_CP_LEN+1];
+  _Locale_lcid_t lc;
+  char cp[MAX_CP_LEN + 1];
   char decimal_point[4];
   char thousands_sep[4];
   char *grouping;
 } _Locale_numeric_t;
 
 typedef struct _Locale_time {
-  LCID lcid;
-  char cp[MAX_CP_LEN+1];
+  _Locale_lcid_t lc;
+  char cp[MAX_CP_LEN + 1];
   char *month[12];
   char *abbrev_month[12];
   char *dayofweek[7];
@@ -191,17 +213,17 @@ typedef struct _Locale_time {
 } _Locale_time_t;
 
 typedef struct _Locale_collate {
-  LCID lcid;
-  char cp[MAX_CP_LEN+1];
+  _Locale_lcid_t lc;
+  char cp[MAX_CP_LEN + 1];
 } _Locale_collate_t;
 
 typedef struct _Locale_monetary {
-  LCID lcid;
-  char cp[MAX_CP_LEN+1];
+  _Locale_lcid_t lc;
+  char cp[MAX_CP_LEN + 1];
   char decimal_point[4];
   char thousands_sep[4];
   char *grouping;
-  char int_curr_symbol[5]; /* 3+1+1 */
+  char int_curr_symbol[5]; /* 3 + 1 + 1 */
   char curr_symbol[6];
   char negative_sign[5];
   char positive_sign[5];
@@ -210,8 +232,8 @@ typedef struct _Locale_monetary {
 } _Locale_monetary_t;
 
 typedef struct _Locale_messages {
-  LCID lcid;
-  char cp[MAX_CP_LEN+1];
+  _Locale_lcid_t lc;
+  char cp[MAX_CP_LEN + 1];
 } _Locale_messages_t;
 
 /* Internal function */
@@ -219,20 +241,20 @@ static void __FixGrouping(char *grouping);
 static const char* __ConvertName(const char* lname, LOCALECONV* ConvTable, int TableSize);
 static int __ParseLocaleString(const char* lname, char* lang, char* ctry, char* page);
 static int __GetLCID(const char* lang, const char* ctry, LCID* lcid);
-static int __GetLCIDFromName(const char* lname, LCID* lcid, char *cp);
-static char* __GetLocaleName(LCID lcid, const char* cp, char* buf);
-static char* __Extract_locale_name(const char* loc, int category, char* buf);
-static char* __TranslateToSystem(const char* lname, char* buf);
-static void __ConvertFromACP(char* buf, int buf_size, const char* cp);
+static int __GetLCIDFromName(const char* lname, LCID* lcid, char *cp, _Locale_lcid_t *hint);
+static char const* __GetLocaleName(LCID lcid, const char* cp, char* buf);
+static char const* __Extract_locale_name(const char* loc, int category, char* buf);
+static char const* __TranslateToSystem(const char* lname, char* buf, _Locale_lcid_t* hint);
+static void __GetLocaleInfoUsingACP(LCID lcid, const char* cp, LCTYPE lctype, char* buf, int buf_size);
 static int __intGetACP(LCID lcid);
 static int __intGetOCP(LCID lcid);
 static int __GetDefaultCP(LCID lcid);
 static char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_t *ret_buf_size);
-static void my_ltoa(long __x, char* buf) ;
+static void my_ltoa(long __x, char* buf);
 
-void my_ltoa(long __x, char* buf) { 
+void my_ltoa(long __x, char* buf) {
   char rbuf[64];
-  char* ptr = rbuf; 
+  char* ptr = rbuf;
 
   if (__x == 0)
     *ptr++ = '0';
@@ -243,16 +265,29 @@ void my_ltoa(long __x, char* buf) {
   while(ptr > rbuf) *buf++ = *--ptr;
   /* psw */
   *buf = '\0';
-} 
+}
 
-# ifdef __cplusplus
+#if defined (__cplusplus)
 _STLP_BEGIN_NAMESPACE
 extern "C" {
-# endif
+#endif
 
-  void* _Locale_ctype_create(const char * name) {
+  _Locale_lcid_t* _Locale_get_ctype_hint(_Locale_ctype_t* ltype)
+  { return (ltype != 0) ? &ltype->lc : 0; }
+  _Locale_lcid_t* _Locale_get_numeric_hint(_Locale_numeric_t* lnumeric)
+  { return (lnumeric != 0) ? &lnumeric->lc : 0; }
+  _Locale_lcid_t* _Locale_get_time_hint(_Locale_time_t* ltime)
+  { return (ltime != 0) ? &ltime->lc : 0; }
+  _Locale_lcid_t* _Locale_get_collate_hint(_Locale_collate_t* lcollate)
+  { return (lcollate != 0) ? &lcollate->lc : 0; }
+  _Locale_lcid_t* _Locale_get_monetary_hint(_Locale_monetary_t* lmonetary)
+  { return (lmonetary != 0) ? &lmonetary->lc : 0; }
+  _Locale_lcid_t* _Locale_get_messages_hint(_Locale_messages_t* lmessages)
+  { return (lmessages != 0) ? &lmessages->lc : 0; }
+
+  void* _Locale_ctype_create(const char * name, _Locale_lcid_t* lc_hint) {
     char cname[_Locale_MAX_SIMPLE_NAME];
-    char cp_name[MAX_CP_LEN+1];
+    char cp_name[MAX_CP_LEN + 1];
     int NativeCP;
     unsigned char Buffer[256];
     unsigned char *ptr;
@@ -262,19 +297,18 @@ extern "C" {
     wchar_t *wbuffer;
     int BufferSize;
 
-    _Locale_ctype_t *ltype=(_Locale_ctype_t*)malloc(sizeof(_Locale_ctype_t));
-    if(!ltype) return ltype;
+    _Locale_ctype_t *ltype = (_Locale_ctype_t*)malloc(sizeof(_Locale_ctype_t));
+    if (!ltype) return ltype;
     memset(ltype, 0, sizeof(_Locale_ctype_t));
 
     __Extract_locale_name(name, LC_CTYPE, cname);
 
-    if (__GetLCIDFromName(cname, &ltype->lcid, cp_name) == -1)
+    if (__GetLCIDFromName(cname, &ltype->lc.id, cp_name, lc_hint) == -1)
     { free(ltype); return NULL; }
+
     ltype->cp = atoi(cp_name);
 
-    NativeCP=__intGetACP(ltype->lcid);
-    if (NativeCP == 0)
-      NativeCP=__intGetOCP(ltype->lcid);
+    NativeCP = __GetDefaultCP(ltype->lc.id);
 
     /* Make table with all characters. */
     for (i = 0; i < 256; ++i) Buffer[i] = (unsigned char)i;
@@ -282,8 +316,8 @@ extern "C" {
     if (!GetCPInfo(NativeCP, &CPInfo)) { free(ltype); return NULL; }
 
     if (CPInfo.MaxCharSize > 1) {
-      for (ptr=(unsigned char*)CPInfo.LeadByte; *ptr && *(ptr+1); ptr+=2)
-        for (i=*ptr; i <= *(ptr+1); ++i) Buffer[i] = 0;
+      for (ptr = (unsigned char*)CPInfo.LeadByte; *ptr && *(ptr + 1); ptr+=2)
+        for (i = *ptr; i <= *(ptr + 1); ++i) Buffer[i] = 0;
     }
 
     if ((UINT)NativeCP != ltype->cp) {
@@ -294,7 +328,7 @@ extern "C" {
         /* Convert character sequence to Unicode. */
         BufferSize = MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, (const char*)Buffer, 256, NULL, 0);
         wbuffer = (wchar_t*)malloc(BufferSize*sizeof(wchar_t));
-        if(!MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, (const char*)Buffer, 256, wbuffer, BufferSize))
+        if (!MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, (const char*)Buffer, 256, wbuffer, BufferSize))
         { free(wbuffer); free(ltype); return NULL; }
 
         GetStringTypeW(CT_CTYPE1, wbuffer, 256, ctable);
@@ -303,15 +337,15 @@ extern "C" {
           ltype->ctable[i]=(unsigned int)ctable[i];
 
         if (CPInfo.MaxCharSize > 1) {
-          for (ptr=(unsigned char*)CPInfo.LeadByte; *ptr && *(ptr+1); ptr+=2)
-            for (i=*ptr; i <= *(ptr+1); i++) ltype->ctable[i] = _LEADBYTE;
+          for (ptr = (unsigned char*)CPInfo.LeadByte; *ptr && *(ptr + 1); ptr+=2)
+            for (i = *ptr; i <= *(ptr + 1); i++) ltype->ctable[i] = _LEADBYTE;
         }
 
         free(wbuffer);
       }
       else {
         unsigned char TargetBuffer[256];
-        GetStringTypeA(ltype->lcid, CT_CTYPE1, (const char*)Buffer, 256, ctable);
+        GetStringTypeA(ltype->lc.id, CT_CTYPE1, (const char*)Buffer, 256, ctable);
 
         /* Convert character sequence to target code page. */
         BufferSize = MultiByteToWideChar(NativeCP, MB_PRECOMPOSED, (const char*)Buffer, 256, NULL, 0);
@@ -324,128 +358,120 @@ extern "C" {
         free(wbuffer);
 
         /* Translate ctype table. */
-        for(i = 0; i < 256; ++i) {
-          if(!TargetBuffer[i]) continue;
+        for (i = 0; i < 256; ++i) {
+          if (!TargetBuffer[i]) continue;
           ltype->ctable[TargetBuffer[i]] = ctable[i];
         }
 
         /* Mark lead byte. */
-        if(!GetCPInfo(ltype->cp, &CPInfo)) { free(ltype); return NULL; }
+        if (!GetCPInfo(ltype->cp, &CPInfo)) { free(ltype); return NULL; }
 
-        if(CPInfo.MaxCharSize > 1) {
-          for(ptr=(unsigned char*)CPInfo.LeadByte; *ptr && *(ptr+1); ptr+=2)
-            for(i=*ptr; i <= *(ptr+1); ++i) ltype->ctable[i] = _LEADBYTE;
+        if (CPInfo.MaxCharSize > 1) {
+          for (ptr = (unsigned char*)CPInfo.LeadByte; *ptr && *(ptr + 1); ptr+=2)
+            for (i = *ptr; i <= *(ptr + 1); ++i) ltype->ctable[i] = _LEADBYTE;
         }
       }
     }
     else {
-      GetStringTypeA(ltype->lcid, CT_CTYPE1, (const char*)Buffer, 256, ctable);
-      for(i = 0; i < 256; ++i)
+      GetStringTypeA(ltype->lc.id, CT_CTYPE1, (const char*)Buffer, 256, ctable);
+      for (i = 0; i < 256; ++i)
         ltype->ctable[i]=(unsigned int)ctable[i];
 
-      if(CPInfo.MaxCharSize > 1) {
-        for(ptr=(unsigned char*)CPInfo.LeadByte; *ptr && *(ptr+1); ptr+=2)
-          for(i=*ptr; i <= *(ptr+1); ++i) ltype->ctable[i] = _LEADBYTE;
+      if (CPInfo.MaxCharSize > 1) {
+        for (ptr = (unsigned char*)CPInfo.LeadByte; *ptr && *(ptr + 1); ptr+=2)
+          for (i = *ptr; i <= *(ptr + 1); ++i) ltype->ctable[i] = _LEADBYTE;
       }
     }
     return ltype;
   }
 
-  void* _Locale_numeric_create(const char * name) {
+  void* _Locale_numeric_create(const char * name, _Locale_lcid_t* lc_hint) {
     char *GroupingBuffer;
     char cname[_Locale_MAX_SIMPLE_NAME];
     int BufferSize;
-    _Locale_numeric_t *lnum=(_Locale_numeric_t*)malloc(sizeof(_Locale_numeric_t));
-    if(!lnum) return lnum; /* MS normal behavior for 'new' */
+    _Locale_numeric_t *lnum = (_Locale_numeric_t*)malloc(sizeof(_Locale_numeric_t));
+    if (!lnum) return lnum; /* MS normal behavior for 'new' */
 
     __Extract_locale_name(name, LC_NUMERIC, cname);
 
-    if(__GetLCIDFromName(cname, &lnum->lcid, lnum->cp)==-1)
-      { free(lnum); return NULL; }
+    if (__GetLCIDFromName(cname, &lnum->lc.id, lnum->cp, lc_hint) == -1)
+    { free(lnum); return NULL; }
 
-    GetLocaleInfoA(lnum->lcid, LOCALE_SDECIMAL, lnum->decimal_point, 4);
-    __ConvertFromACP(lnum->decimal_point, 4, lnum->cp);
-    GetLocaleInfoA(lnum->lcid, LOCALE_STHOUSAND, lnum->thousands_sep, 4);
-    __ConvertFromACP(lnum->thousands_sep, 4, lnum->cp);
+    __GetLocaleInfoUsingACP(lnum->lc.id, lnum->cp, LOCALE_SDECIMAL, lnum->decimal_point, 4);
+    __GetLocaleInfoUsingACP(lnum->lc.id, lnum->cp, LOCALE_STHOUSAND, lnum->thousands_sep, 4);
 
-    BufferSize=GetLocaleInfoA(lnum->lcid, LOCALE_SGROUPING, NULL, 0);
-    GroupingBuffer=(char*)malloc(BufferSize);
-    if(!GroupingBuffer) { lnum->grouping=NULL; return lnum; }
-    GetLocaleInfoA(lnum->lcid, LOCALE_SGROUPING, GroupingBuffer, BufferSize);
+    BufferSize = GetLocaleInfoA(lnum->lc.id, LOCALE_SGROUPING, NULL, 0);
+    GroupingBuffer = (char*)malloc(BufferSize);
+    if (!GroupingBuffer) { lnum->grouping = NULL; return lnum; }
+    GetLocaleInfoA(lnum->lc.id, LOCALE_SGROUPING, GroupingBuffer, BufferSize);
     __FixGrouping(GroupingBuffer);
-    lnum->grouping=GroupingBuffer;
+    lnum->grouping = GroupingBuffer;
 
     return lnum;
   }
 
-  void* _Locale_time_create(const char * name) {
+  void* _Locale_time_create(const char * name, _Locale_lcid_t* lc_hint) {
     int size, month, dayofweek;
     char cname[_Locale_MAX_SIMPLE_NAME];
 
     _Locale_time_t *ltime=(_Locale_time_t*)malloc(sizeof(_Locale_time_t));
-    if(!ltime) return ltime;
+    if (!ltime) return ltime;
     memset(ltime, 0, sizeof(_Locale_time_t));
 
     __Extract_locale_name(name, LC_TIME, cname);
 
-    if(__GetLCIDFromName(cname, &ltime->lcid, ltime->cp)==-1)
+    if (__GetLCIDFromName(cname, &ltime->lc.id, ltime->cp, lc_hint) == -1)
     { free(ltime); return NULL; }
 
-    for(month=LOCALE_SMONTHNAME1; month<=LOCALE_SMONTHNAME12; ++month) { /* Small hack :-) */
-      size=GetLocaleInfoA(ltime->lcid, month, NULL, 0);
-      ltime->month[month-LOCALE_SMONTHNAME1]=(char*)malloc(size);
-      if(!ltime->month[month-LOCALE_SMONTHNAME1]) { _Locale_time_destroy(ltime); return NULL; }
-      GetLocaleInfoA(ltime->lcid, month, ltime->month[month-LOCALE_SMONTHNAME1], size);
-      __ConvertFromACP(ltime->month[month-LOCALE_SMONTHNAME1], size, ltime->cp);
+    for (month = LOCALE_SMONTHNAME1; month <= LOCALE_SMONTHNAME12; ++month) { /* Small hack :-) */
+      size = GetLocaleInfoA(ltime->lc.id, month, NULL, 0);
+      ltime->month[month - LOCALE_SMONTHNAME1] = (char*)malloc(size);
+      if (!ltime->month[month - LOCALE_SMONTHNAME1]) { _Locale_time_destroy(ltime); return NULL; }
+      __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, month, ltime->month[month - LOCALE_SMONTHNAME1], size);
     }
 
-    for(month=LOCALE_SABBREVMONTHNAME1; month<=LOCALE_SABBREVMONTHNAME12; ++month) {
-      size=GetLocaleInfoA(ltime->lcid, month, NULL, 0);
-      ltime->abbrev_month[month-LOCALE_SABBREVMONTHNAME1]=(char*)malloc(size);
-      if(!ltime->abbrev_month[month-LOCALE_SABBREVMONTHNAME1]) { _Locale_time_destroy(ltime); return NULL; }
-      GetLocaleInfoA(ltime->lcid, month, ltime->abbrev_month[month-LOCALE_SABBREVMONTHNAME1], size);
-      __ConvertFromACP(ltime->abbrev_month[month-LOCALE_SABBREVMONTHNAME1], size, ltime->cp);
+    for (month = LOCALE_SABBREVMONTHNAME1; month <= LOCALE_SABBREVMONTHNAME12; ++month) {
+      size = GetLocaleInfoA(ltime->lc.id, month, NULL, 0);
+      ltime->abbrev_month[month - LOCALE_SABBREVMONTHNAME1] = (char*)malloc(size);
+      if (!ltime->abbrev_month[month - LOCALE_SABBREVMONTHNAME1]) { _Locale_time_destroy(ltime); return NULL; }
+      __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, month, ltime->abbrev_month[month - LOCALE_SABBREVMONTHNAME1], size);
     }
 
-    for(dayofweek=LOCALE_SDAYNAME1; dayofweek<=LOCALE_SDAYNAME7; ++dayofweek) {
-      int dayindex= ( dayofweek != LOCALE_SDAYNAME7 ) ?
-        dayofweek-LOCALE_SDAYNAME1+1 : 0;
-      size=GetLocaleInfoA(ltime->lcid, dayofweek, NULL, 0);
-      ltime->dayofweek[dayindex]=(char*)malloc(size);
-      if(!ltime->dayofweek[dayindex] ) { _Locale_time_destroy(ltime); return NULL; }
-      GetLocaleInfoA(ltime->lcid, dayofweek, ltime->dayofweek[dayindex], size);
-      __ConvertFromACP(ltime->dayofweek[dayindex], size, ltime->cp);
+    for (dayofweek=LOCALE_SDAYNAME1; dayofweek<=LOCALE_SDAYNAME7; ++dayofweek) {
+      int dayindex = ( dayofweek != LOCALE_SDAYNAME7 ) ? dayofweek - LOCALE_SDAYNAME1 + 1 : 0;
+      size = GetLocaleInfoA(ltime->lc.id, dayofweek, NULL, 0);
+      ltime->dayofweek[dayindex] = (char*)malloc(size);
+      if (!ltime->dayofweek[dayindex]) { _Locale_time_destroy(ltime); return NULL; }
+      __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, dayofweek, ltime->dayofweek[dayindex], size);
     }
 
-    for(dayofweek=LOCALE_SABBREVDAYNAME1; dayofweek<=LOCALE_SABBREVDAYNAME7; ++dayofweek) {
-      int dayindex= ( dayofweek != LOCALE_SABBREVDAYNAME7 ) ?
-        dayofweek-LOCALE_SABBREVDAYNAME1+1 : 0;
-      size=GetLocaleInfoA(ltime->lcid, dayofweek, NULL, 0);
-      ltime->abbrev_dayofweek[dayindex]=(char*)malloc(size);
-      if(!ltime->abbrev_dayofweek[dayindex]) { _Locale_time_destroy(ltime); return NULL; }
-      GetLocaleInfoA(ltime->lcid, dayofweek, ltime->abbrev_dayofweek[dayindex], size);
-      __ConvertFromACP(ltime->abbrev_dayofweek[dayindex], size, ltime->cp);
+    for (dayofweek=LOCALE_SABBREVDAYNAME1; dayofweek<=LOCALE_SABBREVDAYNAME7; ++dayofweek) {
+      int dayindex = ( dayofweek != LOCALE_SABBREVDAYNAME7 ) ? dayofweek - LOCALE_SABBREVDAYNAME1 + 1 : 0;
+      size = GetLocaleInfoA(ltime->lc.id, dayofweek, NULL, 0);
+      ltime->abbrev_dayofweek[dayindex] = (char*)malloc(size);
+      if (!ltime->abbrev_dayofweek[dayindex]) { _Locale_time_destroy(ltime); return NULL; }
+      __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, dayofweek, ltime->abbrev_dayofweek[dayindex], size);
     }
 
     return ltime;
   }
 
-  void* _Locale_collate_create(const char * name) {
+  void* _Locale_collate_create(const char * name, _Locale_lcid_t* lc_hint) {
     char cname[_Locale_MAX_SIMPLE_NAME];
 
     _Locale_collate_t *lcol=(_Locale_collate_t*)malloc(sizeof(_Locale_collate_t));
-    if(!lcol) return lcol;
+    if (!lcol) return lcol;
     memset(lcol, 0, sizeof(_Locale_collate_t));
 
     __Extract_locale_name(name, LC_COLLATE, cname);
 
-    if(__GetLCIDFromName(cname, &lcol->lcid, lcol->cp)==-1)
-      { free(lcol); return NULL; }
+    if (__GetLCIDFromName(cname, &lcol->lc.id, lcol->cp, lc_hint) == -1)
+    { free(lcol); return NULL; }
 
     return lcol;
   }
 
-  void* _Locale_monetary_create(const char * name) {
+  void* _Locale_monetary_create(const char * name, _Locale_lcid_t* lc_hint) {
     char cname[_Locale_MAX_SIMPLE_NAME];
     char *GroupingBuffer;
     int BufferSize;
@@ -457,38 +483,31 @@ extern "C" {
 
     __Extract_locale_name(name, LC_MONETARY, cname);
 
-    if (__GetLCIDFromName(cname, &lmon->lcid, lmon->cp)==-1)
+    if (__GetLCIDFromName(cname, &lmon->lc.id, lmon->cp, lc_hint) == -1)
     { free(lmon); return NULL; }
 
     /* Extract information about monetary system */
-    GetLocaleInfoA(lmon->lcid, LOCALE_SDECIMAL, lmon->decimal_point, 4);
-    __ConvertFromACP(lmon->decimal_point, 4, lmon->cp);
-    GetLocaleInfoA(lmon->lcid, LOCALE_STHOUSAND, lmon->thousands_sep, 4);
-    __ConvertFromACP(lmon->thousands_sep, 4, lmon->cp);
+    __GetLocaleInfoUsingACP(lmon->lc.id, lmon->cp, LOCALE_SDECIMAL, lmon->decimal_point, 4);
+    __GetLocaleInfoUsingACP(lmon->lc.id, lmon->cp, LOCALE_STHOUSAND, lmon->thousands_sep, 4);
 
-    BufferSize = GetLocaleInfoA(lmon->lcid, LOCALE_SGROUPING, NULL, 0);
+    BufferSize = GetLocaleInfoA(lmon->lc.id, LOCALE_SGROUPING, NULL, 0);
     GroupingBuffer = (char*)malloc(BufferSize);
     if (!GroupingBuffer) { lmon->grouping = NULL; return lmon; }
-    GetLocaleInfoA(lmon->lcid, LOCALE_SGROUPING, GroupingBuffer, BufferSize);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_SGROUPING, GroupingBuffer, BufferSize);
     __FixGrouping(GroupingBuffer);
     lmon->grouping=GroupingBuffer;
 
-    GetLocaleInfoA(lmon->lcid, LOCALE_SCURRENCY, lmon->curr_symbol, 6);
-    __ConvertFromACP(lmon->curr_symbol, 6, lmon->cp);
+    __GetLocaleInfoUsingACP(lmon->lc.id, lmon->cp, LOCALE_SCURRENCY, lmon->curr_symbol, 6);
+    __GetLocaleInfoUsingACP(lmon->lc.id, lmon->cp, LOCALE_SNEGATIVESIGN, lmon->negative_sign, 5);
+    __GetLocaleInfoUsingACP(lmon->lc.id, lmon->cp, LOCALE_SPOSITIVESIGN, lmon->positive_sign, 5);
 
-    GetLocaleInfoA(lmon->lcid, LOCALE_SNEGATIVESIGN, lmon->negative_sign, 5);
-    __ConvertFromACP(lmon->negative_sign, 5, lmon->cp);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_ICURRDIGITS, FracDigits, 3);
+    lmon->frac_digits = atoi(FracDigits);
 
-    GetLocaleInfoA(lmon->lcid, LOCALE_SPOSITIVESIGN, lmon->positive_sign, 5);
-    __ConvertFromACP(lmon->positive_sign, 5, lmon->cp);
-
-    GetLocaleInfoA(lmon->lcid, LOCALE_ICURRDIGITS, FracDigits, 3);
-    lmon->frac_digits=atoi(FracDigits);
-
-    GetLocaleInfoA(lmon->lcid, LOCALE_IINTLCURRDIGITS, FracDigits, 3);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_IINTLCURRDIGITS, FracDigits, 3);
     lmon->int_frac_digits=atoi(FracDigits);
 
-    GetLocaleInfoA(lmon->lcid, LOCALE_SINTLSYMBOL, lmon->int_curr_symbol, 5);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_SINTLSYMBOL, lmon->int_curr_symbol, 5);
     /* Even if Platform SDK documentation says that the returned symbol should
      * be a 3 letters symbol followed by a seperation character, experimentation
      * has shown that no seperation character is ever appended. We are adding it
@@ -502,111 +521,103 @@ extern "C" {
     return lmon;
   }
 
-  void* _Locale_messages_create(const char *name) {
+  void* _Locale_messages_create(const char *name, _Locale_lcid_t* lc_hint) {
     char cname[_Locale_MAX_SIMPLE_NAME];
     _Locale_messages_t *lmes=(_Locale_messages_t*)malloc(sizeof(_Locale_messages_t));
-    if(!lmes) return lmes;
+    if (!lmes) return lmes;
     memset(lmes, 0, sizeof(_Locale_messages_t));
 
-    _Locale_extract_messages_name(name, cname);
-    if(__GetLCIDFromName(cname, &lmes->lcid, lmes->cp)==-1)
-      { free(lmes); return NULL; }
+    _Locale_extract_messages_name(name, cname, lc_hint);
+    if (__GetLCIDFromName(cname, &lmes->lc.id, lmes->cp, lc_hint) == -1)
+    { free(lmes); return NULL; }
 
     return lmes;
   }
 
-  const char* _Locale_common_default(char* buf) {
-    char cp[MAX_CP_LEN+1];
-    int CodePage=__intGetACP(LOCALE_USER_DEFAULT);
-    if(!CodePage) CodePage=__intGetOCP(LOCALE_USER_DEFAULT);
+  static const char* _Locale_common_default(char* buf) {
+    char cp[MAX_CP_LEN + 1];
+    int CodePage = __GetDefaultCP(LOCALE_USER_DEFAULT);
     my_ltoa(CodePage, cp);
     return __GetLocaleName(LOCALE_USER_DEFAULT, cp, buf);
   }
 
-  const char* _Locale_ctype_default(char* buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_ctype_default(char* buf)
+  { return _Locale_common_default(buf); }
 
-  const char* _Locale_numeric_default(char * buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_numeric_default(char * buf)
+  { return _Locale_common_default(buf); }
 
-  const char* _Locale_time_default(char* buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_time_default(char* buf)
+  { return _Locale_common_default(buf); }
 
-  const char* _Locale_collate_default(char* buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_collate_default(char* buf)
+  { return _Locale_common_default(buf); }
 
-  const char* _Locale_monetary_default(char* buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_monetary_default(char* buf)
+  { return _Locale_common_default(buf); }
 
-  const char* _Locale_messages_default(char* buf) {
-    return _Locale_common_default(buf);
-  }
+  const char* _Locale_messages_default(char* buf)
+  { return _Locale_common_default(buf); }
 
-  char* _Locale_ctype_name(const void* loc, char* buf) {
-    char cp_buf[MAX_CP_LEN+1];
-    _Locale_ctype_t* ltype=(_Locale_ctype_t*)loc;
+  char const* _Locale_ctype_name(const void* loc, char* buf) {
+    char cp_buf[MAX_CP_LEN + 1];
+    _Locale_ctype_t* ltype = (_Locale_ctype_t*)loc;
     my_ltoa(ltype->cp, cp_buf);
-    return __GetLocaleName(ltype->lcid, cp_buf, buf);
+    return __GetLocaleName(ltype->lc.id, cp_buf, buf);
   }
 
-  char* _Locale_numeric_name(const void* loc, char* buf) {
-    _Locale_numeric_t* lnum=(_Locale_numeric_t*)loc;
-    return __GetLocaleName(lnum->lcid, lnum->cp, buf);
+  char const* _Locale_numeric_name(const void* loc, char* buf) {
+    _Locale_numeric_t* lnum = (_Locale_numeric_t*)loc;
+    return __GetLocaleName(lnum->lc.id, lnum->cp, buf);
   }
 
-  char* _Locale_time_name(const void* loc, char* buf) {
-    _Locale_time_t* ltime=(_Locale_time_t*)loc;
-    return __GetLocaleName(ltime->lcid, ltime->cp, buf);
+  char const* _Locale_time_name(const void* loc, char* buf) {
+    _Locale_time_t* ltime = (_Locale_time_t*)loc;
+    return __GetLocaleName(ltime->lc.id, ltime->cp, buf);
   }
 
-  char* _Locale_collate_name(const void* loc, char* buf) {
-    _Locale_collate_t* lcol=(_Locale_collate_t*)loc;
-    return __GetLocaleName(lcol->lcid, lcol->cp, buf);
+  char const* _Locale_collate_name(const void* loc, char* buf) {
+    _Locale_collate_t* lcol = (_Locale_collate_t*)loc;
+    return __GetLocaleName(lcol->lc.id, lcol->cp, buf);
   }
 
-  char* _Locale_monetary_name(const void* loc, char* buf) {
+  char const* _Locale_monetary_name(const void* loc, char* buf) {
     _Locale_monetary_t* lmon = (_Locale_monetary_t*)loc;
-    return __GetLocaleName(lmon->lcid, lmon->cp, buf);
+    return __GetLocaleName(lmon->lc.id, lmon->cp, buf);
   }
 
-  char* _Locale_messages_name(const void* loc, char* buf) {
-    _Locale_messages_t* lmes=(_Locale_messages_t*)loc;
-    return __GetLocaleName(lmes->lcid, lmes->cp, buf);
+  char const* _Locale_messages_name(const void* loc, char* buf) {
+    _Locale_messages_t* lmes = (_Locale_messages_t*)loc;
+    return __GetLocaleName(lmes->lc.id, lmes->cp, buf);
   }
 
   void _Locale_ctype_destroy(void* loc) {
-    _Locale_ctype_t *ltype=(_Locale_ctype_t*)loc;
-    if(!ltype) return;
-
+    _Locale_ctype_t *ltype = (_Locale_ctype_t*)loc;
+    if (!ltype) return;
     free(ltype);
   }
 
   void _Locale_numeric_destroy(void* loc) {
-    _Locale_numeric_t *lnum=(_Locale_numeric_t *)loc;
-    if(!lnum) return;
+    _Locale_numeric_t *lnum = (_Locale_numeric_t *)loc;
+    if (!lnum) return;
 
-    if(lnum->grouping) free(lnum->grouping);
+    if (lnum->grouping) free(lnum->grouping);
     free(lnum);
   }
 
   void _Locale_time_destroy(void* loc) {
     int i;
-    _Locale_time_t* ltime=(_Locale_time_t*)loc;
-    if(!ltime) return;
+    _Locale_time_t* ltime = (_Locale_time_t*)loc;
+    if (!ltime) return;
 
-    for(i=0; i<12; ++i) {
-      if(ltime->month[i]) free(ltime->month[i]);
-      if(ltime->abbrev_month[i]) free(ltime->abbrev_month[i]);
+    for (i=0; i<12; ++i) {
+      if (ltime->month[i]) free(ltime->month[i]);
+      if (ltime->abbrev_month[i]) free(ltime->abbrev_month[i]);
     }
 
-    for(i=0; i<7; ++i) {
-      if(ltime->dayofweek[i]) free(ltime->dayofweek[i]);
-      if(ltime->abbrev_dayofweek[i]) free(ltime->abbrev_dayofweek[i]);
+    for (i=0; i<7; ++i) {
+      if (ltime->dayofweek[i]) free(ltime->dayofweek[i]);
+      if (ltime->abbrev_dayofweek[i]) free(ltime->abbrev_dayofweek[i]);
     }
 
     free(ltime);
@@ -614,200 +625,218 @@ extern "C" {
 
   void _Locale_collate_destroy(void* loc) {
     _Locale_collate_t* lcol=(_Locale_collate_t*)loc;
-    if(!lcol) return;
+    if (!lcol) return;
 
     free(lcol);
   }
 
   void _Locale_monetary_destroy(void* loc) {
-    struct _Locale_monetary *lmon=(struct _Locale_monetary *)loc;
-    if(!lmon) return;
+    _Locale_monetary_t *lmon = (_Locale_monetary_t*)loc;
+    if (!lmon) return;
 
-    if(lmon->grouping) free(lmon->grouping);
+    if (lmon->grouping) free(lmon->grouping);
     free(lmon);
   }
 
   void _Locale_messages_destroy(void* loc) {
-    _Locale_messages_t* lmes=(_Locale_messages_t*)loc;
-    if(!lmes) return;
+    _Locale_messages_t* lmes = (_Locale_messages_t*)loc;
+    if (!lmes) return;
 
     free(lmes);
   }
 
-  char* _Locale_extract_ctype_name(const char* cname, char* buf) {
+  static char const* _Locale_extract_category_name(const char* cname, int category, char* buf, _Locale_lcid_t* hint) {
     char lname[_Locale_MAX_SIMPLE_NAME];
-    __Extract_locale_name(cname, LC_CTYPE, lname);
-    if(lname[0] == 'C' && lname[1] == 0) return strcpy(buf, lname);
-    return __TranslateToSystem(lname, buf);
+    __Extract_locale_name(cname, category, lname);
+    if (lname[0] == 'C' && lname[1] == 0) {
+      _STLP_RETURN_STRCPY2(buf, _Locale_MAX_SIMPLE_NAME, lname);
+    }
+    return __TranslateToSystem(lname, buf, hint);
   }
 
-  char* _Locale_extract_numeric_name(const char* cname, char* buf) {
-    char lname[_Locale_MAX_SIMPLE_NAME];
-    __Extract_locale_name(cname, LC_NUMERIC, lname);
-    if(lname[0] == 'C' && lname[1] == 0) return strcpy(buf, lname);
-    return __TranslateToSystem(lname, buf);
+  char const* _Locale_extract_ctype_name(const char* cname, char* buf, _Locale_lcid_t* hint)
+  { return _Locale_extract_category_name(cname, LC_CTYPE, buf, hint); }
+
+  char const* _Locale_extract_numeric_name(const char* cname, char* buf, _Locale_lcid_t* hint)
+  { return _Locale_extract_category_name(cname, LC_NUMERIC, buf, hint); }
+
+  char const* _Locale_extract_time_name(const char* cname, char* buf, _Locale_lcid_t* hint)
+  { return _Locale_extract_category_name(cname, LC_TIME, buf, hint); }
+
+  char const* _Locale_extract_collate_name(const char* cname, char* buf, _Locale_lcid_t* hint)
+  { return _Locale_extract_category_name(cname, LC_COLLATE, buf, hint); }
+
+  char const* _Locale_extract_monetary_name(const char* cname, char* buf, _Locale_lcid_t* hint)
+  { return _Locale_extract_category_name(cname, LC_MONETARY, buf, hint); }
+
+  char const* _Locale_extract_messages_name(const char* cname, char* buf, _Locale_lcid_t* hint) {
+    if (cname[0] == 'L' && cname[1] == 'C' && cname[2] == '_') {
+      _STLP_RETURN_STRCPY2(buf, _Locale_MAX_SIMPLE_NAME, "C");
+    }
+    if (cname[0] == 'C' && cname[1] == 0) {
+      _STLP_RETURN_STRCPY2(buf, _Locale_MAX_SIMPLE_NAME, cname);
+    }
+    return __TranslateToSystem(cname, buf, hint);
   }
 
-  char* _Locale_extract_time_name(const char* cname, char* buf) {
-    char lname[_Locale_MAX_SIMPLE_NAME];
-    __Extract_locale_name(cname, LC_TIME, lname);
-    if(lname[0] == 'C' && lname[1] == 0) return strcpy(buf, lname);
-    return __TranslateToSystem(lname, buf);
-  }
-
-  char* _Locale_extract_collate_name(const char* cname, char* buf) {
-    char lname[_Locale_MAX_SIMPLE_NAME];
-    __Extract_locale_name(cname, LC_COLLATE, lname);
-    if(lname[0] == 'C' && lname[1] == 0) return strcpy(buf, lname);
-    return __TranslateToSystem(lname, buf);
-  }
-
-  char* _Locale_extract_monetary_name(const char* cname, char* buf) {
-    char lname[_Locale_MAX_SIMPLE_NAME];
-    __Extract_locale_name(cname, LC_MONETARY, lname);
-    if(lname[0] == 'C' && lname[1] == 0) return strcpy(buf, lname);
-    return __TranslateToSystem(lname, buf);
-  }
-
-  char* _Locale_extract_messages_name(const char* cname, char* buf) {
-    if(cname[0] == 'L' && cname[1] == 'C' && cname[2] == '_')
-      return strcpy(buf, "C");
-    if(cname[0] == 'C' && cname[1] == 0) return strcpy(buf, cname);
-    return __TranslateToSystem(cname, buf);
-  }
-
-  char* _Locale_compose_name(char* buf,
+  char const* _Locale_compose_name(char* buf,
                              const char* _ctype, const char* numeric,
                              const char* time, const char* _collate,
                              const char* monetary, const char* messages,
                              const char* default_name) {
     (void) default_name;
 
-    if(!strcmp(_ctype, numeric) &&
+    if (!strcmp(_ctype, numeric) &&
        !strcmp(_ctype, time) &&
        !strcmp(_ctype, _collate) &&
        !strcmp(_ctype, monetary) &&
-       !strcmp(_ctype, messages))
-      return strcpy(buf, _ctype);
+       !strcmp(_ctype, messages)) {
+      _STLP_RETURN_STRCPY2(buf, _Locale_MAX_COMPOSITE_NAME, _ctype);
+    }
 
-    strcpy(buf, "LC_CTYPE="); strcat(buf, _ctype); strcat(buf, ";");
-    strcat(buf, "LC_TIME="); strcat(buf, time); strcat(buf, ";");
-    strcat(buf, "LC_NUMERIC="); strcat(buf, numeric); strcat(buf, ";");
-    strcat(buf, "LC_COLLATE="); strcat(buf, _collate); strcat(buf, ";");
-    strcat(buf, "LC_MONETARY="); strcat(buf, monetary); strcat(buf, ";");
-    strcat(buf, "LC_MESSAGES="); strcat(buf, messages); strcat(buf, ";");
+    _STLP_STRCPY2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_CTYPE=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, _ctype);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_TIME=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, time);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_NUMERIC=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, numeric);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_COLLATE=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, _collate);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_MONETARY=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, monetary);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, "LC_MESSAGES=");
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, messages);
+    _STLP_STRCAT2(buf, _Locale_MAX_COMPOSITE_NAME, ";");
 
     return buf;
   }
 
   /* ctype */
 
-  const _Locale_mask_t* _Locale_ctype_table(struct _Locale_ctype* ltype) {
-    typedef char __static_assert[sizeof(_Locale_mask_t) == sizeof(unsigned int)];
+  const _Locale_mask_t* _Locale_ctype_table(_Locale_ctype_t* ltype) {
+    _STLP_STATIC_ASSERT(sizeof(_Locale_mask_t) == sizeof(unsigned int))
     return (const _Locale_mask_t*)ltype->ctable;
   }
 
-  int _Locale_toupper(struct _Locale_ctype* ltype, int c) {
+  int _Locale_toupper(_Locale_ctype_t* ltype, int c) {
     char buf[2], out_buf[2];
     buf[0] = (char)c; buf[1] = 0;
-    if((UINT)__GetDefaultCP(ltype->lcid) == ltype->cp) {
-      LCMapStringA(ltype->lcid, LCMAP_LINGUISTIC_CASING | LCMAP_UPPERCASE, buf, 2, out_buf, 2);
+    if ((UINT)__GetDefaultCP(ltype->lc.id) == ltype->cp) {
+      LCMapStringA(ltype->lc.id, LCMAP_LINGUISTIC_CASING | LCMAP_UPPERCASE, buf, 2, out_buf, 2);
       return out_buf[0];
     }
     else {
       wchar_t wbuf[2];
       MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, buf, 2, wbuf, 2);
-      WideCharToMultiByte(__GetDefaultCP(ltype->lcid), WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, buf, 2, NULL, FALSE);
+      WideCharToMultiByte(__GetDefaultCP(ltype->lc.id), WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, buf, 2, NULL, FALSE);
 
-      LCMapStringA(ltype->lcid, LCMAP_LINGUISTIC_CASING | LCMAP_UPPERCASE, buf, 2, out_buf, 2);
+      LCMapStringA(ltype->lc.id, LCMAP_LINGUISTIC_CASING | LCMAP_UPPERCASE, buf, 2, out_buf, 2);
 
-      MultiByteToWideChar(__GetDefaultCP(ltype->lcid), MB_PRECOMPOSED, out_buf, 2, wbuf, 2);
+      MultiByteToWideChar(__GetDefaultCP(ltype->lc.id), MB_PRECOMPOSED, out_buf, 2, wbuf, 2);
       WideCharToMultiByte(ltype->cp, WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, out_buf, 2, NULL, FALSE);
       return out_buf[0];
     }
   }
 
-  int _Locale_tolower(struct _Locale_ctype* ltype, int c) {
+  int _Locale_tolower(_Locale_ctype_t* ltype, int c) {
     char buf[2], out_buf[2];
     buf[0] = (char)c; buf[1] = 0;
-    if((UINT)__GetDefaultCP(ltype->lcid) == ltype->cp) {
-      LCMapStringA(ltype->lcid, LCMAP_LINGUISTIC_CASING | LCMAP_LOWERCASE, buf, 2, out_buf, 2);
+    if ((UINT)__GetDefaultCP(ltype->lc.id) == ltype->cp) {
+      LCMapStringA(ltype->lc.id, LCMAP_LINGUISTIC_CASING | LCMAP_LOWERCASE, buf, 2, out_buf, 2);
       return out_buf[0];
     }
     else {
       wchar_t wbuf[2];
       MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, buf, 2, wbuf, 2);
-      WideCharToMultiByte(__GetDefaultCP(ltype->lcid), WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, buf, 2, NULL, FALSE);
+      WideCharToMultiByte(__GetDefaultCP(ltype->lc.id), WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, buf, 2, NULL, FALSE);
 
-      LCMapStringA(ltype->lcid, LCMAP_LINGUISTIC_CASING | LCMAP_LOWERCASE, buf, 2, out_buf, 2);
+      LCMapStringA(ltype->lc.id, LCMAP_LINGUISTIC_CASING | LCMAP_LOWERCASE, buf, 2, out_buf, 2);
 
-      MultiByteToWideChar(__GetDefaultCP(ltype->lcid), MB_PRECOMPOSED, out_buf, 2, wbuf, 2);
+      MultiByteToWideChar(__GetDefaultCP(ltype->lc.id), MB_PRECOMPOSED, out_buf, 2, wbuf, 2);
       WideCharToMultiByte(ltype->cp, WC_COMPOSITECHECK | WC_SEPCHARS, wbuf, 2, out_buf, 2, NULL, FALSE);
       return out_buf[0];
     }
   }
 
 #if !defined (_STLP_NO_WCHAR_T)
-  _Locale_mask_t _Locale_wchar_ctype(struct _Locale_ctype* ltype, wint_t c,
+  _Locale_mask_t _Locale_wchar_ctype(_Locale_ctype_t* ltype, wint_t c,
                                      _Locale_mask_t which_bits) {
     wchar_t buf[2];
     WORD out[2];
     buf[0] = c; buf[1] = 0;
     GetStringTypeW(CT_CTYPE1, buf, -1, out);
 
-    return (_Locale_mask_t)out[0] & which_bits;
+#  if !defined (__DMC__)
     (void*)ltype;
+#  endif
+    return (_Locale_mask_t)out[0] & which_bits;
   }
 
-  wint_t _Locale_wchar_tolower(struct _Locale_ctype* ltype, wint_t c) {
+  wint_t _Locale_wchar_tolower(_Locale_ctype_t* ltype, wint_t c) {
     wchar_t in_c = c;
     wchar_t res;
 
-    LCMapStringW(ltype->lcid, LCMAP_LOWERCASE, &in_c, 1, &res, 1);
+    LCMapStringW(ltype->lc.id, LCMAP_LOWERCASE, &in_c, 1, &res, 1);
     return res;
   }
 
-  wint_t _Locale_wchar_toupper(struct _Locale_ctype* ltype, wint_t c) {
+  wint_t _Locale_wchar_toupper(_Locale_ctype_t* ltype, wint_t c) {
     wchar_t in_c = c;
     wchar_t res;
 
-    LCMapStringW(ltype->lcid, LCMAP_UPPERCASE, &in_c, 1, &res, 1);
+    LCMapStringW(ltype->lc.id, LCMAP_UPPERCASE, &in_c, 1, &res, 1);
     return res;
   }
 #endif
 
 #if !defined (_STLP_NO_MBSTATE_T)
 
-  int _Locale_mb_cur_max (struct _Locale_ctype * ltype) {
+  int _Locale_mb_cur_max (_Locale_ctype_t * ltype) {
     CPINFO CPInfo;
-    if(!GetCPInfo(ltype->cp, &CPInfo)) return 0;
+    if (!GetCPInfo(ltype->cp, &CPInfo)) return 0;
     return CPInfo.MaxCharSize;
   }
 
-  int _Locale_mb_cur_min (struct _Locale_ctype *dummy) {
+  int _Locale_mb_cur_min (_Locale_ctype_t *dummy) {
+#  if !defined (__DMC__)
     (void*)dummy;
-    return 1; 
+#  endif
+    return 1;
   }
 
-  int _Locale_is_stateless (struct _Locale_ctype * ltype) {
+  int _Locale_is_stateless (_Locale_ctype_t * ltype) {
     CPINFO CPInfo;
     GetCPInfo(ltype->cp, &CPInfo);
     return (CPInfo.MaxCharSize == 1) ? 1 : 0;
   }
 
-  wint_t _Locale_btowc(struct _Locale_ctype * ltype, int c) {
+#if defined (__BORLANDC__) && defined (__cplusplus)
+  /* Weird Borland compiler behavior, even if native wint_t is imported to
+   * STLport namespace in _cwchar.h, wint_t is still usable when scoped with
+   * the Standard namespace (std::wint_t). As following WEOF macro is expended
+   * to (std::wint_t)(0xFFFF) compilation failed. Repeating import avoid this
+   * problem.*/
+  using __std_alias::wint_t;
+#endif
+
+  wint_t _Locale_btowc(_Locale_ctype_t * ltype, int c) {
     wchar_t wc;
-    if(c == EOF) return WEOF;
+    if (c == EOF) return WEOF;
 
     MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, (char*)&c, 1, &wc, 1);
 
     return (wint_t)wc;
   }
 
-  int _Locale_wctob(struct _Locale_ctype * ltype, wint_t wc) {
+  int _Locale_wctob(_Locale_ctype_t * ltype, wint_t wc) {
     char c;
 
-    if(WideCharToMultiByte(ltype->cp, WC_COMPOSITECHECK | WC_DEFAULTCHAR, (wchar_t*)&wc, 1, &c, 1, NULL, NULL) == 0)
+    if (WideCharToMultiByte(ltype->cp, WC_COMPOSITECHECK | WC_DEFAULTCHAR, (wchar_t*)&wc, 1, &c, 1, NULL, NULL) == 0)
       return WEOF; /* Not single byte or error conversion. */
 
     return (int)c;
@@ -817,17 +846,17 @@ extern "C" {
     return (ctable[(unsigned char)(c)] & _LEADBYTE);
   }
 
-  static size_t __mbtowc(struct _Locale_ctype *l, wchar_t *dst, char src, mbstate_t *shift_state) {
+  static size_t __mbtowc(_Locale_ctype_t *l, wchar_t *dst, char src, mbstate_t *shift_state) {
     int result;
 
-    if(*shift_state == 0) {
-      if(__isleadbyte(src, l->ctable)) {
+    if (*shift_state == 0) {
+      if (__isleadbyte(src, l->ctable)) {
         ((unsigned char*)shift_state)[0] = src;
         return (size_t)-2;
       }
       else {
         result = MultiByteToWideChar(l->cp, MB_PRECOMPOSED, &src, 1, dst, 1);
-        if(result == 0) return (size_t)-1;
+        if (result == 0) return (size_t)-1;
 
         return 1;
       }
@@ -836,30 +865,34 @@ extern "C" {
       ((unsigned char*)shift_state)[1] = src;
       result = MultiByteToWideChar(l->cp, MB_PRECOMPOSED, (const char*)shift_state, 2, dst, 1);
       *shift_state = 0;
-      if(result == 0) return (size_t)-1;
+      if (result == 0) return (size_t)-1;
 
       return 1;
     }
   }
 
-  size_t _Locale_mbtowc(struct _Locale_ctype *ltype, wchar_t *to,
+#if !defined (_STLP_NO_WCHAR_T)
+  size_t _Locale_mbtowc(_Locale_ctype_t *ltype, wchar_t *to,
                         const char *from, size_t n, mbstate_t *shift_state) {
     CPINFO ci;
     int result;
 
+#  if !defined (__DMC__)
+    (void*)shift_state;
+#  endif
     GetCPInfo(ltype->cp, &ci);
-    if(ci.MaxCharSize == 1) { /* Single byte encoding. */
+    if (ci.MaxCharSize == 1) { /* Single byte encoding. */
       *shift_state = (mbstate_t)0;
       result = MultiByteToWideChar(ltype->cp, MB_PRECOMPOSED, from, 1, to, 1);
-      if(result == 0) return (size_t)-1;
+      if (result == 0) return (size_t)-1;
       return result;
     }
     else { /* Multi byte encoding. */
       size_t retval = 0, count = 0;
       while(n--) {
         retval = __mbtowc(ltype, to, *from, shift_state);
-        if(retval == -2) { from++; count++; }
-        else if(retval == -1) return -1;
+        if (retval == -2) { from++; count++; }
+        else if (retval == -1) return -1;
         else return count+retval;
       }
       if (retval == -2) return (size_t)-2;
@@ -868,7 +901,7 @@ extern "C" {
     }
   }
 
-  size_t _Locale_wctomb(struct _Locale_ctype *ltype, char *to, size_t n,
+  size_t _Locale_wctomb(_Locale_ctype_t *ltype, char *to, size_t n,
                         const wchar_t c, mbstate_t *shift_state) {
     int size = \
       WideCharToMultiByte(ltype->cp,  WC_COMPOSITECHECK | WC_SEPCHARS, &c, 1, NULL, 0, NULL, NULL);
@@ -884,18 +917,24 @@ extern "C" {
 
     if (size == 0) return (size_t)-1;
 
+#  if !defined (__DMC__)
+    (void*)shift_state;
+#  endif
     return (size_t)size;
   }
+#endif
 
-  size_t _Locale_unshift(struct _Locale_ctype *ltype, mbstate_t *st,
+  size_t _Locale_unshift(_Locale_ctype_t *ltype, mbstate_t *st,
                          char *buf, size_t n, char **next) {
+#  if !defined (__DMC__)
     (void*)ltype;
-    if(*st == 0) {
+#  endif
+    if (*st == 0) {
       *next = buf;
       return 0;
     }
     else {
-      if(n < 1) { *next = buf; return (size_t)-2; }
+      if (n < 1) { *next = buf; return (size_t)-2; }
 
       *next = buf + 1;
       return 1;
@@ -912,19 +951,19 @@ extern "C" {
 #  define CSTR_LESS_THAN 1
 #endif
 
-  DWORD max_DWORD = 0xffffffff;
-  DWORD trim_size_t_to_DWORD(size_t n) { return n < (size_t)max_DWORD ? (DWORD)n : max_DWORD; }
+  static DWORD max_DWORD = 0xffffffff;
+  static DWORD trim_size_t_to_DWORD(size_t n) { return n < (size_t)max_DWORD ? (DWORD)n : max_DWORD; }
 
   /* Collate */
   /* This function takes care of the potential size_t DWORD different size. */
-  int _Locale_strcmp_auxA(struct _Locale_collate* lcol,
-                          const char* s1, size_t n1,
-                          const char* s2, size_t n2) {
+  static int _Locale_strcmp_auxA(_Locale_collate_t* lcol,
+                                 const char* s1, size_t n1,
+                                 const char* s2, size_t n2) {
     int result = CSTR_EQUAL;
     while (n1 > 0 || n2 > 0) {
       DWORD size1 = trim_size_t_to_DWORD(n1);
       DWORD size2 = trim_size_t_to_DWORD(n2);
-      result = CompareStringA(lcol->lcid, 0, s1, size1, s2, size2);
+      result = CompareStringA(lcol->lc.id, 0, s1, size1, s2, size2);
       if (result != CSTR_EQUAL)
         break;
       n1 -= size1;
@@ -933,18 +972,18 @@ extern "C" {
     return result;
   }
 
-  int _Locale_strcmp(struct _Locale_collate* lcol,
+  int _Locale_strcmp(_Locale_collate_t* lcol,
                      const char* s1, size_t n1,
                      const char* s2, size_t n2) {
     int result;
-    if (__GetDefaultCP(lcol->lcid) == atoi(lcol->cp)) {
+    if (__GetDefaultCP(lcol->lc.id) == atoi(lcol->cp)) {
       result = _Locale_strcmp_auxA(lcol, s1, n1, s2, n2);
     }
     else {
       char *buf1, *buf2;
       size_t size1, size2;
-      buf1 = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lcid), s1, n1, &size1);
-      buf2 = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lcid), s2, n2, &size2);
+      buf1 = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lc.id), s1, n1, &size1);
+      buf2 = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lc.id), s2, n2, &size2);
 
       result = _Locale_strcmp_auxA(lcol, buf1, size1, buf2, size2);
       free(buf1); free(buf2);
@@ -954,14 +993,14 @@ extern "C" {
 
 #if !defined (_STLP_NO_WCHAR_T)
   /* This function takes care of the potential size_t DWORD different size. */
-  int _Locale_strcmp_auxW(struct _Locale_collate* lcol,
-                          const wchar_t* s1, size_t n1,
-                          const wchar_t* s2, size_t n2) {
+  static int _Locale_strcmp_auxW(_Locale_collate_t* lcol,
+                                 const wchar_t* s1, size_t n1,
+                                 const wchar_t* s2, size_t n2) {
     int result = CSTR_EQUAL;
     while (n1 > 0 || n2 > 0) {
       DWORD size1 = trim_size_t_to_DWORD(n1);
       DWORD size2 = trim_size_t_to_DWORD(n2);
-      result = CompareStringW(lcol->lcid, 0, s1, size1, s2, size2);
+      result = CompareStringW(lcol->lc.id, 0, s1, size1, s2, size2);
       if (result != CSTR_EQUAL)
         break;
       n1 -= size1;
@@ -970,7 +1009,7 @@ extern "C" {
     return result;
   }
 
-  int _Locale_strwcmp(struct _Locale_collate* lcol,
+  int _Locale_strwcmp(_Locale_collate_t* lcol,
                       const wchar_t* s1, size_t n1,
                       const wchar_t* s2, size_t n2) {
     int result;
@@ -979,7 +1018,7 @@ extern "C" {
   }
 #endif
 
-  size_t _Locale_strxfrm(struct _Locale_collate* lcol,
+  size_t _Locale_strxfrm(_Locale_collate_t* lcol,
                          char* dst, size_t dst_size,
                          const char* src, size_t src_size) {
     /* The Windows API do not support transformation of very long strings (src_size > INT_MAX)
@@ -987,7 +1026,7 @@ extern "C" {
      */
     if (src_size > INT_MAX) {
       if (dst != 0) {
-        strncpy(dst, src, src_size);
+        _STLP_STRNCPY(dst, dst_size, src, src_size);
       }
       return src_size;
     }
@@ -996,35 +1035,35 @@ extern "C" {
       dst_size = INT_MAX;
     }
 
-    if (__GetDefaultCP(lcol->lcid) == atoi(lcol->cp))
-      return LCMapStringA(lcol->lcid, LCMAP_SORTKEY, src, (int)src_size, dst, (int)dst_size);
+    if (__GetDefaultCP(lcol->lc.id) == atoi(lcol->cp))
+      return LCMapStringA(lcol->lc.id, LCMAP_SORTKEY, src, (int)src_size, dst, (int)dst_size);
     else {
       int result;
       char *buf;
       size_t size;
-      buf = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lcid), src, src_size, &size);
+      buf = __ConvertToCP(atoi(lcol->cp), __GetDefaultCP(lcol->lc.id), src, src_size, &size);
 
-      result = LCMapStringA(lcol->lcid, LCMAP_SORTKEY, buf, (int)size, dst, (int)dst_size);
+      result = LCMapStringA(lcol->lc.id, LCMAP_SORTKEY, buf, (int)size, dst, (int)dst_size);
       free(buf);
       return result;
     }
   }
 
 #if !defined (_STLP_NO_WCHAR_T)
-  size_t _Locale_strwxfrm(struct _Locale_collate* lcol,
+  size_t _Locale_strwxfrm(_Locale_collate_t* lcol,
                           wchar_t* dst, size_t dst_size,
                           const wchar_t* src, size_t src_size) {
     /* see _Locale_strxfrm: */
     if (src_size > INT_MAX) {
       if (dst != 0) {
-        wcsncpy(dst, src, src_size);
+        _STLP_WCSNCPY(dst, dst_size, src, src_size);
       }
       return src_size;
     }
     if (dst_size > INT_MAX) {
       dst_size = INT_MAX;
     }
-    return LCMapStringW(lcol->lcid, LCMAP_SORTKEY, src, (int)src_size, dst, (int)dst_size);
+    return LCMapStringW(lcol->lc.id, LCMAP_SORTKEY, src, (int)src_size, dst, (int)dst_size);
   }
 #endif
 
@@ -1033,342 +1072,443 @@ extern "C" {
   static const char* __true_name = "true";
   static const char* __false_name = "false";
 
-  char _Locale_decimal_point(struct _Locale_numeric* lnum) {
+  char _Locale_decimal_point(_Locale_numeric_t* lnum) {
     return lnum->decimal_point[0];
   }
 
-  char _Locale_thousands_sep(struct _Locale_numeric* lnum) {
+  char _Locale_thousands_sep(_Locale_numeric_t* lnum) {
     return lnum->thousands_sep[0];
   }
 
-  const char* _Locale_grouping(struct _Locale_numeric * lnum) {
-    if(!lnum->grouping) return "";
+  const char* _Locale_grouping(_Locale_numeric_t * lnum) {
+    if (!lnum->grouping) return "";
     else return lnum->grouping;
   }
 
-  const char * _Locale_true(struct _Locale_numeric * lnum) {
+  const char * _Locale_true(_Locale_numeric_t * lnum) {
+#if !defined (__DMC__)
+    (void*)lnum;
+#endif
     return __true_name; /* NT does't provide information about this */
   }
 
-  const char * _Locale_false(struct _Locale_numeric * lnum) {
+  const char * _Locale_false(_Locale_numeric_t * lnum) {
+#if !defined (__DMC__)
+    (void*)lnum;
+#endif
     return __false_name; /* NT does't provide information about this */
   }
 
 
   /* Monetary */
-  const char* _Locale_int_curr_symbol(struct _Locale_monetary * lmon) {
-    return lmon->int_curr_symbol;
-  }
+  const char* _Locale_int_curr_symbol(_Locale_monetary_t * lmon)
+  { return lmon->int_curr_symbol; }
 
-  const char* _Locale_currency_symbol(struct _Locale_monetary * lmon) {
-    return lmon->curr_symbol;
-  }
+  const char* _Locale_currency_symbol(_Locale_monetary_t * lmon)
+  { return lmon->curr_symbol; }
 
-  char _Locale_mon_decimal_point(struct _Locale_monetary * lmon) {
-    return lmon->decimal_point[0];
-  }
+  char _Locale_mon_decimal_point(_Locale_monetary_t * lmon)
+  { return lmon->decimal_point[0]; }
 
-  char _Locale_mon_thousands_sep(struct _Locale_monetary * lmon) {
-    return lmon->thousands_sep[0];
-  }
+  char _Locale_mon_thousands_sep(_Locale_monetary_t * lmon)
+  { return lmon->thousands_sep[0]; }
 
-  const char* _Locale_mon_grouping(struct _Locale_monetary * lmon) {
-    if(!lmon->grouping) return "";
+  const char* _Locale_mon_grouping(_Locale_monetary_t * lmon) {
+    if (!lmon->grouping) return "";
     else return lmon->grouping;
   }
 
-  const char* _Locale_positive_sign(struct _Locale_monetary * lmon) {
-    return lmon->positive_sign;
-  }
+  const char* _Locale_positive_sign(_Locale_monetary_t * lmon)
+  { return lmon->positive_sign; }
 
-  const char* _Locale_negative_sign(struct _Locale_monetary * lmon) {
-    return lmon->negative_sign;
-  }
+  const char* _Locale_negative_sign(_Locale_monetary_t * lmon)
+  { return lmon->negative_sign; }
 
-  char _Locale_int_frac_digits(struct _Locale_monetary * lmon) {
-    return (char)lmon->int_frac_digits;
-  }
+  char _Locale_int_frac_digits(_Locale_monetary_t * lmon)
+  { return (char)lmon->int_frac_digits; }
 
-  char _Locale_frac_digits(struct _Locale_monetary * lmon) {
-    return (char)lmon->frac_digits;
-  }
+  char _Locale_frac_digits(_Locale_monetary_t * lmon)
+  { return (char)lmon->frac_digits; }
 
-  int _Locale_p_cs_precedes(struct _Locale_monetary * lmon) {
+  int _Locale_p_cs_precedes(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_IPOSSYMPRECEDES, loc_data, 2);
-    if(loc_data[0]=='0') return 0;
-    else if(loc_data[0]=='1') return 1;
+    GetLocaleInfoA(lmon->lc.id, LOCALE_IPOSSYMPRECEDES, loc_data, 2);
+    if (loc_data[0] == '0') return 0;
+    else if (loc_data[0] == '1') return 1;
     else return -1;
   }
 
-  int _Locale_p_sep_by_space(struct _Locale_monetary * lmon) {
+  int _Locale_p_sep_by_space(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_IPOSSEPBYSPACE, loc_data, 2);
-    if(loc_data[0]=='0') return 0;
-    else if(loc_data[0]=='1') return 1;
+    GetLocaleInfoA(lmon->lc.id, LOCALE_IPOSSEPBYSPACE, loc_data, 2);
+    if (loc_data[0] == '0') return 0;
+    else if (loc_data[0] == '1') return 1;
     else return -1;
   }
 
-  int _Locale_p_sign_posn(struct _Locale_monetary * lmon) {
+  int _Locale_p_sign_posn(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_IPOSSIGNPOSN, loc_data, 2);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_IPOSSIGNPOSN, loc_data, 2);
     return atoi(loc_data);
   }
 
-  int _Locale_n_cs_precedes(struct _Locale_monetary * lmon) {
+  int _Locale_n_cs_precedes(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_INEGSYMPRECEDES, loc_data, 2);
-    if(loc_data[0]=='0') return 0;
-    else if(loc_data[0]=='1') return 1;
+    GetLocaleInfoA(lmon->lc.id, LOCALE_INEGSYMPRECEDES, loc_data, 2);
+    if (loc_data[0] == '0') return 0;
+    else if (loc_data[0] == '1') return 1;
     else return -1;
   }
 
-  int _Locale_n_sep_by_space(struct _Locale_monetary * lmon) {
+  int _Locale_n_sep_by_space(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_INEGSEPBYSPACE, loc_data, 2);
-    if(loc_data[0]=='0') return 0;
-    else if(loc_data[0]=='1') return 1;
+    GetLocaleInfoA(lmon->lc.id, LOCALE_INEGSEPBYSPACE, loc_data, 2);
+    if (loc_data[0] == '0') return 0;
+    else if (loc_data[0] == '1') return 1;
     else return -1;
   }
 
-  int _Locale_n_sign_posn(struct _Locale_monetary * lmon) {
+  int _Locale_n_sign_posn(_Locale_monetary_t * lmon) {
     char loc_data[2];
-    GetLocaleInfoA(lmon->lcid, LOCALE_INEGSIGNPOSN, loc_data, 2);
+    GetLocaleInfoA(lmon->lc.id, LOCALE_INEGSIGNPOSN, loc_data, 2);
     return atoi(loc_data);
   }
 
 
   /* Time */
-  const char * _Locale_full_monthname(struct _Locale_time * ltime, int month) {
+  const char * _Locale_full_monthname(_Locale_time_t * ltime, int month) {
     const char **names = (const char**)ltime->month;
     return names[month];
   }
 
-  const char * _Locale_abbrev_monthname(struct _Locale_time * ltime, int month) {
+  const char * _Locale_abbrev_monthname(_Locale_time_t * ltime, int month) {
     const char **names = (const char**)ltime->abbrev_month;
     return names[month];
   }
 
-  const char * _Locale_full_dayofweek(struct _Locale_time * ltime, int day) {
+  const char * _Locale_full_dayofweek(_Locale_time_t * ltime, int day) {
     const char **names = (const char**)ltime->dayofweek;
     return names[day];
   }
 
-  const char * _Locale_abbrev_dayofweek(struct _Locale_time * ltime, int day) {
+  const char * _Locale_abbrev_dayofweek(_Locale_time_t * ltime, int day) {
     const char **names = (const char**)ltime->abbrev_dayofweek;
     return names[day];
   }
 
-  const char* _Locale_d_t_fmt(struct _Locale_time* ltime) {
+  const char* _Locale_d_t_fmt(_Locale_time_t* ltime) {
     /* NT doesn't provide this information, and must simulate. */
     static char buffer[MAX_PATH];
-    strcpy(buffer, _Locale_d_fmt(ltime));
-    strcat(buffer, " ");
-    strcat(buffer, _Locale_t_fmt(ltime));
+    _STLP_STRCPY(buffer, _Locale_d_fmt(ltime));
+    _STLP_STRCAT(buffer, " ");
+    _STLP_STRCAT(buffer, _Locale_t_fmt(ltime));
     return buffer;
   }
 
-  const char* _Locale_long_d_t_fmt(struct _Locale_time* ltime) {
+  const char* _Locale_long_d_t_fmt(_Locale_time_t* ltime) {
     /* NT doesn't provide this information, and must simulate. */
     static char buffer[MAX_PATH];
-    strcpy(buffer, _Locale_long_d_fmt(ltime));
-    strcat(buffer, " ");
-    strcat(buffer, _Locale_t_fmt(ltime));
+    _STLP_STRCPY(buffer, _Locale_long_d_fmt(ltime));
+    _STLP_STRCAT(buffer, " ");
+    _STLP_STRCAT(buffer, _Locale_t_fmt(ltime));
     return buffer;
   }
 
-  const char* __ConvertDate(const char* NTTime) {
+  static const char* __ConvertDate(const char* NTTime) {
+    /* This function will return an incomplete buffer if ansi_date_fmt is not long enough */
     static char ansi_date_fmt[MAX_PATH]; /* Hack */
     const char *cur_char;
-    char *cur_output;
+    char *cur_output, *end_output;
 
     /* Correct time format. */
-    cur_char=NTTime;
-    cur_output=ansi_date_fmt;
-    while(*cur_char) {
-      switch(*cur_char) {
+    cur_char = NTTime;
+    cur_output = ansi_date_fmt;
+    end_output = cur_output + MAX_PATH;
+    while (*cur_char) {
+      if (cur_output == end_output) break;
+      switch (*cur_char) {
       case 'd':
       {
-        if(*(cur_char+1)=='d') {
-          if(*(cur_char+2)=='d') {
-            if(*(cur_char+3)=='d')
-            { *(cur_output++)='%'; *(cur_output++)='A';  cur_char+=3; }
+        if (*(cur_char + 1) == 'd') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          if (*(cur_char + 2) == 'd') {
+            if (*(cur_char + 3) == 'd')
+            { *(cur_output++) = '%'; *(cur_output++) = 'A';  cur_char += 3; }
             else
-            { *(cur_output++)='%'; *(cur_output++)='a';  cur_char+=2; }
+            { *(cur_output++) = '%'; *(cur_output++) = 'a';  cur_char += 2; }
           }
           else
-          { *(cur_output++)='%'; *(cur_output++)='d';  cur_char++; }
+          { *(cur_output++) = '%'; *(cur_output++) = 'd'; cur_char++; }
         }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='d'; }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          *(cur_output++) = '%'; *(cur_output++) = '#'; *(cur_output++) = 'd';
+        }
       }
       break;
       case 'M':
       {
-        if(*(cur_char+1)=='M') {
-          if(*(cur_char+2)=='M') {
-            if(*(cur_char+3)=='M')
-            { *(cur_output++)='%'; *(cur_output++)='B';  cur_char+=3; }
+        if (*(cur_char + 1) == 'M') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          if (*(cur_char + 2) == 'M') {
+            if (*(cur_char + 3) == 'M')
+            { *(cur_output++) = '%'; *(cur_output++) = 'B';  cur_char += 3; }
             else
-            { *(cur_output++)='%'; *(cur_output++)='b';  cur_char+=2; }
+            { *(cur_output++) = '%'; *(cur_output++) = 'b';  cur_char += 2; }
           }
           else
-          { *(cur_output++)='%'; *(cur_output++)='m';  cur_char++; }
+          { *(cur_output++) = '%'; *(cur_output++) = 'm';  cur_char++; }
         }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='m'; }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          *(cur_output++) = '%'; *(cur_output++) = '#'; *(cur_output++) = 'm';
+        }
       }
       break;
       case 'y':
       {
-        if(*(cur_char+1)=='y') {
-          if(*(cur_char+2)=='y' && *(cur_char+3)=='y')
-          { *(cur_output++)='%'; *(cur_output++)='Y';  cur_char+=3; }
+        if (*(cur_char + 1) == 'y') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          if (*(cur_char+2) == 'y' && *(cur_char+3) == 'y')
+          { *(cur_output++) = '%'; *(cur_output++) = 'Y';  cur_char += 3; }
           else
-          { *(cur_output++)='%'; *(cur_output++)='y';  cur_char++; }
+          { *(cur_output++) = '%'; *(cur_output++) = 'y';  cur_char++; }
         }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='y'; }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+          *(cur_output++) = '%'; *(cur_output++) = '#'; *(cur_output++) = 'y';
+        }
       }
       break;
       case '%':
       {
-        *(cur_output++)='%'; *(cur_output++)='%';
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_date_fmt;
+          }
+        *(cur_output++) = '%'; *(cur_output++) = '%';
       }
       break;
       case '\'':
       {
         ++cur_char;
-        while(*cur_char!='\'' && *cur_char!=0) *cur_output++=*cur_char++;
+        while (*cur_char != '\'' && *cur_char != 0 && cur_output != end_output)
+          *cur_output++ = *cur_char++;
       }
       break;
       default:
       {
-        *(cur_output++)=*cur_char;
+        *(cur_output++) = *cur_char;
       }
       break;
       }
-      if(*cur_char==0) break;
+      if (*cur_char == 0) break;
         ++cur_char;
     }
 
-    *cur_output=0;
+    if (cur_output != end_output)
+      *cur_output = 0;
+    else
+      /* We trunc result */
+      *(--cur_output) = 0;
+
     return ansi_date_fmt;
   }
 
-  const char* _Locale_d_fmt(struct _Locale_time* ltime) {
+  const char* _Locale_d_fmt(_Locale_time_t* ltime) {
     static char date_fmt[80];
-    GetLocaleInfoA(ltime->lcid, LOCALE_SSHORTDATE, date_fmt, MAX_PATH);
-    __ConvertFromACP(date_fmt, 80, ltime->cp);
-
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_SSHORTDATE, date_fmt, 80);
     return __ConvertDate(date_fmt);
   }
 
-  const char* _Locale_long_d_fmt(struct _Locale_time* ltime) {
+  const char* _Locale_long_d_fmt(_Locale_time_t* ltime) {
     static char date_fmt[80];
-    GetLocaleInfoA(ltime->lcid, LOCALE_SLONGDATE, date_fmt, MAX_PATH);
-    __ConvertFromACP(date_fmt, 80, ltime->cp);
-
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_SLONGDATE, date_fmt, 80);
     return __ConvertDate(date_fmt);
   }
 
-  const char* _Locale_t_fmt(struct _Locale_time* ltime) {
+  const char* _Locale_t_fmt(_Locale_time_t* ltime) {
     char time_fmt[80];
     static char ansi_time_fmt[MAX_PATH]; /* Hack */
-    char *cur_char, *cur_output;
-    GetLocaleInfoA(ltime->lcid, LOCALE_STIMEFORMAT, time_fmt, MAX_PATH);
-    __ConvertFromACP(time_fmt, 80, ltime->cp);
+    char *cur_char, *cur_output, *end_output;
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_STIMEFORMAT, time_fmt, 80);
 
     /* Correct time format. */
-    cur_char=time_fmt;
-    cur_output=ansi_time_fmt;
-    while(*cur_char) {
+    cur_char = time_fmt;
+    cur_output = ansi_time_fmt;
+    end_output = cur_output + MAX_PATH;
+    while (*cur_char) {
       switch(*cur_char) {
       case 'h':
-        if(*(cur_char+1)=='h')
-        { *(cur_output++)='%'; *(cur_output++)='I';  ++cur_char; }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='I'; }
+        if (*(cur_char + 1) == 'h') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='I';  ++cur_char; 
+        }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='I';
+        }
         break;
       case 'H':
-        if(*(cur_char+1)=='H')
-        { *(cur_output++)='%'; *(cur_output++)='H'; ++cur_char; }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='H'; }
+        if (*(cur_char + 1) == 'H') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='H'; ++cur_char;
+        }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='H';
+        }
         break;
       case 'm':
-        if(*(cur_char+1)=='m')
-        { *(cur_output++)='%'; *(cur_output++)='M';  cur_char++; }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='M'; }
+        if (*(cur_char + 1) == 'm') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='M';  cur_char++;
+        }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='M';
+        }
         break;
       case 's':
-        if(*(cur_char+1)=='s')
-        { *(cur_output++)='%'; *(cur_output++)='S';  ++cur_char; }
-        else
-        { *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='S'; }
+        if (*(cur_char + 1) == 's') {
+          if (cur_output + 2 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='S';  ++cur_char;
+        }
+        else {
+          if (cur_output + 3 > end_output) {
+            *cur_output = 0;
+            return ansi_time_fmt;
+          }
+          *(cur_output++)='%'; *(cur_output++)='#'; *(cur_output++)='S';
+        }
         break;
       case 't':
-        if(*(cur_char+1)=='t')
+        if (*(cur_char + 1) == 't')
           ++cur_char;
+        if (cur_output + 2 > end_output) {
+          *cur_output = 0;
+          return ansi_time_fmt;
+        }
         *(cur_output++)='%'; *(cur_output++)='p';
         break;
       case '%':
+        if (cur_output + 2 > end_output) {
+          *cur_output = 0;
+          return ansi_time_fmt;
+        }
         *(cur_output++)='%'; *(cur_output++)='%';
         break;
       case '\'':
         ++cur_char;
-        while(*cur_char!='\'' && *cur_char!=0) 
-          *cur_output++=*cur_char++;
+        while (*cur_char != '\'' && *cur_char != 0 && cur_output != end_output)
+          *cur_output++ = *cur_char++;
         break;
       default:
-        *(cur_output++)=*cur_char;
+        *(cur_output++) = *cur_char;
         break;
       }
-      if(*cur_char==0) break;
+      if (*cur_char == 0) break;
       ++cur_char;
     }
 
-    *cur_output=0;
+    if (cur_output != end_output)
+      *cur_output = 0;
+    else
+      /* We trunc result */
+      *(--cur_output) = 0;
+
     return ansi_time_fmt;
   }
 
-  const char* _Locale_am_str(struct _Locale_time* ltime) {
+  const char* _Locale_am_str(_Locale_time_t* ltime) {
     static char buffer[9];
-    GetLocaleInfoA(ltime->lcid, LOCALE_S1159, buffer, 9);
-    __ConvertFromACP(buffer, 9, ltime->cp);
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_S1159, buffer, 9);
     return buffer;
   }
 
-  const char* _Locale_pm_str(struct _Locale_time* ltime) {
+  const char* _Locale_pm_str(_Locale_time_t* ltime) {
     static char buffer[9];
-    GetLocaleInfoA(ltime->lcid, LOCALE_S2359, buffer, 9);
-    __ConvertFromACP(buffer, 9, ltime->cp);
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_S2359, buffer, 9);
     return buffer;
   }
 
-  const char* _Locale_t_fmt_ampm(struct _Locale_time* ltime) {
+  const char* _Locale_t_fmt_ampm(_Locale_time_t* ltime) {
     char time_sep[4];
     static char buffer[17];
-    GetLocaleInfoA(ltime->lcid, LOCALE_STIME, time_sep, 4);
-    __ConvertFromACP(time_sep, 4, ltime->cp);
-    strcpy(buffer, "%H"); strcat(buffer, time_sep);
-    strcat(buffer, "%M"); strcat(buffer, time_sep);
-    strcat(buffer, "%S %p");
+    __GetLocaleInfoUsingACP(ltime->lc.id, ltime->cp, LOCALE_STIME, time_sep, 4);
+    _STLP_STRCPY(buffer, "%H"); _STLP_STRCAT(buffer, time_sep);
+    _STLP_STRCAT(buffer, "%M"); _STLP_STRCAT(buffer, time_sep);
+    _STLP_STRCAT(buffer, "%S %p");
     return buffer;
   }
 
   /* Messages */
 
-  int _Locale_catopen(struct _Locale_messages* __DUMMY_PAR1, const char* __DUMMY_PAR)
-  { return -1; }
-  void _Locale_catclose(struct _Locale_messages* __DUMMY_PAR1, int __DUMMY_PAR) {}
-  const char* _Locale_catgets(struct _Locale_messages* __DUMMY_PAR1, int __DUMMY_PAR2,
-            int __DUMMY_PAR3, int __DUMMY_PAR4,
-            const char *dfault)
-  { return dfault; }
+  int _Locale_catopen(_Locale_messages_t* __DUMMY_PAR1, const char* __DUMMY_PAR) {
+#if !defined (__DMC__)
+    (void*)__DUMMY_PAR1;
+    (void*)__DUMMY_PAR;
+#endif
+    return -1;
+  }
+  void _Locale_catclose(_Locale_messages_t* __DUMMY_PAR1, int __DUMMY_PAR) {
+#if !defined (__DMC__)
+    (void*)__DUMMY_PAR1;
+    (void*)&__DUMMY_PAR;
+#endif
+  }
+  const char* _Locale_catgets(_Locale_messages_t* __DUMMY_PAR1, int __DUMMY_PAR2,
+                              int __DUMMY_PAR3, int __DUMMY_PAR4,
+                              const char *dfault) {
+#if !defined (__DMC__)
+    (void*)__DUMMY_PAR1;
+    (void*)&__DUMMY_PAR2;
+    (void*)&__DUMMY_PAR3;
+    (void*)&__DUMMY_PAR4;
+#endif
+    return dfault;
+  }
 
-#ifdef __cplusplus    
+#ifdef __cplusplus
 } /* extern C */
 _STLP_END_NAMESPACE
 #endif
@@ -1377,31 +1517,31 @@ void __FixGrouping(char *grouping) {
   /* This converts NT version which uses '0' instead of 0, etc ; to ANSI */
   while (*grouping) {
     if (*grouping >= '0' && *grouping <= '9') {
-      *grouping = *grouping - '0'; 
+      *grouping = *grouping - '0';
       ++grouping;
-    } 
+    }
     else if (*grouping == ';') {
+      /* remove ';' */
       char *tmp = grouping;
-      /* remove ':' */
-      for (tmp = grouping; *tmp; ++tmp)
-        *tmp = *(tmp+1);
-    } 
+      for (; *tmp; ++tmp)
+        *tmp = *(tmp + 1);
+    }
     else
       ++grouping;
-  } 
+  }
 }
 
 const char* __ConvertName(const char* lname, LOCALECONV* ConvTable, int TableSize) {
-  int     i;
-  int     cmp = 1;
-  int     low = 0;
-  int    high=TableSize-1;
+  int i;
+  int cmp;
+  int low = 0;
+  int high = TableSize - 1;
 
   /*  typical binary search - do until no more to search or match */
   while (low <= high) {
     i = (low + high) / 2;
 
-    if ((cmp=lstrcmpiA(lname, (*(ConvTable + i)).name))==0)
+    if ((cmp = lstrcmpiA(lname, (*(ConvTable + i)).name)) == 0)
       return (*(ConvTable + i)).abbrev;
     else if (cmp < 0)
       high = i - 1;
@@ -1411,44 +1551,71 @@ const char* __ConvertName(const char* lname, LOCALECONV* ConvTable, int TableSiz
   return lname;
 }
 
-int __ParseLocaleString(const char* lname, char* lang, char* ctry,
-                        char* page) {
-  int param=0;
-  size_t len=0;
-  char ch=lname[0];
+int __ParseLocaleString(const char* lname,
+                        char* lang, char* ctry, char* page) {
+  int param = 0;
+  size_t len;
+  size_t tmpLen;
 
-  if (ch==0) return 0;
-    
-  else if(ch=='.') { /* Only code page provided */
-    if(strlen(lname+1)>MAX_CP_LEN) return -1; /* CP number too long */
-    strcpy(page, lname+1);
-    lang[0] = 0; ctry[0] = 0;  /* necessary? calling function does this too */
+  if (lname[0] == 0)
     return 0;
-  }
 
-  while (ch!=0) { /* Parse string */
-    len=strcspn(lname, "_.,"); /* ',' for compability with POSIX */
-
-    ch=lname[len];
-    if((param==0) && (len<MAX_LANG_LEN)) {
-      if (ch!='.') /* hence '_', ',' or '/0' */
-        strncpy(lang, lname, len);
-      else { /* no ctry, read lang and skip ctry on next pass */
-        ctry[0]=0;  
-        strncpy(lang, lname, len);
-        ++param;    
-      }
-    }
-    else if(param==1 && len<MAX_CTRY_LEN && ch!='_')
-      strncpy(ctry, lname, len);
-    else if(param==2 && len<MAX_CP_LEN && (ch==0 || ch==','))
-      strncpy(page, lname, len);
-    else
-      return -1;
-    if(ch==',') break; /* Modifier found. In NT not used. */
+  /* We look for the first country separator '_' */
+  len = strcspn(lname, "_");
+  if (lname[len] == '_') {
+    if (len == 0 || len > MAX_LANG_LEN) return -1; /* empty lang is invalid*/
+    _STLP_STRNCPY(lang, MAX_LANG_LEN + 1, lname, len);
+    lname += len + 1;
     ++param;
-    lname+=(len+1);
   }
+
+  /* We look for the last code page separator '.' */
+  len = -1;
+  tmpLen = strcspn(lname, ".");
+  while (lname[tmpLen] == '.') {
+    len = tmpLen; ++tmpLen;
+    tmpLen += strcspn(lname + tmpLen, ".");
+  }
+  if (len != -1) { /* Means that we found a '.' */
+    if (param == 0) {
+      /* We have no lang yet so we have to fill it first, no country */
+      if (len > MAX_LANG_LEN) return -1;
+      if (len == 0) {
+        /* No language nor country, only code page */
+        ++param;
+      }
+      else
+      { _STLP_STRNCPY(lang, MAX_LANG_LEN + 1, lname, len); }
+      ++param;
+    }
+    else {
+      /* We already have a lang so we are now looking for the country: */
+      if (len == 0) return -1; /* We forbid locale name with the "_." motif in it */
+      if (len > MAX_CTRY_LEN) return -1;
+      _STLP_STRNCPY(ctry, MAX_CTRY_LEN + 1, lname, len);
+    }
+    ++param;
+    lname += len + 1;
+  }
+
+  /* We look for ',' for compatibility with POSIX */
+  len = strcspn(lname, ",");
+  switch (param) {
+    case 0:
+      if (len > MAX_LANG_LEN) return -1;
+      _STLP_STRNCPY(lang, MAX_LANG_LEN + 1, lname, len);
+      break;
+    case 1:
+      if (len > MAX_CTRY_LEN) return -1;
+      _STLP_STRNCPY(ctry, MAX_CTRY_LEN + 1, lname, len);
+      break;
+    default:
+      if (len > MAX_CP_LEN) return -1;
+      _STLP_STRNCPY(page, MAX_CP_LEN + 1, lname, len);
+      break;
+  }
+
+  /* ',' POSIX modifier is not used in NT */
   return 0;
 }
 
@@ -1498,7 +1665,7 @@ static BOOL CALLBACK EnumLocalesProcA(LPSTR locale) {
       }
       else CtryFlag = 1;
     }
-    else 
+    else
       CtryFlag = 1;
   }
 
@@ -1512,9 +1679,9 @@ static BOOL CALLBACK EnumLocalesProcA(LPSTR locale) {
 }
 
 int __GetLCID(const char* lang, const char* ctry, LCID* lcid) {
-  __FindFlag=0;
-  __FndLang=lang;
-  __FndCtry=ctry;
+  __FindFlag = 0;
+  __FndLang = lang;
+  __FndCtry = ctry;
   EnumSystemLocalesA(EnumLocalesProcA, LCID_INSTALLED);
 
   if (__FindFlag == 0) return -1;
@@ -1523,28 +1690,41 @@ int __GetLCID(const char* lang, const char* ctry, LCID* lcid) {
   return 0;
 }
 
-int __GetLCIDFromName(const char* lname, LCID* lcid, char* cp) {
-  char lang[MAX_LANG_LEN+1], ctry[MAX_CTRY_LEN+1], page[MAX_CP_LEN+1];
+int __GetLCIDFromName(const char* lname, LCID* lcid, char* cp, _Locale_lcid_t *hint) {
+  char lang[MAX_LANG_LEN + 1], ctry[MAX_CTRY_LEN + 1], page[MAX_CP_LEN + 1];
   int result = 0;
   if (lname == NULL || lname[0] == 0) {
     *lcid = LOCALE_USER_DEFAULT;
     return 0;
   }
 
-  memset(lang, 0, MAX_LANG_LEN+1);
-  memset(ctry, 0, MAX_CTRY_LEN+1);
-  memset(page, 0, MAX_CP_LEN+1);
+  memset(lang, 0, MAX_LANG_LEN + 1);
+  memset(ctry, 0, MAX_CTRY_LEN + 1);
+  memset(page, 0, MAX_CP_LEN + 1);
   if (__ParseLocaleString(lname, lang, ctry, page) == -1) return -1;
 
-  if(lang[0] == 0 && ctry[0] == 0)
-    *lcid = LOCALE_USER_DEFAULT; /* Only code page given. */
+  if (hint != 0) {
+    *lcid = hint->id;
+  }
   else {
-    if(ctry[0] == 0)
-      result = __GetLCID(__ConvertName(lang, __rg_language, sizeof(__rg_language)/sizeof(LOCALECONV)), NULL, lcid);
-    else
-      result = __GetLCID(__ConvertName(lang, __rg_language, sizeof(__rg_language)/sizeof(LOCALECONV)),
-                         __ConvertName(ctry, __rg_country, sizeof(__rg_country)/sizeof(LOCALECONV)),
-                         lcid);
+    if (lang[0] == 0 && ctry[0] == 0)
+      *lcid = LOCALE_USER_DEFAULT; /* Only code page given. */
+    else {
+      if (ctry[0] == 0)
+        result = __GetLCID(__ConvertName(lang, __rg_language, sizeof(__rg_language) / sizeof(LOCALECONV)), NULL, lcid);
+      else {
+        result = __GetLCID(__ConvertName(lang, __rg_language, sizeof(__rg_language) / sizeof(LOCALECONV)),
+                           __ConvertName(ctry, __rg_country, sizeof(__rg_country) / sizeof(LOCALECONV)),
+                           lcid);
+        if (result != 0) {
+          /* Non NLS mapping might introduce problem with some locales when only one entry is mapped,
+          * the lang or the country (example: chinese locales like 'chinese_taiwan' gives 'CHS_taiwan'
+          * that do not exists in system). This is why we are giving this locale an other chance by
+          * calling __GetLCID without the mapping. */
+          result = __GetLCID(lang, ctry, lcid);
+        }
+      }
+    }
   }
 
   if (result == 0) {
@@ -1553,58 +1733,91 @@ int __GetLCIDFromName(const char* lname, LCID* lcid, char* cp) {
       my_ltoa(__intGetACP(*lcid), cp);
     else if (lstrcmpiA(page, "OCP") == 0)
       my_ltoa(__intGetOCP(*lcid), cp);
-    else strncpy(cp, page, 5);
+    else
+      _STLP_STRNCPY(cp, MAX_CP_LEN + 1, page, 5);
+
+    /* Code page must be an integer value,
+     * 0 returned by __intGetACP and 1 returned by __intGetOCP are invalid
+     * values.
+     */
+    if (cp[1] == 0 && (cp[0] == '0' || cp[1] == '1'))
+      return -1;
+    else if (atoi(cp) == 0)
+      return -1;
   }
+
   return result;
 }
 
-char* __GetLocaleName(LCID lcid, const char* cp, char* buf) {
-  char lang[MAX_LANG_LEN+1], ctry[MAX_CTRY_LEN+1];
+char const* __GetLocaleName(LCID lcid, const char* cp, char* buf) {
+  char lang[MAX_LANG_LEN + 1], ctry[MAX_CTRY_LEN + 1];
   GetLocaleInfoA(lcid, LOCALE_SENGLANGUAGE, lang, MAX_LANG_LEN);
   GetLocaleInfoA(lcid, LOCALE_SENGCOUNTRY, ctry, MAX_CTRY_LEN);
-  strcpy(buf, lang); strcat(buf, "_");
-  strcat(buf, ctry); strcat(buf, ".");
-  return strcat(buf, cp);
+  _STLP_STRCPY2(buf, _Locale_MAX_SIMPLE_NAME, lang);
+  _STLP_STRCAT2(buf, _Locale_MAX_SIMPLE_NAME, "_");
+  _STLP_STRCAT2(buf, _Locale_MAX_SIMPLE_NAME, ctry);
+  _STLP_STRCAT2(buf, _Locale_MAX_SIMPLE_NAME, ".");
+  _STLP_STRCAT2(buf, _Locale_MAX_SIMPLE_NAME, cp);
+  return buf;
 }
 
 static const char* __loc_categories[]= {
   "LC_ALL", "LC_COLLATE", "LC_CTYPE", "LC_MONETARY", "LC_NUMERIC", "LC_TIME"
 };
 
-char* __Extract_locale_name(const char* loc, int category, char* buf) {
+char const* __Extract_locale_name(const char* loc, int category, char* buf) {
   char *expr;
   size_t len_name;
   buf[0] = 0;
-  if(category < LC_ALL || category > LC_MAX) return NULL;
+#if defined (__BORLANDC__)
+  if (category < LC_MIN || category > LC_MAX) return NULL;
+  switch (category) {
+    case 0xFF: category = 0; break;
+    case 0x01: category = 1; break;
+    case 0x02: category = 2; break;
+    case 0x04: category = 3; break;
+    case 0x10: category = 4; break;
+    case 0x20: category = 5; break;
+    default  : category = 0;
+  }
+#else
+  if (category < LC_ALL || category > LC_MAX) return NULL;
+#endif
 
-  if(loc[0]=='L' && loc[1]=='C' && loc[2]=='_') {
-    expr=strstr((char*)loc, __loc_categories[category]);
-    if(expr==NULL) return NULL; /* Category not found. */
-    expr=strchr(expr, '=');
-    if(expr==NULL) return NULL;
+  if (loc[0] == 'L' && loc[1] == 'C' && loc[2] == '_') {
+    expr = strstr((char*)loc, __loc_categories[category]);
+    if (expr == NULL) return NULL; /* Category not found. */
+    expr = strchr(expr, '=');
+    if (expr == NULL) return NULL;
     ++expr;
-    len_name=strcspn(expr, ";");
-    len_name=len_name>_Locale_MAX_SIMPLE_NAME?_Locale_MAX_SIMPLE_NAME
-                                             :len_name;
-    strncpy(buf, expr, len_name); buf[len_name]=0;
+    len_name = strcspn(expr, ";");
+    len_name = len_name > _Locale_MAX_SIMPLE_NAME ? _Locale_MAX_SIMPLE_NAME
+                                                  : len_name;
+    _STLP_STRNCPY(buf, _Locale_MAX_SIMPLE_NAME, expr, len_name); buf[len_name] = 0;
     return buf;
   }
-  else
-    return strncpy(buf, loc, _Locale_MAX_SIMPLE_NAME);
+  else {
+    _STLP_STRNCPY(buf, _Locale_MAX_SIMPLE_NAME, loc, _Locale_MAX_SIMPLE_NAME);
+    return buf;
+  }
 }
 
-char* __TranslateToSystem(const char* lname, char* buf) {
+char const* __TranslateToSystem(const char* lname, char* buf, _Locale_lcid_t* hint) {
   LCID lcid;
-  char cp[MAX_CP_LEN+1];
-  if (__GetLCIDFromName(lname, &lcid, cp) != 0) return NULL;
+  char cp[MAX_CP_LEN + 1];
+  if (__GetLCIDFromName(lname, &lcid, cp, hint) != 0) return NULL;
 
   return __GetLocaleName(lcid, cp, buf);
 }
 
-void __ConvertFromACP(char* buf, int buf_size, const char* cp) {
+void __GetLocaleInfoUsingACP(LCID lcid, const char* cp, LCTYPE lctype, char* buf, int buf_size) {
   wchar_t *Buffer;
-  int BufferSize=MultiByteToWideChar(CP_ACP, 0, buf, -1, NULL, 0);
-  Buffer=(wchar_t*)malloc(sizeof(wchar_t)*(BufferSize+1));
+  int BufferSize;
+
+  GetLocaleInfoA(lcid, lctype, buf, buf_size);
+
+  BufferSize = MultiByteToWideChar(CP_ACP, 0, buf, -1, NULL, 0);
+  Buffer = (wchar_t*)malloc(sizeof(wchar_t) * (BufferSize + 1));
   MultiByteToWideChar(CP_ACP, 0, buf, -1, Buffer, BufferSize);
   WideCharToMultiByte(atoi(cp), 0, Buffer, -1, buf, buf_size, NULL, NULL);
   free(Buffer);
@@ -1626,11 +1839,11 @@ int __intGetOCP(LCID lcid) {
 
 int __GetDefaultCP(LCID lcid) {
   int cp = __intGetACP(lcid);
-  if(cp == 0) return __intGetOCP(lcid);
+  if (cp == 0) return __intGetOCP(lcid);
   else return cp;
 }
 
-int trim_size_t_to_int(size_t n) { return n < (size_t)INT_MAX ? (int)n : INT_MAX; }
+static int trim_size_t_to_int(size_t n) { return n < (size_t)INT_MAX ? (int)n : INT_MAX; }
 
 char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_t *ret_buf_size) {
   size_t wbuffer_size, buffer_size, from_offset, wbuf_offset;
@@ -1644,7 +1857,7 @@ char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_
   from_offset = 0;
   while (size > 0) {
     from_size = trim_size_t_to_int(size);
-    wbuffer_size += MultiByteToWideChar(from_cp, MB_PRECOMPOSED, 
+    wbuffer_size += MultiByteToWideChar(from_cp, MB_PRECOMPOSED,
                                         from + from_offset, from_size, NULL, 0);
     from_offset += from_size;
     size -= from_size;
@@ -1658,7 +1871,7 @@ char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_
   while (size > 0) {
     from_size = trim_size_t_to_int(size);
     wbuf_size = trim_size_t_to_int(wbuffer_size - wbuf_offset);
-    wbuf_offset += MultiByteToWideChar(from_cp, MB_PRECOMPOSED, 
+    wbuf_offset += MultiByteToWideChar(from_cp, MB_PRECOMPOSED,
                                        from + from_offset, from_size, wbuffer + wbuf_offset, wbuf_size);
     from_offset += from_size;
     size -= from_size;
@@ -1669,8 +1882,8 @@ char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_
   size = wbuffer_size;
   while (size > 0) {
     wbuf_size = trim_size_t_to_int(size);
-    buffer_size += WideCharToMultiByte(to_cp, WC_COMPOSITECHECK | WC_SEPCHARS, 
-                                       wbuffer + wbuf_offset, wbuf_size, 
+    buffer_size += WideCharToMultiByte(to_cp, WC_COMPOSITECHECK | WC_SEPCHARS,
+                                       wbuffer + wbuf_offset, wbuf_size,
                                        NULL, 0, NULL, FALSE);
     wbuf_offset += wbuf_size;
     size -= wbuf_size;
@@ -1684,8 +1897,8 @@ char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_
   while (size > 0) {
     wbuf_size = trim_size_t_to_int(size);
     to_size = trim_size_t_to_int(buffer_size);
-    buffer_size -= WideCharToMultiByte(to_cp, WC_COMPOSITECHECK | WC_SEPCHARS, 
-                                       wbuffer + wbuf_offset, wbuf_size, 
+    buffer_size -= WideCharToMultiByte(to_cp, WC_COMPOSITECHECK | WC_SEPCHARS,
+                                       wbuffer + wbuf_offset, wbuf_size,
                                        buffer, to_size, NULL, FALSE);
     wbuf_offset += wbuf_size;
     size -= wbuf_size;
@@ -1697,6 +1910,5 @@ char* __ConvertToCP(int from_cp, int to_cp, const char *from, size_t size, size_
 
 #ifdef __cplusplus
 }
-// _STLP_END_NAMESPACE
 #endif
 

@@ -1,5 +1,5 @@
 # Time-stamp: <04/05/01 00:45:03 ptr>
-# $Id: targets.mak 2152 2006-02-03 20:25:15Z dums $
+# $Id$
 
 # dependency output parser
 #!include ${RULESBASE}/dparser-$(COMPILER_NAME).mak
@@ -85,8 +85,8 @@ RES_MARKED=@$(RES_MARKED)
 
 # second step, insert compiler/CPU part to path
 # Transform 'foo.o bar.o baz.o' to 'cc-xy/foo.o cc-xy/bar.o cc-xy/baz.o',
-# i.e. to add a prefix path to every objectfile. Now, the problem is that 
-# nmake can't make substitutions where a string is replaced with the content 
+# i.e. to add a prefix path to every objectfile. Now, the problem is that
+# nmake can't make substitutions where a string is replaced with the content
 # of a variable. IOW, this wont work:
 #OBJ=$(OBJ:@=%OUTPUT_DIR%/)
 # instead, we have to cater for every possible combination of compiler (and
@@ -142,6 +142,22 @@ RES_MARKED=$(RES_MARKED:@=obj\evc3-sh4\@)
 !error No target processor configured!
 !endif
 
+!elseif "$(COMPILER_NAME)" == "evc8"
+!if "$(TARGET_PROC)" == ""
+!error No target processor configured!
+!elseif "$(TARGET_PROC)" == "arm"
+OBJ_MARKED=$(OBJ_MARKED:@=obj\evc8-arm\@)
+RES_MARKED=$(RES_MARKED:@=obj\evc8-arm\@)
+!elseif "$(TARGET_PROC)" == "x86"
+OBJ_MARKED=$(OBJ_MARKED:@=obj\evc8-x86\@)
+RES_MARKED=$(RES_MARKED:@=obj\evc8-x86\@)
+!elseif "$(TARGET_PROC)" == "mips"
+OBJ_MARKED=$(OBJ_MARKED:@=obj\evc8-mips\@)
+RES_MARKED=$(RES_MARKED:@=obj\evc8-mips\@)
+!else
+!error Unknown target processor configured!
+!endif
+
 !elseif "$(COMPILER_NAME)" == "vc6"
 OBJ_MARKED=$(OBJ_MARKED:@=obj\vc6\@)
 RES_MARKED=$(RES_MARKED:@=obj\vc6\@)
@@ -165,7 +181,7 @@ RES_MARKED=$(RES_MARKED:@=obj\icl\@)
 !error No compiler configured
 !endif
 
-# last step, insert the linkage (shared/static) and release mode 
+# last step, insert the linkage (shared/static) and release mode
 # (release/debug/stldebug) into the path
 OBJ=$(OBJ_MARKED:@=shared\)
 OBJ_DBG=$(OBJ_MARKED:@=shared-g\)

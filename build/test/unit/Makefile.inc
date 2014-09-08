@@ -1,9 +1,9 @@
-# -*- makefile -*- Time-stamp: <05/08/04 09:05:24 ptr>
-# $Id: Makefile.inc 1622 2005-08-04 05:15:03Z ptr $
+# -*- makefile -*- Time-stamp: <06/10/13 23:47:44 ptr>
+# $Id$
 
 # this is the version number of needed STLport library for linking
 LIBMAJOR = 5
-LIBMINOR = 0
+LIBMINOR = 1
 
 PRGNAME = stl_unit_test
 SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
@@ -31,11 +31,13 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/clocale_header_test.cpp \
 	../../../test/unit/cmath_test.cpp \
 	../../../test/unit/cmath_header_test.cpp \
+	../../../test/unit/codecvt_test.cpp \
 	../../../test/unit/complex_header_test.cpp \
 	../../../test/unit/config_test.cpp \
 	../../../test/unit/copy_test.cpp \
 	../../../test/unit/count_test.cpp \
 	../../../test/unit/csetjmp_header_test.cpp \
+	../../../test/unit/cwchar.cpp \
 	../../../test/unit/setjmp_header_test2.cpp \
 	../../../test/unit/csignal_header_test.cpp \
 	../../../test/unit/cstdarg_header_test.cpp \
@@ -56,7 +58,6 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/fill_test.cpp \
 	../../../test/unit/find_test.cpp \
 	../../../test/unit/finsert_test.cpp \
-	../../../test/unit/floatio_test.cpp \
 	../../../test/unit/foreach_test.cpp \
 	../../../test/unit/fstream_test.cpp \
 	../../../test/unit/fstream_header_test.cpp \
@@ -75,6 +76,7 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/ios_header_test.cpp \
 	../../../test/unit/iosfwd_header_test.cpp \
 	../../../test/unit/iostream_header_test.cpp \
+	../../../test/unit/iostream_test.cpp \
 	../../../test/unit/iota_test.cpp \
 	../../../test/unit/istmit_test.cpp \
 	../../../test/unit/istream_header_test.cpp \
@@ -102,8 +104,9 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/mvctor_test.cpp \
 	../../../test/unit/neq_test.cpp \
 	../../../test/unit/new_header_test.cpp \
-	../../../test/unit/numeric_header_test.cpp \
 	../../../test/unit/nthelm_test.cpp \
+	../../../test/unit/num_put_get_test.cpp \
+	../../../test/unit/numeric_header_test.cpp \
 	../../../test/unit/ostmit_test.cpp \
 	../../../test/unit/ostream_header_test.cpp \
 	../../../test/unit/pair_test.cpp \
@@ -143,9 +146,10 @@ SRC_CPP = ../../../test/unit/cppunit/test_main.cpp \
 	../../../test/unit/type_traits_test.cpp \
 	../../../test/unit/typeinfo_header_test.cpp \
 	../../../test/unit/unary_test.cpp \
+	../../../test/unit/uninitialized_test.cpp \
 	../../../test/unit/unique_test.cpp \
-	../../../test/unit/utility_header_test.cpp \
 	../../../test/unit/unordered_test.cpp \
+	../../../test/unit/utility_header_test.cpp \
 	../../../test/unit/valarray_test.cpp \
 	../../../test/unit/valarray_header_test.cpp \
 	../../../test/unit/vector_test.cpp \

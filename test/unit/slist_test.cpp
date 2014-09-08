@@ -1,3 +1,7 @@
+//Has to be first for StackAllocator swap overload to be taken
+//into account (at least using GCC 4.0.1)
+#include "stack_allocator.h"
+
 #include <algorithm>
 #if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
 #  include <slist>
@@ -5,12 +9,14 @@
 #    include <sstream>
 #  endif
 #  include <iterator>
+#  include <functional>
+#endif
 
-#  include "cppunit/cppunit_proxy.h"
+#include "cppunit/cppunit_proxy.h"
 
-#  if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
+#if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
 using namespace std;
-#  endif
+#endif
 
 //
 // TestCase class
@@ -18,12 +24,17 @@ using namespace std;
 class SlistTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(SlistTest);
-#  if !defined (_STLP_USE_NO_IOSTREAMS)
+#if !defined (STLPORT) || defined (_STLP_NO_EXTENSIONS) || defined (_STLP_USE_NO_IOSTREAMS) 
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(slist1);
-#  endif
+#if defined (STLPORT) && defined (_STLP_USE_NO_IOSTREAMS) 
+  CPPUNIT_STOP_IGNORE;
+#endif
   CPPUNIT_TEST(erase);
   CPPUNIT_TEST(insert);
   CPPUNIT_TEST(splice);
+  CPPUNIT_TEST(allocator_with_state);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -39,9 +50,9 @@ CPPUNIT_TEST_SUITE_REGISTRATION(SlistTest);
 //
 // tests implementation
 //
-#  if !defined (_STLP_USE_NO_IOSTREAMS)
 void SlistTest::slist1()
 {
+#if defined (STLPORT) && !defined (_STLP_USE_NO_IOSTREAMS) && !defined (_STLP_NO_EXTENSIONS)
 /*
 original: xlxtss
 reversed: sstxlx
@@ -49,7 +60,7 @@ removed: sstl
 uniqued: stl
 sorted: lst
 */
-  
+
   char array [] = { 'x', 'l', 'x', 't', 's', 's' };
   ostringstream os;
   ostream_iterator<char> o(os,"");
@@ -84,7 +95,7 @@ sorted: lst
   buff=os3.rdbuf();
   result=buff->str();
   CPPUNIT_ASSERT(!strcmp(result.c_str(),"stl"));
-  
+
   //cout << "sorted: ";
   str.sort();
   ostringstream os4;
@@ -102,37 +113,40 @@ sorted: lst
     CPPUNIT_ASSERT( sl_char_ite != sl_int_ite );
   }
 #  endif
+#endif
 }
-#  endif
 
 void SlistTest::erase()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   int array[] = { 0, 1, 2, 3, 4 };
   slist<int> sl(array, array + 5);
   slist<int>::iterator slit;
-  
+
   slit = sl.erase(sl.begin());
   CPPUNIT_ASSERT( *slit == 1);
-  
+
   ++slit++; ++slit;
   slit = sl.erase(sl.begin(), slit);
   CPPUNIT_ASSERT( *slit == 3 );
-  
+
   sl.assign(array, array + 5);
-  
+
   slit = sl.erase_after(sl.begin());
   CPPUNIT_ASSERT( *slit == 2 );
-  
+
   slit = sl.begin(); ++slit; ++slit;
   slit = sl.erase_after(sl.begin(), slit);
   CPPUNIT_ASSERT( *slit == 3 );
 
   sl.erase_after(sl.before_begin());
   CPPUNIT_ASSERT( sl.front() == 3 );
+#endif
 }
 
 void SlistTest::insert()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   int array[] = { 0, 1, 2, 3, 4 };
 
   //insert
@@ -174,10 +188,12 @@ void SlistTest::insert()
       CPPUNIT_ASSERT( *slit == i );
     }
   }
+#endif
 }
 
 void SlistTest::splice()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   int array[] = { 0, 1, 2, 3, 4 };
 
   //splice
@@ -303,6 +319,215 @@ void SlistTest::splice()
     CPPUNIT_ASSERT( *(slit++) == 1 );
     CPPUNIT_ASSERT( *slit == 2 );
   }
+#endif
 }
 
+
+void SlistTest::allocator_with_state()
+{
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
+  char buf1[1024];
+  StackAllocator<int> stack1(buf1, buf1 + sizeof(buf1));
+
+  char buf2[1024];
+  StackAllocator<int> stack2(buf2, buf2 + sizeof(buf2));
+
+  typedef slist<int, StackAllocator<int> > SlistInt;
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint1Cpy(slint1);
+
+    SlistInt slint2(10, 1, stack2);
+    SlistInt slint2Cpy(slint2);
+
+    slint1.swap(slint2);
+
+    CPPUNIT_ASSERT( slint1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( slint2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( slint1 == slint2Cpy );
+    CPPUNIT_ASSERT( slint2 == slint1Cpy );
+    CPPUNIT_ASSERT( slint1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( slint2.get_allocator() == stack1 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  {
+    SlistInt slint1(stack1);
+    SlistInt slint1Cpy(slint1);
+
+    SlistInt slint2(10, 1, stack2);
+    SlistInt slint2Cpy(slint2);
+
+    slint1.swap(slint2);
+
+    CPPUNIT_ASSERT( slint1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( slint2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( slint1 == slint2Cpy );
+    CPPUNIT_ASSERT( slint2 == slint1Cpy );
+    CPPUNIT_ASSERT( slint1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( slint2.get_allocator() == stack1 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint1Cpy(slint1);
+
+    SlistInt slint2(stack2);
+    SlistInt slint2Cpy(slint2);
+
+    slint1.swap(slint2);
+
+    CPPUNIT_ASSERT( slint1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( slint2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( slint1 == slint2Cpy );
+    CPPUNIT_ASSERT( slint2 == slint1Cpy );
+    CPPUNIT_ASSERT( slint1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( slint2.get_allocator() == stack1 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice(iterator, slist)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    slint1.splice(slint1.begin(), slint2);
+    CPPUNIT_ASSERT( slint1.size() == 20 );
+    CPPUNIT_ASSERT( slint2.empty() );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice(iterator, slist, iterator)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    slint1.splice(slint1.begin(), slint2, slint2.begin());
+    CPPUNIT_ASSERT( slint1.size() == 11 );
+    CPPUNIT_ASSERT( slint2.size() == 9 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice(iterator, slist, iterator, iterator)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    SlistInt::iterator lit(slint2.begin());
+    advance(lit, 5);
+    slint1.splice(slint1.begin(), slint2, slint2.begin(), lit);
+    CPPUNIT_ASSERT( slint1.size() == 15 );
+    CPPUNIT_ASSERT( slint2.size() == 5 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice_after(iterator, slist)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    slint1.splice_after(slint1.before_begin(), slint2);
+    CPPUNIT_ASSERT( slint1.size() == 20 );
+    CPPUNIT_ASSERT( slint2.empty() );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice_after(iterator, slist, iterator)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    slint1.splice_after(slint1.before_begin(), slint2, slint2.before_begin());
+    CPPUNIT_ASSERT( slint1.size() == 11 );
+    CPPUNIT_ASSERT( slint2.size() == 9 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //splice_after(iterator, slist, iterator, iterator)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    SlistInt::iterator lit(slint2.begin());
+    advance(lit, 4);
+    slint1.splice_after(slint1.before_begin(), slint2, slint2.before_begin(), lit);
+    CPPUNIT_ASSERT( slint1.size() == 15 );
+    CPPUNIT_ASSERT( slint2.size() == 5 );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  //merge(slist)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    SlistInt slintref(stack2);
+    slintref.insert_after(slintref.before_begin(), 10, 1);
+    slintref.insert_after(slintref.before_begin(), 10, 0);
+
+    slint1.merge(slint2);
+    CPPUNIT_ASSERT( slint1.size() == 20 );
+    CPPUNIT_ASSERT( slint1 == slintref );
+    CPPUNIT_ASSERT( slint2.empty() );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+
+  //merge(slist, predicate)
+#  if !defined (STLPORT) || !defined (_STLP_NO_MEMBER_TEMPLATES)
+  {
+    SlistInt slint1(10, 0, stack1);
+    SlistInt slint2(10, 1, stack2);
+
+    SlistInt slintref(stack2);
+    slintref.insert_after(slintref.before_begin(), 10, 0);
+    slintref.insert_after(slintref.before_begin(), 10, 1);
+
+    slint1.merge(slint2, greater<int>());
+    CPPUNIT_ASSERT( slint1.size() == 20 );
+    CPPUNIT_ASSERT( slint1 == slintref );
+    CPPUNIT_ASSERT( slint2.empty() );
+  }
+  CPPUNIT_CHECK( stack1.ok() );
+  CPPUNIT_CHECK( stack2.ok() );
+
+  //sort
+  {
+    //This is rather a compile time test.
+    //We check that sort implementation is correct when list is instanciated
+    //with an allocator that do not have a default constructor.
+    SlistInt slint1(stack1);
+    slint1.push_front(1);
+    slint1.insert_after(slint1.before_begin(), 10, 0);
+    slint1.sort(greater<int>());
+    CPPUNIT_ASSERT( slint1.front() == 1 );
+    slint1.sort();
+    SlistInt::iterator slit(slint1.begin());
+    advance(slit, 10);
+    CPPUNIT_ASSERT( *slit == 1 );
+  }
+#  endif
 #endif
+}

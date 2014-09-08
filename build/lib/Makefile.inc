@@ -1,9 +1,9 @@
-# -*- Makefile -*- Time-stamp: <06/01/17 09:39:15 ptr>
+# -*- Makefile -*- Time-stamp: <06/01/11 09:53:41 ptr>
 
 LIBNAME = stlport
 MAJOR = 5
-MINOR = 0
-PATCH = 3
+MINOR = 1
+PATCH = 0
 SRC_CPP = ../../src/dll_main.cpp \
           ../../src/fstream.cpp \
           ../../src/strstream.cpp \
@@ -28,11 +28,11 @@ SRC_CPP = ../../src/dll_main.cpp \
           ../../src/locale_catalog.cpp \
           ../../src/facets_byname.cpp \
           ../../src/complex.cpp \
-          ../../src/complex_exp.cpp \
           ../../src/complex_io.cpp \
           ../../src/complex_trig.cpp \
-          ../../src/complex_io_w.cpp \
-          ../../src/string_w.cpp
+          ../../src/string.cpp \
+          ../../src/bitset.cpp \
+          ../../src/allocators.cpp
 
 SRC_C = ../../src/c_locale.c \
         ../../src/cxa.c

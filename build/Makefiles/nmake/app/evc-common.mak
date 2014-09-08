@@ -1,20 +1,14 @@
 # -*- makefile -*- Time-stamp: <04/05/01 00:46:25 ptr>
-# $Id: evc-common.mak 1173 2004-12-24 11:27:17Z ptr $
+# $Id$
 
 # missing defines in this file: LDFLAGS_COMMON
+
+# For CE, the linker by default uses WinMain() as entry point, using this we make it use the standard main()
+LDFLAGS_COMMON = $(LDFLAGS_COMMON) /entry:"mainACRTStartup"
 
 !ifndef LDLIBS
 LDLIBS =
 !endif
-
-LDSEARCH = $(LDSEARCH)
-
-OPT_DBG = $(OPT_DBG)
-OPT_STLDBG = $(OPT_STLDBG) /Zm800
-OPT_REL = $(OPT_REL)
-OPT_STATIC_DBG = $(OPT_STATIC_DBG)
-OPT_STATIC_STLDBG = $(OPT_STATIC_STLDBG) /Zm800
-OPT_STATIC_REL = $(OPT_STATIC_REL)
 
 LDFLAGS_REL = $(LDFLAGS_REL) $(LDFLAGS_COMMON) $(LDSEARCH)
 LDFLAGS_DBG = $(LDFLAGS_DBG) $(LDFLAGS_COMMON) $(LDSEARCH)

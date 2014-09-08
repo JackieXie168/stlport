@@ -1,5 +1,5 @@
 # Time-stamp: <03/07/15 12:45:30 ptr>
-# $Id: sysid.mak 1172 2004-12-24 11:26:38Z ptr $
+# $Id$
 
 !ifndef BUILD_DATE
 

@@ -32,7 +32,7 @@ class SstreamTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(rdbuf);
   CPPUNIT_TEST(streambuf_output);
   CPPUNIT_TEST(seek);
-  CPPUNIT_TEST(pointer);
+  CPPUNIT_TEST(negative);
   CPPUNIT_TEST_SUITE_END();
 
   protected:
@@ -49,7 +49,7 @@ class SstreamTest : public CPPUNIT_NS::TestCase
     void rdbuf();
     void streambuf_output();
     void seek();
-    void pointer();
+    void negative();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SstreamTest);
@@ -59,38 +59,67 @@ CPPUNIT_TEST_SUITE_REGISTRATION(SstreamTest);
 //
 void SstreamTest::output()
 {
-  ostringstream s;
+  {
+    ostringstream s;
 
-  s << 1 << '\n' << 2.0 << '\n' << "abcd\n" << "ghk lm\n" << "abcd ef";
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( s.str() == "1\n2\nabcd\nghk lm\nabcd ef" );
+    s << 1 << '\n' << 2.0 << '\n' << "abcd\n" << "ghk lm\n" << "abcd ef";
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( s.str() == "1\n2\nabcd\nghk lm\nabcd ef" );
+  }
+
+  //Following tests are mostly used to reveal problem with the MSVC /Wp64 option
+  //used to track 64 bits portability issue:
+  {
+    ostringstream s;
+    size_t i = 0;
+    s << i;
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( s.str() == "0" );
+  }
+  {
+    ostringstream s;
+    ptrdiff_t i = 0;
+    s << i;
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( s.str() == "0" );
+  }
 }
 
 void SstreamTest::input()
 {
-  istringstream s( "1\n2\nabcd\nghk lm\nabcd ef" );
-  int i = 0;
-  s >> i;
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( i == 1 );
-  double d = 0.0;
-  s >> d;
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( d == 2.0 );
-  string str;
-  s >> str;
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( str == "abcd" );
-  char c;
-  s.get(c); // extract newline, that not extracted by operator >>
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( c == '\n' );
-  getline( s, str );
-  CPPUNIT_ASSERT( s.good() );
-  CPPUNIT_ASSERT( str == "ghk lm" );
-  getline( s, str );
-  CPPUNIT_ASSERT( s.eof() );
-  CPPUNIT_ASSERT( str == "abcd ef" );
+  {
+    istringstream s( "1\n2\nabcd\nghk lm\nabcd ef" );
+    int i = 0;
+    s >> i;
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( i == 1 );
+    double d = 0.0;
+    s >> d;
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( d == 2.0 );
+    string str;
+    s >> str;
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( str == "abcd" );
+    char c;
+    s.get(c); // extract newline, that not extracted by operator >>
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( c == '\n' );
+    getline( s, str );
+    CPPUNIT_ASSERT( s.good() );
+    CPPUNIT_ASSERT( str == "ghk lm" );
+    getline( s, str );
+    CPPUNIT_ASSERT( s.eof() );
+    CPPUNIT_ASSERT( str == "abcd ef" );
+  }
+  {
+    istringstream s("0");
+    size_t i = 1;
+    s >> i;
+    CPPUNIT_ASSERT( !s.fail() );
+    CPPUNIT_ASSERT( s.eof() );
+    CPPUNIT_ASSERT( i == 0 );
+  }
 }
 
 void SstreamTest::input_char()
@@ -350,41 +379,19 @@ void SstreamTest::seek()
   CPPUNIT_ASSERT( is.tellg() == stringstream::pos_type(3) );
 }
 
-void SstreamTest::pointer()
+
+template < class T >
+string to_string( const T& v )
 {
-  // Problem with printing pointer to null
-  {
-    ostringstream s;
-    void *p = (void *)0xff00;
-    s << p;
-    CPPUNIT_ASSERT( s.good() );
-    if ( sizeof( p ) == 2 ) {
-      CPPUNIT_ASSERT( s.str() == "0xff00" );
-    } else if ( sizeof( p ) == 4 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000ff00" ); // this pass
-    } else if ( sizeof( p ) == 8 ) {
-      CPPUNIT_ASSERT( s.str() == "0x000000000000ff00" );
-    } else {
-      CPPUNIT_CHECK( sizeof( p ) == 2 || sizeof( p ) == 4 || sizeof( p ) == 8 );
-    }
-  }
-#if 0 // this fail, bad implementation; use STLport 5.1 or newer instead
-  {
-    ostringstream s;
-    void *p = 0;
-    s << p;
-    CPPUNIT_ASSERT( s.good() );
-    if ( sizeof( p ) == 2 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000" );
-    } else if ( sizeof( p ) == 4 ) {
-      CPPUNIT_ASSERT( s.str() == "0x00000000" ); // but this fail
-    } else if ( sizeof( p ) == 8 ) {
-      CPPUNIT_ASSERT( s.str() == "0x0000000000000000" );
-    } else {
-      CPPUNIT_CHECK( sizeof( p ) == 2 || sizeof( p ) == 4 || sizeof( p ) == 8 );
-    }
-  }
-#endif
+  ostringstream oss;
+  oss << v;
+  return oss.str();
+}
+
+void SstreamTest::negative()
+{
+  CPPUNIT_CHECK( to_string<int>(-1) == "-1" );
+  CPPUNIT_CHECK( to_string<long>(-1) == "-1" );
 }
 
 #endif

@@ -1,5 +1,5 @@
 # Time-stamp: <03/07/15 17:46:28 ptr>
-# $Id: extern.mak 1520 2005-05-14 08:57:49Z ptr $
+# $Id$
 
 
 # This file reflect versions of third-party libraries that

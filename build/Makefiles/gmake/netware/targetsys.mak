@@ -1,5 +1,5 @@
 # Time-stamp: <05/09/09 21:07:10 ptr>
-# $Id: targetsys.mak 1715 2005-09-11 06:27:35Z complement $
+# $Id$
 
 SO := nlm
 

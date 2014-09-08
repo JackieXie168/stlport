@@ -1,3 +1,12 @@
+//To make GLib C++ closer to STLport behavior we need this macro:
+//Only mandatory when building unit tests without STLport, do not change
+//anything when building with STLport
+#define _GLIBCXX_FULLY_DYNAMIC_STRING
+
+//Has to be first for StackAllocator swap overload to be taken
+//into account (at least using GCC 4.0.1)
+#include "stack_allocator.h"
+
 #include <vector>
 #include <deque>
 #include <string>
@@ -10,16 +19,22 @@
 #  include <stdexcept>
 #endif
 
-#if defined (STLPORT) && defined (_STLP_THREADS)
-#  ifdef _STLP_PTHREADS
+#if !defined (STLPORT) || defined (_STLP_THREADS)
+#  if defined (STLPORT) && defined (_STLP_PTHREADS) || \
+      defined (__GNUC__) && !defined (__MINGW32__)
+#    define USE_PTHREAD_API
 #    include <pthread.h>
 #  endif
 
-#  ifdef _STLP_WIN32THREADS
+#  if defined (STLPORT) && defined (_STLP_WIN32THREADS) || \
+      defined (__GNUC__) && defined (__MINGW32__) || \
+      defined (_MSC_VER)
+#    define USE_WINDOWS_API
 #    include <windows.h>
 #  endif
 #endif
 
+#include "stack_allocator.h"
 #include "cppunit/cppunit_proxy.h"
 
 #if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
@@ -32,6 +47,8 @@ using namespace std;
 class StringTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(StringTest);
+  CPPUNIT_TEST(constructor);
+  CPPUNIT_TEST(reserve);
   CPPUNIT_TEST(assign);
   CPPUNIT_TEST(erase);
   CPPUNIT_TEST(data);
@@ -42,19 +59,50 @@ class StringTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(resize);
   CPPUNIT_TEST(short_string);
   CPPUNIT_TEST(find);
-#if defined (STLPORT) && defined (_STLP_THREADS)
-  CPPUNIT_TEST(mt);
+  CPPUNIT_TEST(copy);
+#if !defined (USE_PTHREAD_API) && !defined (USE_WINDOWS_API)
+  CPPUNIT_IGNORE;
 #endif
+  CPPUNIT_TEST(mt);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST(short_string_optim_bug);
   CPPUNIT_TEST(compare);
-  CPPUNIT_TEST(template_expresion);
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-  CPPUNIT_TEST(io);
+#if defined (__DMC__)
+  CPPUNIT_IGNORE;
 #endif
+  CPPUNIT_TEST(template_expression);
+#if defined (STLPORT) && defined (_STLP_MSVC) && (_STLP_MSVC < 1300)
+#  define TE_TMP_TEST_IGNORED
+  CPPUNIT_IGNORE;
+#endif
+  CPPUNIT_TEST(te_tmp);
+#if defined (TE_TMP_TEST_IGNORED)
+  CPPUNIT_STOP_IGNORE;
+#endif
+#if defined (STLPORT) && defined (_STLP_NO_WCHAR_T)
+  CPPUNIT_IGNORE;
+#endif
+#if defined (__CYGWIN__) && !defined (STLPORT)
+  CPPUNIT_IGNORE;
+#endif
+  CPPUNIT_TEST(template_wexpression);
+  CPPUNIT_STOP_IGNORE;
+#if defined (STLPORT) && defined (_STLP_USE_NO_IOSTREAMS)
+  CPPUNIT_IGNORE;
+#endif
+  CPPUNIT_TEST(io);
+  CPPUNIT_STOP_IGNORE;
+#if defined (STLPORT) && defined (_STLP_NO_CUSTOM_IO) 
+  CPPUNIT_IGNORE;
+#endif
+  CPPUNIT_TEST(allocator_with_state);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST(capacity);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
+  void constructor();
+  void reserve();
   void erase();
   void data();
   void c_str();
@@ -64,16 +112,16 @@ protected:
   void resize();
   void short_string();
   void find();
+  void copy();
   void assign();
-#if defined (STLPORT) && defined (_STLP_THREADS)
   void mt();
-#endif
   void short_string_optim_bug();
   void compare();
-  void template_expresion();
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
+  void template_expression();
+  void te_tmp();
+  void template_wexpression();
   void io();
-#endif
+  void allocator_with_state();
   void capacity();
 
   static string func(const string& par) {
@@ -81,13 +129,11 @@ protected:
     return tmp;
   }
 
-#if defined (STLPORT) && defined (_STLP_THREADS)
-#  if defined (_STLP_PTHREADS)  || defined (_STLP_UITHREADS)
+#if defined (USE_PTHREAD_API) || defined (USE_WINDOWS_API)
+#  if defined (USE_PTHREAD_API)
   static void* f(void*)
-#  elif defined (_STLP_WIN32THREADS)
-  static DWORD __stdcall f(void*)
 #  else
-#    error Unknown thread model.
+  static DWORD __stdcall f(void*)
 #  endif
   {
     string s( "qyweyuewunfkHBUKGYUGL,wehbYGUW^(@T@H!BALWD:h^&@#*@(#:JKHWJ:CND" );
@@ -107,11 +153,44 @@ CPPUNIT_TEST_SUITE_REGISTRATION(StringTest);
 //
 // tests implementation
 //
-#if defined (STLPORT) && defined (_STLP_THREADS)
+void StringTest::constructor()
+{
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+  try {
+    string s((size_t)-1, 'a');
+    CPPUNIT_ASSERT( false );
+  }
+  catch (length_error const&) {
+  }
+  catch (...) {
+    //Expected exception is length_error:
+    CPPUNIT_ASSERT( false );
+  }
+#endif
+}
+
+void StringTest::reserve()
+{
+  string s;
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+  try {
+    s.reserve(s.max_size() + 1);
+    CPPUNIT_ASSERT( false );
+  }
+  catch (length_error const&) {
+  }
+  catch (...) {
+    //Expected exception is length_error:
+    CPPUNIT_ASSERT( false );
+  }
+#endif
+}
+
 void StringTest::mt()
 {
+#if defined (USE_PTHREAD_API) || defined (USE_WINDOWS_API)
   const int nth = 2;
-#if defined(_STLP_PTHREADS)
+#  if defined (USE_PTHREAD_API)
   pthread_t t[nth];
 
   for ( int i = 0; i < nth; ++i ) {
@@ -121,9 +200,9 @@ void StringTest::mt()
   for ( int i = 0; i < nth; ++i ) {
     pthread_join( t[i], 0 );
   }
-#endif // _STLP_PTHREADS
+#  endif // PTHREAD
 
-#if defined (_STLP_WIN32THREADS)
+#  if defined (USE_WINDOWS_API)
   //DWORD start = GetTickCount();
 
   HANDLE t[nth];
@@ -133,14 +212,13 @@ void StringTest::mt()
     t[i] = CreateThread(NULL, 0, f, 0, 0, NULL);
   }
 
-#ifdef _STLP_WCE
-  // on evc3/evc4 WaitForMultipleObjects() with fWaitAll == TRUE is not supported
-  for ( i = 0; i < nth; ++i ) {
-    WaitForSingleObject(t[i], INFINITE);
+  if (WaitForMultipleObjects(nth, t, TRUE, INFINITE) == WAIT_FAILED) {
+    // On some platforms (evc3/evc4) WaitForMultipleObjects() with fWaitAll == TRUE
+    // is not supported. We then wait with a loop on each thread:
+    for ( i = 0; i < nth; ++i ) {
+      WaitForSingleObject(t[i], INFINITE);
+    }
   }
-#else
-  WaitForMultipleObjects(nth, t, TRUE, INFINITE);
-#endif
 
   /*
   DWORD duration = GetTickCount() - start;
@@ -148,14 +226,9 @@ void StringTest::mt()
   ostr << "Duration: " << duration << endl;
   CPPUNIT_MESSAGE(ostr.str().c_str());
   */
-#endif
-
-#if !defined(_STLP_PTHREADS) && !defined(_STLP_WIN32THREADS) && !defined (_STLP_UITHREADS)
-  // this test is useless without thread support!
-  CPPUNIT_ASSERT(false);
+#  endif
 #endif
 }
-#endif
 
 void StringTest::short_string()
 {
@@ -223,9 +296,9 @@ void StringTest::erase()
   char const* c_str = "Hello, World!";
   std::string str(c_str);
   CPPUNIT_ASSERT( str == c_str );
-  
+
   str.erase(str.begin() + 1, str.end() - 1); // Erase all but first and last.
-  
+
   size_t i;
   for (i = 0; i < str.size(); ++i) {
     switch ( i ) {
@@ -237,11 +310,10 @@ void StringTest::erase()
         break;
       default:
         CPPUNIT_ASSERT( false );
-        break;
     }
-  } 
-  
-  str.insert(1, (char*)c_str);
+  }
+
+  str.insert(1, c_str);
   str.erase(str.begin()); // Erase first element.
   str.erase(str.end() - 1); // Erase last element.
   CPPUNIT_ASSERT( str == c_str );
@@ -262,7 +334,6 @@ void StringTest::erase()
         break;
       default:
         CPPUNIT_ASSERT( false );
-        break;
     }
   }
 
@@ -334,12 +405,13 @@ void StringTest::null_char()
 
   CPPUNIT_CHECK( s[s.size()] == '\0' );
 
-#if defined (_STLP_USE_EXCEPTIONS)
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   try {
-    char c = s.at( s.size() );
+    //Check is only here to avoid warning about value of expression not used
+    CPPUNIT_CHECK( s.at(s.size()) == '\0' );
     CPPUNIT_ASSERT( false );
   }
-  catch ( out_of_range& ) {
+  catch (out_of_range const&) {
     CPPUNIT_ASSERT( true );
   }
   catch ( ... ) {
@@ -375,7 +447,7 @@ void StringTest::insert()
   str = strorg;
   str.insert(0, str.c_str() + str.size() / 2 - 1, str.size() / 2 + 1);
   CPPUNIT_ASSERT( str == "ng for string callsThis is test string for string calls" );
-  
+
   str = strorg;
   string::iterator b = str.begin();
   string::const_iterator s = str.begin() + str.size() / 2 - 1;
@@ -427,8 +499,8 @@ void StringTest::insert()
 void StringTest::replace()
 {
   /*
-   * This test case is for the non template basic_string::replace method, 
-   * this is why we play with the const iterators and reference to guaranty 
+   * This test case is for the non template basic_string::replace method,
+   * this is why we play with the const iterators and reference to guaranty
    * that the right method is called.
    */
   const string v( "78" );
@@ -438,7 +510,7 @@ void StringTest::replace()
   string::iterator i = s.begin() + 1;
   s.replace(i, i + 3, v.begin(), v.end());
   CPPUNIT_ASSERT( s == "17856" );
-  
+
   s = "123456";
   i = s.begin() + 1;
   s.replace(i, i + 1, v.begin(), v.end());
@@ -461,11 +533,11 @@ void StringTest::replace()
   ci = s.begin() + 1;
   s.replace(i, i + 3, ci + 1, cs.end());
   CPPUNIT_ASSERT( s == "1345656" );
-  
+
   s = "123456";
   s.replace(s.begin() + 4, s.end(), cs.begin(), cs.end());
   CPPUNIT_ASSERT( s == "1234123456" );
-  
+
   /*
    * This is the test for the template replace method.
    */
@@ -480,7 +552,7 @@ void StringTest::replace()
   s = "123456";
   s.replace(s.begin() + 4, s.end(), s.begin(), s.end());
   CPPUNIT_ASSERT( s == "1234123456" );
-  
+
   string strorg("This is test string for string calls");
   string str = strorg;
   str.replace(5, 15, str.c_str(), 10);
@@ -550,9 +622,41 @@ void StringTest::find()
 
   CPPUNIT_ASSERT( s.find_first_of("abcde") == 2 );
   CPPUNIT_ASSERT( s.find_last_of("abcde") == 26 );
-  
+
   CPPUNIT_ASSERT( s.find_first_not_of("enotw ") == 9 );
   CPPUNIT_ASSERT( s.find_last_not_of("ehortw ") == 15 );
+}
+
+void StringTest::copy()
+{
+  string s("foo");
+  char dest[4];
+  dest[0] = dest[1] = dest[2] = dest[3] = 1;
+  s.copy(dest, 4);
+  int pos = 0;
+  CPPUNIT_ASSERT( dest[pos++] == 'f' );
+  CPPUNIT_ASSERT( dest[pos++] == 'o' );
+  CPPUNIT_ASSERT( dest[pos++] == 'o' );
+  CPPUNIT_ASSERT( dest[pos++] == 1 );
+
+  dest[0] = dest[1] = dest[2] = dest[3] = 1;
+  s.copy(dest, 4, 2);
+  pos = 0;
+  CPPUNIT_ASSERT( dest[pos++] == 'o' );
+  CPPUNIT_ASSERT( dest[pos++] == 1 );
+
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+  try {
+    s.copy(dest, 4, 5);
+    CPPUNIT_ASSERT( false );
+  }
+  catch (out_of_range const&) {
+    CPPUNIT_ASSERT( true );
+  }
+  catch ( ... ) {
+    CPPUNIT_ASSERT( false );
+  }
+#endif
 }
 
 void StringTest::assign()
@@ -576,7 +680,7 @@ void StringTest::assign()
   str2 = "1234567890123456789012345678901234567890";
 
   CPPUNIT_ASSERT(str1[5] == '6');
-  CPPUNIT_ASSERT(str2[29] == '0'); 
+  CPPUNIT_ASSERT(str2[29] == '0');
 }
 
 /* This test is to check if std::string properly supports the short string
@@ -603,7 +707,7 @@ bool short_string_optim_bug_helper(std::string teststr)
 {
    size_t ss = teststr.size();
    return (ss == 8);
-} 
+}
 
 void StringTest::compare()
 {
@@ -638,10 +742,51 @@ void StringTest::compare()
   CPPUNIT_ASSERT( str1.compare(2, 3, "cdefgh", 4) < 0 );
 }
 
-void StringTest::template_expresion()
+/*
+class mystring : public string {
+public:
+  mystring() {}
+  mystring(string const& s) : string(s) {}
+
+  mystring& operator = (string const& s) {
+    string::operator = (s);
+    return *this;
+  };
+};
+*/
+
+void StringTest::template_expression()
 {
   string one("one"), two("two"), three("three");
   string space(1, ' ');
+
+  // check availability of [un]equality operators
+  {
+      // string-string
+      one == two;
+      one != two;
+      // string-literal
+      one == "two";
+      one != "two";
+      // literal-string
+      "one" == two;
+      "one" != two;
+      // strsum-string
+      (one + two) == three;
+      (one + two) != three;
+      // string-strsum
+      one == (two + three);
+      one != (two + three);
+      // strsum-literal
+      (one + two) == "three";
+      (one + two) != "three";
+      // literal-strsum
+      "one" == (two + three);
+      "one" != (two + three);
+      // strsum-strsum
+      (one + two) == (two + three);
+      (one + two) != (two + three);
+  }
 
   {
     string result(one + ' ' + two + ' ' + three);
@@ -723,38 +868,185 @@ void StringTest::template_expresion()
   }
 
   {
-    char result;
-
     CPPUNIT_CHECK( !(one + ' ' + two).empty() );
 
-    result = (one + ' ' + two)[3];
+    char result = (one + ' ' + two)[3];
     CPPUNIT_CHECK( result == ' ' );
 
     result = (one + ' ' + two).at(3);
     CPPUNIT_CHECK( result == ' ' );
 
 #if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
-    for (;;) {
-      try {
-        result = (one + ' ' + two).at(10);
-        CPPUNIT_ASSERT(false);
-      }
-      catch (out_of_range const&) {
-        CPPUNIT_ASSERT(true);
-        return;
-      }
-      catch (...) {
-        CPPUNIT_ASSERT(false);
-        return;
-      }
+    try {
+      result = (one + ' ' + two).at(10);
+      CPPUNIT_ASSERT(false);
+    }
+    catch (out_of_range const&) {
+      CPPUNIT_ASSERT( result == ' ' );
+    }
+    catch (...) {
+      CPPUNIT_ASSERT(false);
     }
 #endif
   }
+
+  /*
+  mystring a("ing");
+  //gcc failed to compile following expression when template expressions are activated.
+  //MSVC sees no problem. gcc limitation or MSVC is too cool ??
+  mystring b = "str" + a;
+  */
 }
 
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
+#if !defined (TE_TMP_TEST_IGNORED)
+class superstring
+{
+  public:
+    superstring() :
+      s("super")
+    {}
+
+    superstring( const string& str ) :
+      s( str )
+    {}
+
+  superstring operator / (const string& str )
+    { return superstring( s + "/" + str ); }
+
+  superstring operator / (const char* str )
+    { return superstring( s + "/" + str ); }
+
+  private:
+    string s;
+};
+#endif
+
+void StringTest::te_tmp()
+{
+#if !defined (TE_TMP_TEST_IGNORED)
+  superstring s;
+  string more( "more" );
+  string less( "less" );
+
+  superstring r = s / (more + less);
+#endif
+}
+
+void StringTest::template_wexpression()
+{
+#if !defined (STLPORT) || !defined (_STLP_NO_WCHAR_T)
+#  if !defined (__CYGWIN__) || defined (STLPORT)
+  wstring one(L"one"), two(L"two"), three(L"three");
+  wstring space(1, L' ');
+
+  {
+    wstring result(one + L' ' + two + L' ' + three);
+    CPPUNIT_CHECK( result == L"one two three" );
+  }
+
+  {
+    wstring result(one + L' ' + two + L' ' + three, 4);
+    CPPUNIT_CHECK( result == L"two three" );
+  }
+
+  {
+    wstring result(one + L' ' + two + L' ' + three, 4, 3);
+    CPPUNIT_CHECK( result == L"two" );
+  }
+
+  //2 members expressions:
+  CPPUNIT_CHECK( (L' ' + one) == L" one" );
+  CPPUNIT_CHECK( (one + L' ') == L"one " );
+  CPPUNIT_CHECK( (one + L" two") == L"one two" );
+  CPPUNIT_CHECK( (L"one " + two) == L"one two" );
+  CPPUNIT_CHECK( (one + space) == L"one " );
+
+  //3 members expressions:
+  CPPUNIT_CHECK( ((one + space) + L"two") == L"one two" );
+  CPPUNIT_CHECK( (L"one" + (space + two)) == L"one two" );
+  CPPUNIT_CHECK( ((one + space) + two) == L"one two" );
+  CPPUNIT_CHECK( (one + (space + two)) == L"one two" );
+  CPPUNIT_CHECK( ((one + space) + L't') == L"one t" );
+  CPPUNIT_CHECK( (L'o' + (space + two)) == L"o two" );
+
+  //4 members expressions:
+  CPPUNIT_CHECK( ((one + space) + (two + space)) == L"one two " );
+
+  //special operators
+  {
+    wstring result;
+    result = one + space + two;
+    CPPUNIT_CHECK( result == L"one two" );
+
+    result += space + three;
+    CPPUNIT_CHECK( result == L"one two three" );
+  }
+
+  //special append method
+  {
+    wstring result;
+    //Use reserve to avoid reallocation and really test auto-referencing problems:
+    result.reserve(64);
+
+    result.append(one + space + two);
+    CPPUNIT_CHECK( result == L"one two" );
+
+    result.append(space + result + space + three);
+    CPPUNIT_CHECK( result == L"one two one two three" );
+
+    result = L"one two";
+    result.append(space + three, 1, 2);
+    CPPUNIT_ASSERT( result == L"one twoth" );
+
+    result.append(space + result);
+    CPPUNIT_CHECK( result == L"one twoth one twoth" );
+  }
+
+  //special assign method
+  {
+    wstring result;
+    //Use reserve to avoid reallocation and really test auto-referencing problems:
+    result.reserve(64);
+
+    result.assign(one + space + two + space + three);
+    CPPUNIT_CHECK( result == L"one two three" );
+
+    result.assign(one + space + two + space + three, 3, 5);
+    CPPUNIT_CHECK( result == L" two " );
+
+    result.assign(one + result + three);
+    CPPUNIT_CHECK( result == L"one two three" );
+  }
+
+  {
+    CPPUNIT_CHECK( !(one + L' ' + two).empty() );
+
+    wchar_t result = (one + L' ' + two)[3];
+    CPPUNIT_CHECK( result == L' ' );
+
+    result = (one + L' ' + two).at(3);
+    CPPUNIT_CHECK( result == L' ' );
+
+#    if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
+    try {
+      result = (one + L' ' + two).at(10);
+      CPPUNIT_ASSERT(false);
+    }
+    catch (out_of_range const&) {
+      CPPUNIT_ASSERT( result == L' ' );
+    }
+    catch (...) {
+      CPPUNIT_ASSERT(false);
+    }
+#    endif
+  }
+#  endif
+#endif
+}
+
 void StringTest::io()
 {
+#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
   string str("STLport");
   {
     ostringstream ostr;
@@ -777,27 +1069,125 @@ void StringTest::io()
     CPPUNIT_ASSERT( !istr.fail() && !istr.eof() );
     CPPUNIT_ASSERT( istr_content == "STL" );
   }
-}
 #endif
+}
+
+void StringTest::allocator_with_state()
+{
+#if !(defined (STLPORT) && defined (_STLP_NO_CUSTOM_IO)) 
+
+  char buf1[1024];
+  StackAllocator<char> stack1(buf1, buf1 + sizeof(buf1));
+
+  char buf2[1024];
+  StackAllocator<char> stack2(buf2, buf2 + sizeof(buf2));
+
+  typedef basic_string<char, char_traits<char>, StackAllocator<char> > StackString;
+  {
+    StackString str1("string stack1", stack1);
+    StackString str1Cpy(str1);
+
+    StackString str2("string stack2", stack2);
+    StackString str2Cpy(str2);
+
+    str1.swap(str2);
+
+    CPPUNIT_ASSERT( str1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( str2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( str1 == str2Cpy );
+    CPPUNIT_ASSERT( str2 == str1Cpy );
+    CPPUNIT_ASSERT( str1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( str2.get_allocator() == stack1 );
+  }
+  CPPUNIT_ASSERT( stack1.ok() );
+  CPPUNIT_ASSERT( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+  {
+    StackString str1("longer string from stack1 allocator instance for dynamic allocation", stack1);
+    StackString str1Cpy(str1);
+
+    StackString str2("longer string from stack2 allocator instance for dynamic allocation", stack2);
+    StackString str2Cpy(str2);
+
+    str1.swap(str2);
+
+    CPPUNIT_ASSERT( str1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( str2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( str1 == str2Cpy );
+    CPPUNIT_ASSERT( str2 == str1Cpy );
+    CPPUNIT_ASSERT( str1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( str2.get_allocator() == stack1 );
+  }
+  CPPUNIT_ASSERT( stack1.ok() );
+  CPPUNIT_ASSERT( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+
+  {
+    StackString str1("string stack1", stack1);
+    StackString str1Cpy(str1);
+
+    StackString str2("longer string from stack2 allocator instance for dynamic allocation", stack2);
+    StackString str2Cpy(str2);
+
+    str1.swap(str2);
+
+    CPPUNIT_ASSERT( str1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( str2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( str1 == str2Cpy );
+    CPPUNIT_ASSERT( str2 == str1Cpy );
+    CPPUNIT_ASSERT( str1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( str2.get_allocator() == stack1 );
+  }
+  CPPUNIT_ASSERT( stack1.ok() );
+  CPPUNIT_ASSERT( stack2.ok() );
+  stack1.reset(); stack2.reset();
+
+
+  {
+    StackString str1("longer string from stack1 allocator instance for dynamic allocation", stack1);
+    StackString str1Cpy(str1);
+
+    StackString str2("string stack2", stack2);
+    StackString str2Cpy(str2);
+
+    str1.swap(str2);
+
+    CPPUNIT_ASSERT( str1.get_allocator().swaped() );
+    CPPUNIT_ASSERT( str2.get_allocator().swaped() );
+
+    CPPUNIT_ASSERT( str1 == str2Cpy );
+    CPPUNIT_ASSERT( str2 == str1Cpy );
+    CPPUNIT_ASSERT( str1.get_allocator() == stack2 );
+    CPPUNIT_ASSERT( str2.get_allocator() == stack1 );
+  }
+  CPPUNIT_ASSERT( stack1.ok() );
+  CPPUNIT_ASSERT( stack2.ok() );
+  stack1.reset(); stack2.reset();
+#endif
+}
 
 void StringTest::capacity()
 {
   string s;
 
-  CPPUNIT_CHECK( s.capacity() >= 0 );
+  CPPUNIT_CHECK( s.capacity() > 0 );
   CPPUNIT_CHECK( s.capacity() < s.max_size() );
   CPPUNIT_CHECK( s.capacity() >= s.size() );
-#ifdef _STLP_USE_SHORT_STRING_OPTIM
 
-# ifndef _STLP_SHORT_STRING_SZ
-#   define _STLP_SHORT_STRING_SZ 16 // see stlport/stl/_string_base.h
-# endif
+#ifndef _STLP_SHORT_STRING_SZ
+#  define _STLP_SHORT_STRING_SZ 16 // see stlport/stl/_string_base.h
+#endif
 
   for ( int i = 0; i < _STLP_SHORT_STRING_SZ + 2; ++i ) {
     s += ' ';
-    CPPUNIT_CHECK( s.capacity() >= 0 );
+    CPPUNIT_CHECK( s.capacity() > 0 );
     CPPUNIT_CHECK( s.capacity() < s.max_size() );
     CPPUNIT_CHECK( s.capacity() >= s.size() );
   }
-#endif
 }
+

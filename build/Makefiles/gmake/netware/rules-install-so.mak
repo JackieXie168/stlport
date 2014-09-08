@@ -1,7 +1,7 @@
 # -*- makefile -*- Time-stamp: <05/03/02 18:39:22 ptr>
-# $Id: rules-install-so.mak 1500 2005-05-02 18:34:52Z ptr $
+# $Id$
 
-INSTALL_TAGS ?= install-release-shared install-dbg-shared install-stldbg-shared
+INSTALL_TAGS ?= install-shared
 
 PHONY += install $(INSTALL_TAGS)
 

@@ -1,10 +1,17 @@
-#include <rope>
-#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
-#include <sstream>
+//Small header to get STLport numerous defines:
+#include <utility>
+
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
+#  include <rope>
+
+#  if !defined (_STLP_USE_NO_IOSTREAMS)
+#    include <sstream>
+#  endif
+#endif
 
 #include "cppunit/cppunit_proxy.h"
 
-#if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
+#if defined (_STLP_USE_NAMESPACES)
 using namespace std;
 #endif
 
@@ -14,7 +21,13 @@ using namespace std;
 class RopeTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(RopeTest);
+#if !defined (STLPORT) || defined (_STLP_NO_EXTENSIONS) || defined (_STLP_USE_NO_IOSTREAMS)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(io);
+#if defined (_STLP_USE_NO_IOSTREAMS)
+  CPPUNIT_STOP_IGNORE;
+#endif
   CPPUNIT_TEST(find1);
   CPPUNIT_TEST(find2);
   CPPUNIT_TEST(construct_from_char);
@@ -36,6 +49,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(RopeTest);
 //
 void RopeTest::io()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS) && !defined (_STLP_USE_NO_IOSTREAMS) 
   char const* cstr = "rope test string";
   crope rstr(cstr);
 
@@ -46,10 +60,12 @@ void RopeTest::io()
     CPPUNIT_ASSERT( ostr );
     CPPUNIT_ASSERT( ostr.str() == cstr );
   }
+#endif
 }
 
 void RopeTest::find1()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS) 
   crope r("Fuzzy Wuzzy was a bear");
   crope::size_type n = r.find( "hair" );
   CPPUNIT_ASSERT( n == crope::npos );
@@ -57,13 +73,16 @@ void RopeTest::find1()
   n = r.find("ear");
 
   CPPUNIT_ASSERT( n == (r.size() - 3) );
+#endif
 }
 
 void RopeTest::find2()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS) 
   crope r("Fuzzy Wuzzy was a bear");
   crope::size_type n = r.find( 'e' );
   CPPUNIT_ASSERT( n == (r.size() - 3) );
+#endif
 }
 
 void RopeTest::construct_from_char()
@@ -93,5 +112,3 @@ void RopeTest::bug_report()
   CPPUNIT_ASSERT( strcmp(sevenCharRope2.c_str(), "1234567") == 0 );
 #endif
 }
-
-#endif

@@ -9,13 +9,13 @@
  * Copyright (c) 1997
  * Moscow Center for SPARC Technology
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
@@ -25,24 +25,26 @@
 #ifndef _STLP_ALGOBASE_C
 #define _STLP_ALGOBASE_C
 
-# if !defined (_STLP_INTERNAL_ALGOBASE_H)
+#ifndef _STLP_INTERNAL_ALGOBASE_H
 #  include <stl/_algobase.h>
-# endif
+#endif
 
 _STLP_BEGIN_NAMESPACE
 
 template <class _InputIter1, class _InputIter2>
 bool lexicographical_compare(_InputIter1 __first1, _InputIter1 __last1,
                              _InputIter2 __first2, _InputIter2 __last2) {
-  _STLP_DEBUG_CHECK(__check_range(__first1, __last1))
-  _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
-    for ( ; __first1 != __last1 && __first2 != __last2
-          ; ++__first1, ++__first2) {
-      if (*__first1 < *__first2)
-        return true;
-      if (*__first2 < *__first1)
-        return false;
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
+  for ( ; __first1 != __last1 && __first2 != __last2
+        ; ++__first1, ++__first2) {
+    if (*__first1 < *__first2) {
+      _STLP_VERBOSE_ASSERT(!(*__first2 < *__first1), _StlMsg_INVALID_STRICT_WEAK_PREDICATE)
+      return true;
     }
+    if (*__first2 < *__first1)
+      return false;
+  }
   return __first1 == __last1 && __first2 != __last2;
 }
 
@@ -50,25 +52,31 @@ template <class _InputIter1, class _InputIter2, class _Compare>
 bool lexicographical_compare(_InputIter1 __first1, _InputIter1 __last1,
                              _InputIter2 __first2, _InputIter2 __last2,
                              _Compare __comp) {
-  _STLP_DEBUG_CHECK(__check_range(__first1, __last1))
-  _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
-    for ( ; __first1 != __last1 && __first2 != __last2
-          ; ++__first1, ++__first2) {
-      if (__comp(*__first1, *__first2))
-        return true;
-      if (__comp(*__first2, *__first1))
-        return false;
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
+  for ( ; __first1 != __last1 && __first2 != __last2
+        ; ++__first1, ++__first2) {
+    if (__comp(*__first1, *__first2)) {
+      _STLP_VERBOSE_ASSERT(!__comp(*__first2, *__first1), _StlMsg_INVALID_STRICT_WEAK_PREDICATE)
+      return true;
     }
+    if (__comp(*__first2, *__first1))
+      return false;
+  }
   return __first1 == __last1 && __first2 != __last2;
 }
 
 #if !defined (_STLP_NO_EXTENSIONS)
+_STLP_MOVE_TO_PRIV_NAMESPACE
+
 template <class _InputIter1, class _InputIter2>
 int __lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
                                    _InputIter2 __first2, _InputIter2 __last2) {
   while (__first1 != __last1 && __first2 != __last2) {
-    if (*__first1 < *__first2)
+    if (*__first1 < *__first2) {
+      _STLP_VERBOSE_ASSERT(!(*__first2 < *__first1), _StlMsg_INVALID_STRICT_WEAK_PREDICATE)
       return -1;
+    }
     if (*__first2 < *__first1)
       return 1;
     ++__first1;
@@ -82,15 +90,18 @@ int __lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
   }
 }
 
+_STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _InputIter1, class _InputIter2>
 int lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
                                  _InputIter2 __first2, _InputIter2 __last2) {
-  _STLP_DEBUG_CHECK(__check_range(__first1, __last1))
-  _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
-  return __lexicographical_compare_3way(__first1, __last1, __first2, __last2);
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
+  return _STLP_PRIV __lexicographical_compare_3way(__first1, __last1, __first2, __last2);
 }
 #endif
+
+_STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _RandomAccessIter, class _Tp>
 _STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAccessIter __last,
@@ -112,7 +123,7 @@ _STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAcc
     ++__first;
   }
 
-  switch(__last - __first) {
+  switch (__last - __first) {
   case 3:
     if (*__first == __val) return __first;
     ++__first;
@@ -121,25 +132,23 @@ _STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAcc
     ++__first;
   case 1:
     if (*__first == __val) return __first;
-    ++__first;
+    //++__first;
   case 0:
   default:
     return __last;
   }
 }
 
-#if !defined (__BORLANDC__)
-inline char* 
+inline char*
 __find(char* __first, char* __last, char __val, const random_access_iterator_tag &) {
   void *res =  memchr(__first, __val, __last - __first);
-  return res != 0 ? __STATIC_CAST(char*,res) : __last;
+  return res != 0 ? __STATIC_CAST(char*, res) : __last;
 }
-inline const char* 
+inline const char*
 __find(const char* __first, const char* __last, char __val, const random_access_iterator_tag &) {
   const void *res =  memchr(__first, __val, __last - __first);
-  return res != 0 ? __STATIC_CAST(const char*,res) : __last;
+  return res != 0 ? __STATIC_CAST(const char*, res) : __last;
 }
-#endif
 
 template <class _RandomAccessIter, class _Predicate>
 _STLP_INLINE_LOOP _RandomAccessIter __find_if(_RandomAccessIter __first, _RandomAccessIter __last,
@@ -170,7 +179,7 @@ _STLP_INLINE_LOOP _RandomAccessIter __find_if(_RandomAccessIter __first, _Random
     ++__first;
   case 1:
     if (__pred(*__first)) return __first;
-    //    ++__first;
+      //++__first;
   case 0:
   default:
     return __last;
@@ -181,8 +190,7 @@ template <class _InputIter, class _Tp>
 _STLP_INLINE_LOOP _InputIter __find(_InputIter __first, _InputIter __last,
                                     const _Tp& __val,
                                     const input_iterator_tag &) {
-  while (__first != __last && !(*__first == __val))
-    ++__first;
+  while (__first != __last && !(*__first == __val)) ++__first;
   return __first;
 }
 
@@ -195,25 +203,27 @@ _STLP_INLINE_LOOP _InputIter __find_if(_InputIter __first, _STLP_MPW_EXTRA_CONST
   return __first;
 }
 
+_STLP_MOVE_TO_STD_NAMESPACE
+
 template <class _InputIter, class _Predicate>
 _InputIter find_if(_InputIter __first, _InputIter __last,
                    _Predicate __pred) {
-  _STLP_DEBUG_CHECK(__check_range(__first, __last))
-  return __find_if(__first, __last, __pred, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
+  return _STLP_PRIV __find_if(__first, __last, __pred, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
 }
 
 template <class _InputIter, class _Tp>
 _InputIter find(_InputIter __first, _InputIter __last, const _Tp& __val) {
-  _STLP_DEBUG_CHECK(__check_range(__first, __last))
-  return __find(__first, __last, __val, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
+  return _STLP_PRIV __find(__first, __last, __val, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
 }
 
 template <class _ForwardIter1, class _ForwardIter2, class _BinaryPred>
 _ForwardIter1 search(_ForwardIter1 __first1, _ForwardIter1 __last1,
                      _ForwardIter2 __first2, _ForwardIter2 __last2,
-                     _BinaryPred  __predicate) {
-  _STLP_DEBUG_CHECK(__check_range(__first1, __last1))
-  _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
+                     _BinaryPred  __pred) {
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
   // Test for empty ranges
   if (__first1 == __last1 || __first2 == __last2)
     return __first1;
@@ -222,11 +232,15 @@ _ForwardIter1 search(_ForwardIter1 __first1, _ForwardIter1 __last1,
   _ForwardIter2 __tmp(__first2);
   ++__tmp;
   if (__tmp == __last2) {
-    while (__first1 != __last1 && !__predicate(*__first1, *__first2))
+    while (__first1 != __last1 && !__pred(*__first1, *__first2)) {
+      _STLP_VERBOSE_ASSERT(!__pred(*__first2, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
       ++__first1;
-    return __first1;    
+    }
+    _STLP_VERBOSE_ASSERT((__first1 == __last1) || __pred(*__first2, *__first1),
+                         _StlMsg_INVALID_EQUIVALENT_PREDICATE)
+    return __first1;
   }
-  
+
   // General case.
 
   _ForwardIter2 __p1, __p;
@@ -237,33 +251,42 @@ _ForwardIter1 search(_ForwardIter1 __first1, _ForwardIter1 __last1,
 
   while (__first1 != __last1) {
     while (__first1 != __last1) {
-      if (__predicate(*__first1, *__first2))
+      if (__pred(*__first1, *__first2)) {
+        _STLP_VERBOSE_ASSERT(__pred(*__first2, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
         break;
+      }
+      _STLP_VERBOSE_ASSERT(!__pred(*__first2, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
       ++__first1;
     }
-    while (__first1 != __last1 && !__predicate(*__first1, *__first2))
+    while (__first1 != __last1 && !__pred(*__first1, *__first2)) {
+      _STLP_VERBOSE_ASSERT(!__pred(*__first2, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
       ++__first1;
+    }
     if (__first1 == __last1)
       return __last1;
+    _STLP_VERBOSE_ASSERT(__pred(*__first2, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
 
     __p = __p1;
-    _ForwardIter1 __current = __first1; 
+    _ForwardIter1 __current = __first1;
     if (++__current == __last1) return __last1;
 
-    while (__predicate(*__current, *__p)) {
+    while (__pred(*__current, *__p)) {
+      _STLP_VERBOSE_ASSERT(__pred(*__p, *__current), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
       if (++__p == __last2)
         return __first1;
       if (++__current == __last1)
         return __last1;
     }
 
+    _STLP_VERBOSE_ASSERT(!__pred(*__p, *__current), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
     ++__first1;
   }
   return __first1;
 }
 
-// find_first_of, with and without an explicitly supplied comparison function.
+_STLP_MOVE_TO_PRIV_NAMESPACE
 
+// find_first_of, with and without an explicitly supplied comparison function.
 template <class _InputIter, class _ForwardIter, class _BinaryPredicate>
 _InputIter __find_first_of(_InputIter __first1, _InputIter __last1,
                            _ForwardIter __first2, _ForwardIter __last2,
@@ -271,21 +294,21 @@ _InputIter __find_first_of(_InputIter __first1, _InputIter __last1,
   for ( ; __first1 != __last1; ++__first1) {
     for (_ForwardIter __iter = __first2; __iter != __last2; ++__iter) {
       if (__comp(*__first1, *__iter)) {
+        _STLP_VERBOSE_ASSERT(__comp(*__iter, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
         return __first1;
       }
+      _STLP_VERBOSE_ASSERT(!__comp(*__iter, *__first1), _StlMsg_INVALID_EQUIVALENT_PREDICATE)
     }
   }
   return __last1;
 }
-
 
 // find_end, with and without an explicitly supplied comparison function.
 // Search [first2, last2) as a subsequence in [first1, last1), and return
 // the *last* possible match.  Note that find_end for bidirectional iterators
 // is much faster than for forward iterators.
 
-// find_end for forward iterators. 
-
+// find_end for forward iterators.
 template <class _ForwardIter1, class _ForwardIter2,
   class _BinaryPredicate>
 _ForwardIter1 __find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
@@ -296,9 +319,8 @@ _ForwardIter1 __find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
     return __last1;
   else {
     _ForwardIter1 __result = __last1;
-    while (1) {
-      _ForwardIter1 __new_result
-        = search(__first1, __last1, __first2, __last2, __comp);
+    for (;;) {
+      _ForwardIter1 __new_result = search(__first1, __last1, __first2, __last2, __comp);
       if (__new_result == __last1)
         return __result;
       else {
@@ -310,23 +332,25 @@ _ForwardIter1 __find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
   }
 }
 
+_STLP_MOVE_TO_STD_NAMESPACE
+
 // find_end for bidirectional iterators.  Requires partial specialization.
-#if defined ( _STLP_CLASS_PARTIAL_SPECIALIZATION )
+#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
 
-#if ! defined (_STLP_INTERNAL_ITERATOR_H)
-
+#  ifndef _STLP_INTERNAL_ITERATOR_H
 _STLP_END_NAMESPACE
-# include <stl/_iterator.h>
-_STLP_BEGIN_NAMESPACE 
+#    include <stl/_iterator.h>
+_STLP_BEGIN_NAMESPACE
+#  endif /*_STLP_INTERNAL_ITERATOR_H*/
 
-#endif /*_STLP_INTERNAL_ITERATOR_H*/
+_STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _BidirectionalIter1, class _BidirectionalIter2,
-  class _BinaryPredicate>
+          class _BinaryPredicate>
 _BidirectionalIter1
 __find_end(_BidirectionalIter1 __first1, _BidirectionalIter1 __last1,
            _BidirectionalIter2 __first2, _BidirectionalIter2 __last2,
-           const bidirectional_iterator_tag &, const bidirectional_iterator_tag &, 
+           const bidirectional_iterator_tag &, const bidirectional_iterator_tag &,
            _BinaryPredicate __comp) {
   typedef reverse_iterator<_BidirectionalIter1> _RevIter1;
   typedef reverse_iterator<_BidirectionalIter2> _RevIter2;
@@ -345,26 +369,30 @@ __find_end(_BidirectionalIter1 __first1, _BidirectionalIter1 __last1,
     return __result;
   }
 }
+
+_STLP_MOVE_TO_STD_NAMESPACE
 #endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
 
-template <class _ForwardIter1, class _ForwardIter2, 
-  class _BinaryPredicate>
-_ForwardIter1 
-find_end(_ForwardIter1 __first1, _ForwardIter1 __last1, 
+template <class _ForwardIter1, class _ForwardIter2,
+          class _BinaryPredicate>
+_ForwardIter1
+find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
          _ForwardIter2 __first2, _ForwardIter2 __last2,
          _BinaryPredicate __comp) {
-  _STLP_DEBUG_CHECK(__check_range(__first1, __last1))
-  _STLP_DEBUG_CHECK(__check_range(__first2, __last2))
-  return __find_end(__first1, __last1, __first2, __last2,
-# if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-                    _STLP_ITERATOR_CATEGORY(__first1, _ForwardIter1),
-                    _STLP_ITERATOR_CATEGORY(__first2, _ForwardIter2),
-# else
-                    forward_iterator_tag(),
-                    forward_iterator_tag(),
-# endif
-                    __comp);
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
+  return _STLP_PRIV __find_end(__first1, __last1, __first2, __last2,
+#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
+                               _STLP_ITERATOR_CATEGORY(__first1, _ForwardIter1),
+                               _STLP_ITERATOR_CATEGORY(__first2, _ForwardIter2),
+#else
+                               forward_iterator_tag(),
+                               forward_iterator_tag(),
+#endif
+                               __comp);
 }
+
+_STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _ForwardIter, class _Tp, class _Compare1, class _Compare2, class _Distance>
 _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp& __val,
@@ -378,6 +406,7 @@ _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp&
     __middle = __first;
     advance(__middle, __half);
     if (__comp1(*__middle, __val)) {
+      _STLP_VERBOSE_ASSERT(!__comp2(__val, *__middle), _StlMsg_INVALID_STRICT_WEAK_PREDICATE)
       __first = __middle;
       ++__first;
       __len = __len - __half - 1;
@@ -387,6 +416,8 @@ _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp&
   }
   return __first;
 }
+
+_STLP_MOVE_TO_STD_NAMESPACE
 
 _STLP_END_NAMESPACE
 

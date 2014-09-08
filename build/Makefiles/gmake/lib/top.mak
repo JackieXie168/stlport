@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/10 16:15:53 ptr>
-# $Id: top.mak 1176 2004-12-24 11:31:38Z ptr $
+# $Id$
 
 LDFLAGS ?= 
 

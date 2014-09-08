@@ -1,5 +1,5 @@
 # Time-stamp: <03/07/15 12:45:30 ptr>
-# $Id: sysid.mak 1737 2005-09-19 19:57:19Z dums $
+# $Id$
 
 OSNAME := windows
 OSREALNAME := mingw

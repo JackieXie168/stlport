@@ -14,10 +14,17 @@ using namespace std;
 class UnaryTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(UnaryTest);
+#if !defined (STLPORT) || defined (_STLP_NO_EXTENSIONS)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(ucompos1);
   CPPUNIT_TEST(ucompos2);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST(unegate1);
   CPPUNIT_TEST(unegate2);
+#if defined (STLPORT) && !defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(unegate3);
   CPPUNIT_TEST_SUITE_END();
 
@@ -50,12 +57,12 @@ void UnaryTest::unegate2()
   CPPUNIT_ASSERT(*p==2);
 }
 
-bool test_func(const int &param) {
+bool test_func(int param) {
   return param < 3;
 }
 void UnaryTest::unegate3()
 {
-#ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
+#if !defined (STLPORT) || defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
   int array [3] = { 1, 2, 3 };
   int* p = find_if((int*)array, (int*)array + 3, not1(ptr_fun(test_func)));
   CPPUNIT_ASSERT(p != array + 3);
@@ -65,6 +72,7 @@ void UnaryTest::unegate3()
 
 void UnaryTest::ucompos1()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   int input [3] = { -1, -4, -16 };
 
   double output[3];
@@ -73,9 +81,11 @@ void UnaryTest::ucompos1()
   CPPUNIT_ASSERT(output[0]==1);
   CPPUNIT_ASSERT(output[1]==2);
   CPPUNIT_ASSERT(output[2]==4);
+#endif
 }
 void UnaryTest::ucompos2()
 {
+#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   int input [3] = { -1, -4, -16 };
 
   double output [3];
@@ -84,4 +94,5 @@ void UnaryTest::ucompos2()
   CPPUNIT_ASSERT(output[0]==1);
   CPPUNIT_ASSERT(output[1]==2);
   CPPUNIT_ASSERT(output[2]==4);
+#endif
 }

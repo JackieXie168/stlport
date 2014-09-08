@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <05/06/03 21:45:55 ptr>
-# $Id: mwccnlm.mak 1771 2005-09-26 19:38:49Z dums $
+# $Id$
 
 SRCROOT := ../..
 COMPILER_NAME := mwccnlm
@@ -10,7 +10,6 @@ include Makefile.inc
 include ${SRCROOT}/Makefiles/top.mak
 
 INCLUDES += -I${STLPORT_INCLUDE_DIR}
-DEFS += -D_STLP_NO_CUSTOM_IO
 
 dbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED
 stldbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED

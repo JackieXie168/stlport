@@ -251,8 +251,9 @@ Package maintainers can use any path by own taste---we can't satisfy
 variety of distributions/packages.
 
 So you can:
- - fix path in stlport administration config file stlport/stl/_site_config.h, 
+ - fix path in stlport administration config file stlport/stl/config/host.h, 
    see _STLP_NATIVE_INCLUDE_PATH macro and related.
+ - create a link to the native compiler headers like expected by STLport
  - make request to package maintainer
  - build and install compiler
 
@@ -276,7 +277,7 @@ C:\Program Files\Microsoft SDK\Include\.\winbase.h(1138) : error C2733: second C
 
 A3.2 You have a Platform SDK installed. Uncomment line
 #define _STLP_NEW_PLATFORM_SDK 1
-in the file stlport/stl_user_config.h. There is no way to detect SDK
+in the file stlport/stl/config/user_config.h. There is no way to detect SDK
 presence during preprocessor stage, which is why you have to make this
 change manually.
 
@@ -331,7 +332,7 @@ A5.0
   0. Ensure that this is really a bug (standard violation, incorrect
      behaviour with correct usage).
   1. Ensure that bug is in STLport, not in your code (you can use _STLP_DEBUG
-     for that, see stlport/stl_user_config.h).
+     for that, see stlport/stl/config/user_config.h).
   2. Ensure that you correctly built STLport---build and run unit tests
      (build/test/unit) first with default settings, then with your settings
      (if you changed any).
@@ -416,7 +417,7 @@ everything in dll or everything in static lib.
 There are ways to remove the pseudo memory leaks (since the memory is properly
 freed at the end of the program, the leaks are just pseudo-ones). You could use
 another allocator that is used in STLport. Open the file
-"./stlport/stl/_site_config.h" and uncomment either one of the following:
+"./stlport/stl/config/host.h" and uncomment either one of the following:
 
 
    _STLP_USE_NEWALLOC   enables a simple allocator that uses "new/delete"
@@ -427,7 +428,7 @@ memory starvation, see set_new_handler in your compiler doc or the C++ Standard
 for more information.
 
 Alternatively you can define the following symbol, just uncomment it in
-"./stlport/stl/_site_config.h".
+"./stlport/stl/config/host.h".
 
    _STLP_LEAKS_PEDANTIC
 
@@ -439,7 +440,7 @@ dependent libraries if you make any change to the file!
 
 There are also some defines that help in debugging memory problems in STLport.
 In _STLP_DEBUG mode, just also define the following symbols, either in
-"./stlport/stl_user_config.h" or in your project settings:
+"./stlport/stl/config/user_config.h" or in your project settings:
 
    _STLP_DEBUG_ALLOC
    _STLP_DEBUG_UNINITIALIZED

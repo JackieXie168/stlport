@@ -1,4 +1,4 @@
-# -*- Makefile -*- Time-stamp: <05/12/14 22:29:01 ptr>
+# -*- Makefile -*- Time-stamp: <05/12/15 01:46:30 ptr>
 
 ifndef NOT_USE_NOSTDLIB
 
@@ -64,6 +64,9 @@ LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
 release-shared : STLPORT_LIB = -lstlport.${LIB_VERSION}
 dbg-shared     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
 stldbg-shared  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
+release-static : STLPORT_LIB = -lstlport.${LIB_VERSION}
+dbg-static     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
+stldbg-static  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
 endif
 
 ifeq ($(OSNAME),windows)
@@ -71,6 +74,9 @@ LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
 release-shared : STLPORT_LIB = -lstlport.${LIB_VERSION}
 dbg-shared     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
 stldbg-shared  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
+release-static : STLPORT_LIB = -lstlport.${LIB_VERSION}
+dbg-static     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
+stldbg-static  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
 endif
 
 endif
@@ -132,10 +138,27 @@ STDLIBS = ${STLPORT_LIB} ${_LGCC_S} -lc -lm -lsupc++
 endif
 LDFLAGS += -nostdlib
 # endif
-
+else
+ifndef WITHOUT_STLPORT
+STDLIBS = ${STLPORT_LIB}
+else
+STDLIBS =
+endif
 endif
 
 # workaround for gcc 2.95.x bug:
 ifeq ($(CXX_VERSION_MAJOR),2)
 OPT += -fPIC
+endif
+
+ifeq ($(OSNAME),cygming)
+dbg-static:     LDFLAGS += -static
+stldbg-static:  LDFLAGS += -static
+release-static: LDFLAGS += -static
+endif
+
+ifeq ($(OSNAME),windows)
+dbg-static:     LDFLAGS += -static
+stldbg-static:  LDFLAGS += -static
+release-static: LDFLAGS += -static
 endif

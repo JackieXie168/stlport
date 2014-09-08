@@ -2,7 +2,9 @@
 #if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
 #  include <sstream>
 #  include <locale>
-#include <iostream>
+#  include <stdexcept>
+#  include <memory>
+//#  include <iostream>
 
 #  include "cppunit/cppunit_proxy.h"
 
@@ -27,8 +29,8 @@ struct ref_locale {
 
 static const ref_locale tested_locales[] = {
 //{  name,         decimal_point, thousands_sep, money_int_prefix, money_int_prefix_old, money_prefix, money_suffix, money_decimal_point, money_thousands_sep},
-  { "fr_FR",       ",",           "\xa0",        "EUR ",           "FRF ",               "",           "",           ",",                
-#if defined (WIN32)
+  { "fr_FR",       ",",           "\xa0",        "EUR ",           "FRF ",               "",           "",           ",",
+#if defined (WIN32) || defined (_WIN32)
                                                                                                                                           "\xa0" },
 #else
                                                                                                                                           " " },
@@ -46,16 +48,32 @@ static const ref_locale tested_locales[] = {
 class LocaleTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(LocaleTest);
+#if defined (STLPORT) && !defined (_STLP_USE_EXCEPTIONS)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(locale_by_name);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST(loc_has_facet);
   CPPUNIT_TEST(num_put_get);
   CPPUNIT_TEST(money_put_get);
+  CPPUNIT_TEST(money_put_X_bug);
   CPPUNIT_TEST(time_put_get);
+#if defined (__DMC__) && defined (_DLL)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(collate_facet);
   CPPUNIT_TEST(ctype_facet);
+#if defined (STLPORT) && defined (_STLP_NO_MEMBER_TEMPLATES)
+  CPPUNIT_IGNORE;
+#endif
   CPPUNIT_TEST(locale_init_problem);
-  CPPUNIT_TEST(money_put_X_bug);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST(default_locale);
+#if !defined (STLPORT)
+  CPPUNIT_IGNORE;
+#endif
+  CPPUNIT_TEST(facet_id);
+  CPPUNIT_STOP_IGNORE;
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -69,6 +87,7 @@ public:
   void locale_init_problem();
   void money_put_X_bug();
   void default_locale();
+  void facet_id();
 private:
   void _loc_has_facet( const locale&, const ref_locale& );
   void _num_put_get( const locale&, const ref_locale& );
@@ -86,16 +105,10 @@ CPPUNIT_TEST_SUITE_REGISTRATION(LocaleTest);
 // tests implementation
 //
 void LocaleTest::_num_put_get( const locale& loc, const ref_locale& rl ) {
-  float val = 1234.56f;
-  ostringstream ostr;
-  ostr << val;
-  CPPUNIT_ASSERT( ostr );
-  CPPUNIT_ASSERT( ostr.str() == "1234.56" );
-
   numpunct<char> const& npct = use_facet<numpunct<char> >(loc);
-
   CPPUNIT_ASSERT( npct.decimal_point() == *rl.decimal_point );
 
+  float val = 1234.56f;
   ostringstream fostr;
   fostr.imbue(loc);
   fostr << val;
@@ -111,10 +124,6 @@ void LocaleTest::_num_put_get( const locale& loc, const ref_locale& rl ) {
   CPPUNIT_ASSERT( fostr.str() == ref );
 
   val = 12345678.9f;
-  ostr.str("");
-  ostr << val;
-  CPPUNIT_ASSERT( ostr.str() == "1.23457e+07" );
-
   ref = "1";
   ref += npct.decimal_point();
   ref += "23457e+07";
@@ -123,13 +132,24 @@ void LocaleTest::_num_put_get( const locale& loc, const ref_locale& rl ) {
   CPPUNIT_ASSERT( fostr.str() == ref );
 
   val = 1000000000.0f;
-  ostr.str("");
-  ostr << val;
-  CPPUNIT_ASSERT( ostr.str() == "1e+09" );
-
   fostr.str("");
   fostr << val;
   CPPUNIT_ASSERT( fostr.str() == "1e+09" );
+
+  val = 1234.0f;
+  ref = "1";
+  if (!npct.grouping().empty()) {
+    ref += npct.thousands_sep();
+  }
+  ref += "234";
+  fostr.str("");
+  fostr << val;
+  CPPUNIT_ASSERT( fostr.str() == ref );
+
+  val = 10000001.0f;
+  fostr.str("");
+  fostr << val;
+  CPPUNIT_ASSERT( fostr.str() == "1e+07" );
 }
 
 void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
@@ -148,7 +168,7 @@ void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
     {
       moneypunct<char, true> const& intl_fmp = use_facet<moneypunct<char, true> >(loc);
 
-      ostreambuf_iterator<char> res = fmp.put(ostr, true, ostr, ' ', 123456);
+      ostreambuf_iterator<char, char_traits<char> > res = fmp.put(ostr, true, ostr, ' ', 123456);
 
       CPPUNIT_ASSERT( !res.failed() );
       str_res = ostr.str();
@@ -186,7 +206,7 @@ void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
         }
         ++fieldIndex;
       }
-      
+
       // space after currency
       if (intl_fmp.pos_format().field[fieldIndex] == money_base::space ||
           intl_fmp.pos_format().field[fieldIndex] == money_base::none) {
@@ -247,7 +267,7 @@ void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
       istringstream istr(str_res);
       ostr.str( "" );
       ostr.clear();
-      fmg.get(istr, istreambuf_iterator<char>(), true, ostr, err, digits);
+      fmg.get(istr, istreambuf_iterator<char, char_traits<char> >(), true, ostr, err, digits);
       CPPUNIT_ASSERT( (err & (ios_base::failbit | ios_base::badbit)) == 0 );
       CPPUNIT_ASSERT( digits == "123456" );
     }
@@ -260,7 +280,7 @@ void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
     string str_res;
     //Check money_put
     {
-      ostreambuf_iterator<char> res = fmp.put(ostr, false, ostr, ' ', -123456);
+      ostreambuf_iterator<char, char_traits<char> > res = fmp.put(ostr, false, ostr, ' ', -123456);
 
       CPPUNIT_ASSERT( !res.failed() );
       str_res = ostr.str();
@@ -322,13 +342,13 @@ void LocaleTest::_money_put_get( const locale& loc, const ref_locale& rl )
     {
       ios_base::iostate err = ios_base::goodbit;
 #if defined (STLPORT)
-      _STLP_LONG_DOUBLE val;
+      _STLP_LONGEST_FLOAT_TYPE val;
 #else
       long double val;
 #endif
 
       istringstream istr(str_res);
-      fmg.get(istr, istreambuf_iterator<char>(), false, ostr, err, val);
+      fmg.get(istr, istreambuf_iterator<char, char_traits<char> >(), false, ostr, err, val);
       CPPUNIT_ASSERT( (err & (ios_base::failbit | ios_base::badbit)) == 0 );
       if (dom_fmp.negative_sign().empty()) {
         //Without negative sign there is no way to guess the resulting amount sign ("C" locale):
@@ -361,7 +381,7 @@ void LocaleTest::_money_put_X_bug( const locale& loc, const ref_locale& rl )
     string str_res;
     // Check money_put
     {
-      ostreambuf_iterator<char> res = fmp.put(ostr, false, ostr, ' ', 9);
+      ostreambuf_iterator<char, char_traits<char> > res = fmp.put(ostr, false, ostr, ' ', 9);
 
       CPPUNIT_ASSERT( !res.failed() );
       str_res = ostr.str();
@@ -422,7 +442,7 @@ void LocaleTest::_money_put_X_bug( const locale& loc, const ref_locale& rl )
     string str_res;
     // Check money_put
     {
-      ostreambuf_iterator<char> res = fmp.put(ostr, false, ostr, ' ', 90);
+      ostreambuf_iterator<char, char_traits<char> > res = fmp.put(ostr, false, ostr, ' ', 90);
 
       CPPUNIT_ASSERT( !res.failed() );
       str_res = ostr.str();
@@ -505,8 +525,8 @@ void LocaleTest::_time_put_get( const locale& loc, const ref_locale&)
   io.imbue(loc);
 
   istringstream istr( ostr.str() );
-  istreambuf_iterator<char> i( istr );
-  istreambuf_iterator<char> e;
+  istreambuf_iterator<char, char_traits<char> > i( istr );
+  istreambuf_iterator<char, char_traits<char> > e;
   ios_base::iostate err = ios_base::goodbit;
   struct tm other = { 15, 20, 9, 14, 7, 105 };
 
@@ -523,12 +543,12 @@ void LocaleTest::_time_put_get( const locale& loc, const ref_locale&)
   ostringstream ostrX;
   ostrX.imbue(loc);
   format = "%x %X";
-  
+
   ret = tmp.put(ostrX, ostrX, ' ', &xmas, format.data(), format.data() + format.size());
   CPPUNIT_ASSERT( !ret.failed() );
 
   istringstream istrX( ostrX.str() );
-  istreambuf_iterator<char> j( istrX );
+  istreambuf_iterator<char, char_traits<char> > j( istrX );
 
   err = ios_base::goodbit;
 
@@ -566,12 +586,14 @@ void LocaleTest::_collate_facet( const locale& loc, const ref_locale&)
 
   char const str1[] = "françois";
   char const str2[] = "francois";
-
+#if !(defined (__DMC__) && defined (_DLL))
   CPPUNIT_ASSERT( col.compare(str1, str1 + sizeof(str1) / sizeof(str1[0]), str2, str2 + sizeof(str2) / sizeof(str2[0])) );
+#endif
 }
 
 void LocaleTest::_ctype_facet( const locale& loc, const ref_locale&)
 {
+#if !(defined (__DMC__) && defined (_DLL))
   CPPUNIT_ASSERT( has_facet<ctype<char> >(loc) );
   ctype<char> const& ct = use_facet<ctype<char> >(loc);
 
@@ -582,6 +604,7 @@ void LocaleTest::_ctype_facet( const locale& loc, const ref_locale&)
     CPPUNIT_ASSERT( ct.is(ctype_base::lower, 'a') );
     CPPUNIT_ASSERT( ct.is(ctype_base::alpha, 'A') );
     CPPUNIT_ASSERT( ct.is(ctype_base::space, ' ') );
+    CPPUNIT_ASSERT( !ct.is(ctype_base::space, '2') );
     CPPUNIT_ASSERT( ct.is(ctype_base::punct, '.') );
     CPPUNIT_ASSERT( ct.is(ctype_base::xdigit, 'a') );
   }
@@ -627,16 +650,13 @@ void LocaleTest::_ctype_facet( const locale& loc, const ref_locale&)
     CPPUNIT_ASSERT( res != rend );
     CPPUNIT_ASSERT( *res == 'a' );
 
-    res = ct.scan_is((ctype_base::mask)(ctype_base::alpha | ctype_base::upper), rbeg, rend);
+    res = ct.scan_is(ctype_base::upper, rbeg, rend);
     CPPUNIT_ASSERT( res != rend );
     CPPUNIT_ASSERT( *res == 'A' );
 
     res = ct.scan_is(ctype_base::punct, rbeg, rend);
     CPPUNIT_ASSERT( res != rend );
     CPPUNIT_ASSERT( *res == '.' );
-
-    res = ct.scan_is((ctype_base::mask)(ctype_base::punct | ctype_base::digit), rbeg, rend);
-    CPPUNIT_ASSERT( res == rend );
   }
 
   //scan_not
@@ -648,7 +668,7 @@ void LocaleTest::_ctype_facet( const locale& loc, const ref_locale&)
     const char *res;
     res = ct.scan_not((ctype_base::mask)(ctype_base::alpha | ctype_base::lower), rbeg, rend);
     CPPUNIT_ASSERT( res != rend );
-    CPPUNIT_ASSERT( *res == 'A' );
+    CPPUNIT_ASSERT( *res == '1' );
 
     res = ct.scan_not(ctype_base::alpha, rbeg, rend);
     CPPUNIT_ASSERT( res != rend );
@@ -714,6 +734,7 @@ void LocaleTest::_ctype_facet( const locale& loc, const ref_locale&)
     ct.narrow(range, range + sizeof(range), 'b', res);
     CPPUNIT_ASSERT( equal(range, range + sizeof(range), res) );
   }
+#endif /* __DMC__ */
 }
 
 template <class _Tp>
@@ -731,7 +752,7 @@ void test_supported_locale(LocaleTest inst, _Tp __test) {
     }
 #else
     //Without exception support we only test C locale.
-    if (tested_locales[i].name[0] != 'C' || 
+    if (tested_locales[i].name[0] != 'C' ||
         tested_locales[i].name[1] != 0)
       continue;
     loc.reset(new locale(tested_locales[i].name));
@@ -745,7 +766,7 @@ void LocaleTest::locale_by_name() {
 #  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   /*
    * Check of the 22.1.1.2.7 standard point. Construction of a locale
-   * instance from a null pointer or an unknown name should result in 
+   * instance from a null pointer or an unknown name should result in
    * a runtime_error exception.
    */
   try {
@@ -780,33 +801,28 @@ void LocaleTest::loc_has_facet() {
   */
 }
 
-void LocaleTest::num_put_get() {
-  test_supported_locale(*this, &LocaleTest::_num_put_get);
-}
+void LocaleTest::num_put_get()
+{ test_supported_locale(*this, &LocaleTest::_num_put_get); }
 
-void LocaleTest::money_put_get() {
-  test_supported_locale(*this, &LocaleTest::_money_put_get);
-}
+void LocaleTest::money_put_get()
+{ test_supported_locale(*this, &LocaleTest::_money_put_get); }
 
-void LocaleTest::money_put_X_bug() {
-  test_supported_locale(*this, &LocaleTest::_money_put_X_bug);
-}
+void LocaleTest::money_put_X_bug()
+{ test_supported_locale(*this, &LocaleTest::_money_put_X_bug); }
 
-void LocaleTest::time_put_get() {
-  test_supported_locale(*this, &LocaleTest::_time_put_get);
-}
+void LocaleTest::time_put_get()
+{ test_supported_locale(*this, &LocaleTest::_time_put_get); }
 
-void LocaleTest::collate_facet() {
-  test_supported_locale(*this, &LocaleTest::_collate_facet);
-}
+void LocaleTest::collate_facet()
+{ test_supported_locale(*this, &LocaleTest::_collate_facet); }
 
-void LocaleTest::ctype_facet() {
-  test_supported_locale(*this, &LocaleTest::_ctype_facet);
-}
+void LocaleTest::ctype_facet()
+{ test_supported_locale(*this, &LocaleTest::_ctype_facet); }
 
-void LocaleTest::locale_init_problem()
-{
+void LocaleTest::locale_init_problem() {
+#if !defined (STLPORT) || !defined (_STLP_NO_MEMBER_TEMPLATES)
   test_supported_locale(*this, &LocaleTest::_locale_init_problem);
+#endif
 }
 
 
@@ -816,7 +832,9 @@ void LocaleTest::locale_init_problem()
  * initialization is done correctly.
  */
 static locale global_loc;
+static locale other_loc("");
 
+#if !defined (STLPORT) || !defined (_STLP_NO_MEMBER_TEMPLATES)
 void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
 {
 #  if !defined (__APPLE__) && !defined (__FreeBSD__) || \
@@ -829,6 +847,7 @@ void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
   typedef codecvt<char,char,std::mbstate_t> my_facet;
 #  endif
 
+#  if !(defined (__DMC__) && defined (_DLL))
   locale loc_ref(global_loc);
   {
     locale gloc( loc_ref, new my_facet() );
@@ -868,11 +887,161 @@ void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
     CPPUNIT_ASSERT( false );
   }
 #  endif
+#  endif /* __DMC__ */
 }
+#endif
 
 void LocaleTest::default_locale()
 {
   locale loc( "" );
+}
+
+void LocaleTest::facet_id()
+{
+#if defined (STLPORT)
+  locale::id _id_01 = collate<char>::id;
+  CPPUNIT_CHECK( _id_01._M_index == 1 );
+
+  locale::id _id_02 = ctype<char>::id;
+  CPPUNIT_CHECK( _id_02._M_index == 2 );
+
+#  ifndef _STLP_NO_MBSTATE_T
+  locale::id _id_03 = codecvt<char, char, mbstate_t>::id;
+  CPPUNIT_CHECK( _id_03._M_index == 3 );
+#  endif
+
+  locale::id _id_04 = moneypunct<char, true>::id;
+  CPPUNIT_CHECK( _id_04._M_index == 4 );
+
+  locale::id _id_05 = moneypunct<char, false>::id;
+  CPPUNIT_CHECK( _id_05._M_index == 5 );
+
+  locale::id _id_06 = numpunct<char>::id;
+  CPPUNIT_CHECK( _id_06._M_index == 6 );
+
+  locale::id _id_07 = messages<char>::id;
+  CPPUNIT_CHECK( _id_07._M_index == 7 );
+
+  locale::id _id_08 = money_get<char, istreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_08._M_index == 8 );
+
+  /*
+  locale::id _id_09 = money_get<char, const char*>::id;
+  CPPUNIT_CHECK( _id_09._M_index == 9 );
+  */
+
+  locale::id _id_10 = money_put<char, ostreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_10._M_index == 10 );
+
+  /*
+  locale::id _id_11 = money_put<char, char*>::id;
+  CPPUNIT_CHECK( _id_11._M_index == 11 );
+  */
+
+  locale::id _id_12 = num_get<char, istreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_12._M_index == 12 );
+
+  /*
+  locale::id _id_13 = num_get<char, const char*>::id;
+  CPPUNIT_CHECK( _id_13._M_index == 13 );
+  */
+
+  locale::id _id_14 = num_put<char, ostreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_14._M_index == 14 );
+
+  /*
+  locale::id _id_15 = num_put<char, char*>::id;
+  CPPUNIT_CHECK( _id_15._M_index == 15 );
+  */
+
+  locale::id _id_16 = time_get<char, istreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_16._M_index == 16 );
+
+  /*
+  locale::id _id_17 = time_get<char, const char*>::id;
+  CPPUNIT_CHECK( _id_17._M_index == 17 );
+  */
+
+  locale::id _id_18 = time_put<char, ostreambuf_iterator<char, char_traits<char> > >::id;
+  CPPUNIT_CHECK( _id_18._M_index == 18 );
+
+  /*
+  locale::id _id_19 = time_put<char, char*>::id;
+  CPPUNIT_CHECK( _id_19._M_index == 19 );
+  */
+
+#  ifndef _STLP_NO_WCHAR_T
+  locale::id _id_20 = collate<wchar_t>::id;
+  CPPUNIT_CHECK( _id_20._M_index == 20 );
+
+  locale::id _id_21 = ctype<wchar_t>::id;
+  CPPUNIT_CHECK( _id_21._M_index == 21 );
+
+#    ifndef _STLP_NO_MBSTATE_T
+  locale::id _id_22 = codecvt<wchar_t, char, mbstate_t>::id;
+  CPPUNIT_CHECK( _id_22._M_index == 22 );
+#    endif
+  locale::id _id_23 = moneypunct<wchar_t, true>::id;
+  CPPUNIT_CHECK( _id_23._M_index == 23 );
+
+  locale::id _id_24 = moneypunct<wchar_t, false>::id;
+  CPPUNIT_CHECK( _id_24._M_index == 24 );
+
+  locale::id _id_25 = numpunct<wchar_t>::id;
+  CPPUNIT_CHECK( _id_25._M_index == 25 );
+
+  locale::id _id_26 = messages<wchar_t>::id;
+  CPPUNIT_CHECK( _id_26._M_index == 26 );
+
+  locale::id _id_27 = money_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id;
+  CPPUNIT_CHECK( _id_27._M_index == 27 );
+
+  /*
+  locale::id _id_28 = money_get<wchar_t, const wchar_t*>::id;
+  CPPUNIT_CHECK( _id_28._M_index == 28 );
+  */
+
+  locale::id _id_29 = money_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id;
+  CPPUNIT_CHECK( _id_29._M_index == 29 );
+
+  /*
+  locale::id _id_30 = money_put<wchar_t, wchar_t*>::id;
+  CPPUNIT_CHECK( _id_30._M_index == 30 );
+  */
+
+  locale::id _id_31 = num_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id;
+  CPPUNIT_CHECK( _id_31._M_index == 31 );
+
+  /*
+  locale::id _id_32 = num_get<wchar_t, const wchar_t*>::id;
+  CPPUNIT_CHECK( _id_32._M_index == 32 );
+  */
+
+  locale::id _id_33 = num_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > > ::id;
+  CPPUNIT_CHECK( _id_33._M_index == 33 );
+
+  /*
+  locale::id _id_34 = num_put<wchar_t, wchar_t*>::id;
+  CPPUNIT_CHECK( _id_34._M_index == 34 );
+  */
+
+  locale::id _id_35 = time_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id;
+  CPPUNIT_CHECK( _id_35._M_index == 35 );
+
+  /*
+  locale::id _id_36 = time_get<wchar_t, const wchar_t*>::id;
+  CPPUNIT_CHECK( _id_36._M_index == 36 );
+  */
+
+  locale::id _id_37 = time_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id;
+  CPPUNIT_CHECK( _id_37._M_index == 37 );
+
+  /*
+  locale::id _id_38 = time_put<wchar_t, wchar_t*>::id;
+  CPPUNIT_CHECK( _id_38._M_index == 38 );
+  */
+#  endif
+#endif
 }
 
 #endif

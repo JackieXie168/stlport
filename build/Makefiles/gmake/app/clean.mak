@@ -1,5 +1,4 @@
-# -*- makefile -*- Time-stamp: <03/07/10 00:20:54 ptr>
-# $Id: clean.mak 1737 2005-09-19 19:57:19Z dums $
+# -*- makefile -*- Time-stamp: <05/12/07 00:54:14 ptr>
 
 ifneq ($(OSNAME),windows)
 clobber::
@@ -18,7 +17,13 @@ clobber::
 	@if exist $(PRG_STLDBG) del /f /q $(PRG_STLDBG)
 
 distclean::
-	@if exist $(INSTALL_BIN_DIR)/$(PRG) del /f /q $(INSTALL_BIN_DIR)/$(PRG)
-	@if exist $(INSTALL_BIN_DIR_DBG)/$(PRG_DBG) del /f /q $(INSTALL_BIN_DIR_DBG)/$(PRG_DBG)
-	@if exist $(INSTALL_BIN_DIR_STLDBG)/$(PRG_STLDBG) del /f /q $(INSTALL_BIN_DIR_STLDBG)/$(PRG_STLDBG)
+	@if exist $(INSTALL_BIN_DIR)/$(PRGNAME)$(EXE) del /f /q $(subst /,\,$(INSTALL_BIN_DIR)/$(PRGNAME)$(EXE))
+	@if exist $(INSTALL_BIN_DIR_DBG)/$(PRGNAME)$(EXE) del /f /q $(subst /,\,$(INSTALL_BIN_DIR_DBG)/$(PRGNAME)$(EXE))
+	@if exist $(INSTALL_BIN_DIR_STLDBG)/$(PRGNAME)$(EXE) del /f /q $(subst /,\,$(INSTALL_BIN_DIR_STLDBG)/$(PRGNAME)$(EXE))
+ifeq (bcc, $(COMPILER_NAME))
+#remove STLport EXE directories, unless they contains DLLs
+	@if exist $(INSTALL_BIN_DIR) if not exist $(subst /,\,$(INSTALL_BIN_DIR)/*.dll) rd /s /q $(subst /,\,$(INSTALL_BIN_DIR))
+	@if exist $(INSTALL_BIN_DIR_DBG) if not exist $(subst /,\,$(INSTALL_BIN_DIR_DBG)/*.dll) rd /s /q $(subst /,\,$(INSTALL_BIN_DIR_DBG))
+	@if exist $(INSTALL_BIN_DIR_STLDBG) if not exist $(subst /,\,$(INSTALL_BIN_DIR_STLDBG)/*.dll) rd /s /q $(subst /,\,$(INSTALL_BIN_DIR_STLDBG))
+endif
 endif

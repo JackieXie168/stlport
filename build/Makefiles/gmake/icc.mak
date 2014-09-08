@@ -1,5 +1,4 @@
 # Time-stamp: <03/11/30 11:46:14 ptr>
-# $Id: icc.mak 1754 2005-09-20 19:04:46Z complement $
 
 #INCLUDES :=
 

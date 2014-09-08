@@ -1,13 +1,11 @@
 # Time-stamp: <03/10/26 16:42:14 ptr>
-# $Id: rules-install-so.mak 1849 2005-11-18 20:29:02Z dums $
+# $Id$
 
 !ifndef INSTALL_TAGS
-INSTALL_TAGS= install-release-shared install-dbg-shared install-stldbg-shared install-release-static install-dbg-static install-stldbg-static
+INSTALL_TAGS= install-shared install-static
 !endif
 
 install:	$(INSTALL_TAGS)
-
-install-shared: install-release-shared install-dbg-shared install-stldbg-shared
 
 install-release-shared: release-shared $(INSTALL_BIN_DIR)
 	$(INSTALL_SO) $(PRG) $(INSTALL_BIN_DIR)

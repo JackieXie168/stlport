@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
@@ -47,7 +47,8 @@ using std::wctrans;
 #  if defined (_STLP_IMPORT_VENDOR_CSTD)
 
 #    if defined (_STLP_USE_GLIBC) && !(defined (_GLIBCPP_USE_WCHAR_T) || defined (_GLIBCXX_USE_WCHAR_T)) || \
-  defined (__sun) || defined(__FreeBSD__)
+        defined (__sun) || defined (__FreeBSD__) || \
+        defined (__MINGW32__) && ((__MINGW32_MAJOR_VERSION < 3) || (__MINGW32_MAJOR_VERSION == 3) && (__MINGW32_MINOR_VERSION <= 0))
 //We take wide functions from global namespace:
 #      define _STLP_VENDOR_CSTD_WFUNC
 #    else
@@ -60,7 +61,7 @@ using _STLP_VENDOR_CSTD_WFUNC::wint_t;
 #    if !defined (_STLP_NO_CSTD_FUNCTION_IMPORTS)
 #      if !defined (__BORLANDC__) && !defined (__MSL__)
 using _STLP_VENDOR_CSTD_WFUNC::wctrans_t;
-#        if !defined (__DMC__)
+#        if !defined (__DMC__) && (!defined(_WIN32_WCE) || _WIN32_WCE<0x500)
 using _STLP_VENDOR_CSTD_WFUNC::towctrans;
 using _STLP_VENDOR_CSTD_WFUNC::wctrans;
 using _STLP_VENDOR_CSTD_WFUNC::wctype;

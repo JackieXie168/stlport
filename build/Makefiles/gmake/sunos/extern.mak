@@ -1,5 +1,5 @@
 # Time-stamp: <03/07/15 17:46:28 ptr>
-# $Id: extern.mak 1176 2004-12-24 11:31:38Z ptr $
+# $Id$
 
 
 # This is Complement project (really not extern):

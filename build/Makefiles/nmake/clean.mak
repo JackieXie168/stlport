@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/29 22:20:01 ptr>
-# $Id: clean.mak 1738 2005-09-19 19:58:07Z dums $
+# $Id$
 
 clean:
 	@if exist $(OUTPUT_DIR)\*.o del /F /Q $(OUTPUT_DIR)\*.o

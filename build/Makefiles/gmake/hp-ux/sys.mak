@@ -1,5 +1,5 @@
 # Time-stamp: <05/09/09 21:12:16 ptr>
-# $Id: sys.mak 1715 2005-09-11 06:27:35Z complement $
+# $Id$
 
 INSTALL := $$HOME/bin/install-sh
 

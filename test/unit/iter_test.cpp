@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "iota.h"
 #include "cppunit/cppunit_proxy.h"
 
 #if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
@@ -42,22 +43,20 @@ CPPUNIT_TEST_SUITE_REGISTRATION(IterTest);
 void IterTest::iter1()
 {
   vector<const char*> v; // Vector of character strings.
-  v.push_back((char*) "zippy"); // First element.
-  v.push_back((char*) "motorboy"); // Second element.
+  v.push_back("zippy"); // First element.
+  v.push_back("motorboy"); // Second element.
   typedef vector<const char*> vec;
-  vec::iterator i = v.begin(); // Position at end.
-  unsigned counter=0;
-  for(i = v.begin(); i != v.end(); i++, counter++) {
-    switch( counter ) {
+  unsigned counter = 0;
+  for (vec::iterator i = v.begin(); i != v.end(); ++i, ++counter) {
+    switch (counter) {
       case 0:
-        CPPUNIT_ASSERT(!strcmp(*i,"zippy"));
-      break;
+        CPPUNIT_ASSERT(!strcmp(*i, "zippy"));
+        break;
       case 1:
-        CPPUNIT_ASSERT(!strcmp(*i,"motorboy"));
-      break;
+        CPPUNIT_ASSERT(!strcmp(*i, "motorboy"));
+        break;
       default:
         CPPUNIT_ASSERT(false);
-      break;
     }
   }
 }
@@ -65,21 +64,20 @@ void IterTest::iter3()
 {
   typedef vector<const char*> Vec;
   Vec v; // Vector of character strings.
-  v.push_back((char*) "zippy"); // First element.
-  v.push_back((char*) "motorboy"); // Second element.
+  v.push_back("zippy"); // First element.
+  v.push_back("motorboy"); // Second element.
   Vec::reverse_iterator it;
-  unsigned counter=0;
-  for(it = v.rbegin(); it != v.rend(); it++, counter++) {
-    switch( counter ) {
+  unsigned counter = 0;
+  for (it = v.rbegin(); it != v.rend(); ++it, ++counter) {
+    switch (counter) {
       case 1:
-        CPPUNIT_ASSERT(!strcmp(*it,"zippy"));
-      break;
+        CPPUNIT_ASSERT(!strcmp(*it, "zippy"));
+        break;
       case 0:
-        CPPUNIT_ASSERT(!strcmp(*it,"motorboy"));
-      break;
+        CPPUNIT_ASSERT(!strcmp(*it, "motorboy"));
+        break;
       default:
         CPPUNIT_ASSERT(false);
-      break;
     }
   }
 
@@ -92,7 +90,7 @@ void IterTest::iter4()
   v.push_back(2);
   v.push_back(3);
   // Position immediately after last item.
-  std::vector<int>::iterator i = v.end(); 
+  std::vector<int>::iterator i = v.end();
   // Move back one and then access.
   CPPUNIT_ASSERT((*--i)==3);
   i -= 2; // Jump back two items.
@@ -115,8 +113,7 @@ void IterTest::iterswp0()
 void IterTest::iterswp1()
 {
   vector<int> v1(6);
-
-  iota( v1.begin(), v1.end(), 0);
+  __iota(v1.begin(), v1.end(), 0);
   iter_swap( v1.begin(), v1.begin() + 3 );
 
   CPPUNIT_ASSERT(v1[0]==3);

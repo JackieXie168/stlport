@@ -40,13 +40,26 @@ void FindTest::find0()
   int numbers[10] = { 0, 1, 4, 9, 16, 25, 36, 49, 64 };
 
   int *location = find((int*)numbers, (int*)numbers + 10, 25);
-  
+
   CPPUNIT_ASSERT((location - numbers)==5);
 
   int *out_range = find((int*)numbers, (int*)numbers + 10, 128);
 
   CPPUNIT_ASSERT( out_range == (int *)(numbers + 10) );
 }
+
+struct Key
+{
+  int data;
+
+  /* This operator should rather be global and commutative
+     but implementing it this way show that STLport used to
+     ask too much from the user code. */
+  bool operator == (int d) const
+  {
+    return data == d;
+  }
+};
 
 void FindTest::find1()
 {
@@ -60,16 +73,24 @@ void FindTest::find1()
 
 void FindTest::findif0()
 {
-  int numbers[6] = { 2, 4, 8, 15, 32, 64 };
-  int *location = find_if((int*)numbers, (int*)numbers + 6, odd);
+  {
+    int numbers[6] = { 2, 4, 8, 15, 32, 64 };
+    int *location = find_if((int*)numbers, (int*)numbers + 6, odd);
 
-  CPPUNIT_ASSERT((location - numbers)==3);
+    CPPUNIT_ASSERT((location - numbers)==3);
 
-  int numbers_even[6] = { 2, 4, 8, 16, 32, 64 };
+    int numbers_even[6] = { 2, 4, 8, 16, 32, 64 };
 
-  int *out_range = find_if((int*)numbers_even, (int*)numbers_even + 6, odd);
+    int *out_range = find_if((int*)numbers_even, (int*)numbers_even + 6, odd);
 
-  CPPUNIT_ASSERT( out_range == (int *)(numbers_even + 6) );
+    CPPUNIT_ASSERT( out_range == (int *)(numbers_even + 6) );
+  }
+
+  {
+    Key keys[10];
+    Key const* k = find(keys + 0, keys + 10, 5);
+    CPPUNIT_ASSERT( k == keys + 10 );
+  }
 }
 
 void FindTest::findif1()
@@ -96,15 +117,19 @@ bool FindTest::div_3(int a_)
 void FindTest::find_char()
 {
   char str[] = "abcdefghij";
-  char *d = find((char*)str, (char*)str + sizeof(str) / sizeof(char), 'd');
+  char *pstr = (char*)str;
+  const char* cpstr = (const char*)str;
+  size_t str_size = sizeof(str) / sizeof(char);
+
+  char *d = find(pstr, pstr + str_size, 'd');
   CPPUNIT_ASSERT( *d == 'd' );
 
-  const char *e = find((const char*)str, (const char*)str + sizeof(str) / sizeof(char), 'e');
+  const char *e = find(cpstr, cpstr + str_size, 'e');
   CPPUNIT_ASSERT( *e == 'e' );
 
-  char *last = find((char*)str, (char*)str + sizeof(str) / sizeof(char), 'x');
-  CPPUNIT_ASSERT( last == (char *)(str + sizeof(str) / sizeof(char)));
+  char *last = find(pstr, pstr + str_size, 'x');
+  CPPUNIT_ASSERT( last == pstr + str_size );
 
-  const char *clast = find((const char*)str, (const char*)str + sizeof(str) / sizeof(char), 'x');
-  CPPUNIT_ASSERT( clast == (const char *)(str + sizeof(str) / sizeof(char)));
+  const char *clast = find(cpstr, cpstr + str_size, 'x');
+  CPPUNIT_ASSERT( clast == cpstr + str_size );
 }

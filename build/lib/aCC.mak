@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/12 20:35:49 ptr>
-# $Id: aCC.mak 1521 2005-05-14 09:01:38Z ptr $
+# $Id$
 
 SRCROOT := ..
 COMPILER_NAME := aCC

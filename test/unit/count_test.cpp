@@ -33,10 +33,9 @@ void CountTest::count0()
 {
   int numbers[10] = { 1, 2, 4, 1, 2, 4, 1, 2, 4, 1 };
 
-  int result = 0;
-  result = count(numbers, numbers + 10, 1);
+  int result = count(numbers, numbers + 10, 1);
   CPPUNIT_ASSERT(result==4);
-#ifndef _STLP_NO_ANACHRONISMS
+#if defined (STLPORT) && !defined (_STLP_NO_ANACHRONISMS)
   result = 0;
   count(numbers, numbers + 10, 1, result);
   CPPUNIT_ASSERT(result==4);
@@ -47,10 +46,9 @@ void CountTest::count1()
   vector <int> numbers(100);
   for(int i = 0; i < 100; i++)
   numbers[i] = i % 3;
-  int elements = 0;
-  elements = count(numbers.begin(), numbers.end(), 2);
+  int elements = count(numbers.begin(), numbers.end(), 2);
   CPPUNIT_ASSERT(elements==33);
-#ifndef _STLP_NO_ANACHRONISMS
+#if defined (STLPORT) && !defined (_STLP_NO_ANACHRONISMS)
   elements = 0;
   count(numbers.begin(), numbers.end(), 2, elements);
   CPPUNIT_ASSERT(elements==33);
@@ -61,10 +59,9 @@ void CountTest::countif1()
   vector <int> numbers(100);
   for(int i = 0; i < 100; i++)
     numbers[i] = i % 3;
-  int elements = 0;
-  elements = count_if(numbers.begin(), numbers.end(), odd);
+  int elements = count_if(numbers.begin(), numbers.end(), odd);
   CPPUNIT_ASSERT(elements==33);
-#ifndef _STLP_NO_ANACHRONISMS
+#if defined (STLPORT) && !defined (_STLP_NO_ANACHRONISMS)
   elements = 0;
   count_if(numbers.begin(), numbers.end(), odd, elements);
   CPPUNIT_ASSERT(elements==33);
