@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <04/03/14 18:55:49 ptr>
-# $Id$
+# $Id: icc.mak 1802 2005-11-01 08:25:57Z complement $
 
 SRCROOT := ../..
 COMPILER_NAME := icc

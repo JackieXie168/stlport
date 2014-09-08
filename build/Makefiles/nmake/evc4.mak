@@ -1,5 +1,5 @@
 # Time-stamp: <04/03/31 07:55:19 ptr>
-# $Id$
+# $Id: evc4.mak 2548 2006-07-31 19:34:29Z dums $
 
 !if "$(TARGET_PROC)" == ""
 !error No target processor configured! Please rerun configure.bat!

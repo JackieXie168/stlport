@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/12 20:35:49 ptr>
-# $Id$
+# $Id: bcc.mak 2218 2006-03-24 19:57:15Z dums $
 
 SRCROOT := ..
 COMPILER_NAME := bcc

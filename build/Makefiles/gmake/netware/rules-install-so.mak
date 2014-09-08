@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <05/03/02 18:39:22 ptr>
-# $Id$
+# $Id: rules-install-so.mak 2057 2005-12-29 20:43:09Z dums $
 
 INSTALL_TAGS ?= install-shared
 

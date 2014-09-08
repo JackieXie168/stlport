@@ -1,5 +1,5 @@
 # Time-stamp: <03/10/26 16:04:25 ptr>
-# $Id$
+# $Id: top.mak 2697 2006-10-26 19:44:09Z dums $
 
 .SUFFIXES: .o .cc
 

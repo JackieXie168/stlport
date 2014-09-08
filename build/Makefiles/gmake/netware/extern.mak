@@ -1,5 +1,5 @@
 # Time-stamp: <05/06/03 21:34:35 ptr>
-# $Id$
+# $Id: extern.mak 1802 2005-11-01 08:25:57Z complement $
 
 MWCW_BASE ?= c:/Program Files/Metrowerks/CodeWarrior
 NWSDK_DIR ?= c:/Novell/ndk/nwsdk

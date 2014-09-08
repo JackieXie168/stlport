@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/03/16 17:23:52 ptr>
-# $Id$
+# $Id: rules-install-a.mak 1952 2005-12-09 21:46:16Z dums $
 
 PHONY += install-release-static install-dbg-static install-stldbg-static
 

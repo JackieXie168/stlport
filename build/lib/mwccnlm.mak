@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <05/06/03 21:38:08 ptr>
-# $Id$
+# $Id: mwccnlm.mak 1802 2005-11-01 08:25:57Z complement $
 
 SRCROOT := ..
 COMPILER_NAME := mwccnlm

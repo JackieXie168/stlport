@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/07/05 21:43:31 ptr>
-# $Id$
+# $Id: Makefile-lib.inc 1459 2005-04-18 21:25:32Z ptr $
 
 LIBNAME = mylib
 MAJOR = 1
