@@ -1,3 +1,60 @@
+2008-01-13  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/fstream.cpp, stlport/stl/_fstream.c: Complete bug #1854345
+	fix as already done in SVN trunk. Moreover, an other SVN trunk bug
+	fix has been integrated. We now try to convert already read buffer
+	even if latest file read failed.
+
+	* src/fstream.cpp: Integrate trunk fix for management of Crtl-Z under
+	Windows.
+
+2008-01-11  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* src/num_put_float.cpp, stlport/stl/_cstdlib.h, stlport/stl/config/_hpux.h:
+	On HPUX IA64 gcc have <wchar.h> and <cwchar> files, but they are conflict
+	with <stl/_mbstate_t.h>; suggested by KBac, patch #1868233.
+
+2008-01-02  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/_stdio_file.h: Apply Windows CE fix already present in trunk to
+	avoid the famous opening console issue.
+
+	* src/fstream.cpp: #1854345 bug fixed.
+
+2007-12-11  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* build/Makefiles/gmake/lib/gcc.mak, build/Makefiles/gmake/app/gcc.mak:
+	pass CXXFLAGS to compilers when investigate compiler- and OS-specific
+	files, to process correctly multilib environments. Already in trunk.
+
+2007-12-07  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/c_locale_glibc/c_locale_glibc2.c: Fix a potential one
+	byte memory overrun.
+
+2007-11-12  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* test/unit/fstream_test.cpp: testcase for bug #1830513;
+	__read_unbuffered wrongly process valid streamsize 0;
+	[was derived from original report of Anton Samokhvalov and Oleg Obolenskiy]
+
+	* stlport/stl/_istream.c: fix for bug #1830513 above;
+	check boundary condition in the beginning of loop.
+
+2007-10-21  Francois Dumont  <dums@users.sourceforge.net>
+
+	* src/allocators.cpp: Add missing const_cast in lock free
+	allocator implementation when _STLP_LEAKS_PEDANTIC is defined.
+	Thanks trungantran on forum.
+
+2007-10-07  Francois Dumont  <dums@users.sourceforge.net>
+
+	* STLport 5.1.4 released based on revision 3219. STLport-5.1.4
+	tag created.
+
+	* stlport/stl/_stlport_version.h, build/lib/Makefile.inc: Patch
+	version bump to 5 to prepare next potential patch release.
+
 2007-10-05  Francois Dumont  <dums@users.sourceforge.net>
 
 	* stlport/stl/debug/_iterator.h, _string.h, src/string.cpp:

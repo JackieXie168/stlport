@@ -825,17 +825,17 @@ ptrdiff_t _Filebuf_base::_M_read(char* buf, ptrdiff_t n) {
   // charaters to the buffer, avoids extraction of too small chunk of datas
   // which would be counter performant.
   while (__STATIC_CAST(size_t, (n - readen)) >= chunkSize) {
-    DWORD NumberOfBytesRead;
-    ReadFile(_M_file_id, buf + readen, __STATIC_CAST(DWORD, chunkSize), &NumberOfBytesRead, 0);
+    DWORD numberOfBytesRead;
+    ReadFile(_M_file_id, buf + readen, __STATIC_CAST(DWORD, chunkSize), &numberOfBytesRead, 0);
 
-    if (NumberOfBytesRead == 0)
+    if (numberOfBytesRead == 0)
       break;
 
     if (!(_M_openmode & ios_base::binary)) {
       // translate CR-LFs to LFs in the buffer
       char *to = buf + readen;
       char *from = to;
-      char *last = from + NumberOfBytesRead - 1;
+      char *last = from + numberOfBytesRead - 1;
       for (; from <= last && *from != _STLP_CTRLZ; ++from) {
         if (*from != _STLP_CR)
           *to++ = *from;
@@ -877,13 +877,15 @@ ptrdiff_t _Filebuf_base::_M_read(char* buf, ptrdiff_t n) {
           }
         } // found CR
       } // for
+      readen = to - buf;
       // seek back to TEXT end of file if hit CTRL-Z
-      if (from <= last) // terminated due to CTRLZ
-        SetFilePointer(_M_file_id, (LONG)((last+1) - from), 0, SEEK_CUR);
-      readen += to - (buf + readen);
+      if (from <= last) { // terminated due to CTRLZ
+        SetFilePointer(_M_file_id, -(LONG)((last + 1) - from), 0, SEEK_CUR);
+        break;
+      }
     }
     else
-      readen += NumberOfBytesRead;
+      readen += numberOfBytesRead;
   }
   return readen;
 
@@ -1153,8 +1155,6 @@ _Underflow<char, char_traits<char> >::_M_doit (basic_filebuf<char, char_traits<c
     // If we've mmapped part of the file already, then unmap it.
     if (__this->_M_mmap_base)
       __this->_M_base._M_unmap(__this->_M_mmap_base, __this->_M_mmap_len);
-    __this->_M_mmap_base = 0;
-    __this->_M_mmap_len = 0;
 
     // Determine the position where we start mapping.  It has to be
     // a multiple of the page size.
@@ -1175,9 +1175,10 @@ _Underflow<char, char_traits<char> >::_M_doit (basic_filebuf<char, char_traits<c
                      (char*) __this->_M_mmap_base + __STATIC_CAST(ptrdiff_t, __remainder),
                      (char*) __this->_M_mmap_base + __STATIC_CAST(ptrdiff_t, __this->_M_mmap_len));
         return traits_type::to_int_type(*__this->gptr());
-      }
-    } else /* size > 0 ... */ {
-      // There is nothing to map. We unmapped the file above, now zap pointers.
+      } else
+        __this->_M_mmap_len = 0;
+    }
+    else {
       __this->_M_mmap_base = 0;
       __this->_M_mmap_len = 0;
     }
