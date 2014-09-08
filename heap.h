@@ -13,12 +13,8 @@
  *
  */
 
-#ifndef __SGI_STL_HEAP_H
-#define __SGI_STL_HEAP_H
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1209
-#endif
+#ifndef HEAP_H
+#define HEAP_H
 
 template <class RandomAccessIterator, class Distance, class T>
 void __push_heap(RandomAccessIterator first, Distance holeIndex,
@@ -197,8 +193,4 @@ void sort_heap(RandomAccessIterator first, RandomAccessIterator last,
     while (last - first > 1) pop_heap(first, last--, comp);
 }
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1209
 #endif
-
-#endif /* __SGI_STL_HEAP_H */

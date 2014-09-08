@@ -24,17 +24,14 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_MULTIMAP_H
-#define __SGI_STL_MULTIMAP_H
+#ifndef MULTIMAP_H
+#define MULTIMAP_H
 
 #include <tree.h>
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class T, class Compare = less<Key>, class Alloc = alloc>
-#else
-template <class Key, class T, class Compare, class Alloc = alloc>
-#endif
+template <class Key, class T, class Compare /*= less<Key>*/ /*, class Alloc = alloc*/>
 class multimap {
+  typedef alloc Alloc;
 public:
 
 // typedefs:
@@ -45,7 +42,7 @@ public:
   typedef Compare key_compare;
 
   class value_compare : public binary_function<value_type, value_type, bool> {
-    friend class multimap<Key, T, Compare, Alloc>;
+    friend class multimap<Key, T, Compare/*, Alloc*/>;
     protected:
         Compare comp;
         value_compare(Compare c) : comp(c) {}
@@ -73,17 +70,8 @@ public:
 // allocation/deallocation
 
   multimap() : t(Compare()) { }
-  explicit multimap(const Compare& comp) : t(comp) { }
+  multimap(const Compare& comp) : t(comp) { }
 
-#ifdef __STL_MEMBER_TEMPLATES  
-  template <class InputIterator>
-  multimap(InputIterator first, InputIterator last)
-    : t(Compare()) { t.insert_equal(first, last); }
-
-  template <class InputIterator>
-  multimap(InputIterator first, InputIterator last, const Compare& comp)
-    : t(comp) { t.insert_equal(first, last); }
-#else
   multimap(const value_type* first, const value_type* last)
     : t(Compare()) { t.insert_equal(first, last); }
   multimap(const value_type* first, const value_type* last,
@@ -94,11 +82,10 @@ public:
     : t(Compare()) { t.insert_equal(first, last); }
   multimap(const_iterator first, const_iterator last, const Compare& comp)
     : t(comp) { t.insert_equal(first, last); }
-#endif /* __STL_MEMBER_TEMPLATES */
 
-  multimap(const multimap<Key, T, Compare, Alloc>& x) : t(x.t) { }
-  multimap<Key, T, Compare, Alloc>&
-  operator=(const multimap<Key, T, Compare, Alloc>& x) {
+  multimap(const multimap<Key, T, Compare/*, Alloc*/>& x) : t(x.t) { }
+  multimap<Key, T, Compare/*, Alloc*/>&
+  operator=(const multimap<Key, T, Compare/*, Alloc*/>& x) {
     t = x.t;
     return *this; 
   }
@@ -118,7 +105,7 @@ public:
   bool empty() const { return t.empty(); }
   size_type size() const { return t.size(); }
   size_type max_size() const { return t.max_size(); }
-  void swap(multimap<Key, T, Compare, Alloc>& x) { t.swap(x.t); }
+  void swap(multimap<Key, T, Compare/*, Alloc*/>& x) { t.swap(x.t); }
 
   // insert/erase
 
@@ -126,19 +113,12 @@ public:
   iterator insert(iterator position, const value_type& x) {
     return t.insert_equal(position, x);
   }
-#ifdef __STL_MEMBER_TEMPLATES  
-  template <class InputIterator>
-  void insert(InputIterator first, InputIterator last) {
-    t.insert_equal(first, last);
-  }
-#else
   void insert(const value_type* first, const value_type* last) {
     t.insert_equal(first, last);
   }
   void insert(const_iterator first, const_iterator last) {
     t.insert_equal(first, last);
   }
-#endif /* __STL_MEMBER_TEMPLATES */
   void erase(iterator position) { t.erase(position); }
   size_type erase(const key_type& x) { return t.erase(x); }
   void erase(iterator first, iterator last) { t.erase(first, last); }
@@ -163,20 +143,23 @@ public:
   pair<const_iterator,const_iterator> equal_range(const key_type& x) const {
     return t.equal_range(x);
   }
-  friend bool operator==(const multimap&, const multimap&);
-  friend bool operator<(const multimap&, const multimap&);
+
+  bool operator==(const multimap& x) const { return t == x.t; }
+  bool operator<(const multimap& x) const { return t < x.t; }
+//   friend bool operator==(const multimap&, const multimap&);
+//   friend bool operator<(const multimap&, const multimap&);
 };
 
-template <class Key, class T, class Compare, class Alloc>
-inline bool operator==(const multimap<Key, T, Compare, Alloc>& x, 
-                       const multimap<Key, T, Compare, Alloc>& y) {
-  return x.t == y.t;
-}
+// template <class Key, class T, class Compare/*, class Alloc*/>
+// inline bool operator==(const multimap<Key, T, Compare/*, Alloc*/>& x, 
+//                        const multimap<Key, T, Compare/*, Alloc*/>& y) {
+//   return x.t == y.t;
+// }
 
-template <class Key, class T, class Compare, class Alloc>
-inline bool operator<(const multimap<Key, T, Compare, Alloc>& x, 
-                      const multimap<Key, T, Compare, Alloc>& y) {
-  return x.t < y.t;
-}
+// template <class Key, class T, class Compare/*, class Alloc*/>
+// inline bool operator<(const multimap<Key, T, Compare/*, Alloc*/>& x, 
+//                       const multimap<Key, T, Compare/*, Alloc*/>& y) {
+//   return x.t < y.t;
+// }
 
-#endif /* __SGI_STL_MULTIMAP_H */
+#endif

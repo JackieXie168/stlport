@@ -24,11 +24,11 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_FUNCTION_H
-#define __SGI_STL_FUNCTION_H
+#ifndef FUNCTION_H
+#define FUNCTION_H
 
 #include <stddef.h>
-#include <stl_config.h>
+#include <bool.h>
 
 template <class T>
 inline bool operator!=(const T& x, const T& y) {
@@ -82,10 +82,6 @@ template <class T>
 struct divides : public binary_function<T, T, T> {
     T operator()(const T& x, const T& y) const { return x / y; }
 };
-
-template <class T> inline T identity_element(plus<T>) { return T(0); }
-
-template <class T> inline T identity_element(multiplies<T>) { return T(1); }
 
 template <class T>
 struct modulus : public binary_function<T, T, T> {
@@ -148,7 +144,7 @@ class unary_negate
 protected:
     Predicate pred;
 public:
-    explicit unary_negate(const Predicate& x) : pred(x) {}
+    unary_negate(const Predicate& x) : pred(x) {}
     bool operator()(const argument_type& x) const { return !pred(x); }
 };
 
@@ -165,7 +161,7 @@ class binary_negate
 protected:
     Predicate pred;
 public:
-    explicit binary_negate(const Predicate& x) : pred(x) {}
+    binary_negate(const Predicate& x) : pred(x) {}
     bool operator()(const first_argument_type& x, 
 		    const second_argument_type& y) const {
 	return !pred(x, y); 
@@ -268,7 +264,7 @@ protected:
     Result (*ptr)(Arg);
 public:
     pointer_to_unary_function() {}
-    explicit pointer_to_unary_function(Result (*x)(Arg)) : ptr(x) {}
+    pointer_to_unary_function(Result (*x)(Arg)) : ptr(x) {}
     Result operator()(Arg x) const { return ptr(x); }
 };
 
@@ -283,7 +279,7 @@ protected:
     Result (*ptr)(Arg1, Arg2);
 public:
     pointer_to_binary_function() {}
-    explicit pointer_to_binary_function(Result (*x)(Arg1, Arg2)) : ptr(x) {}
+    pointer_to_binary_function(Result (*x)(Arg1, Arg2)) : ptr(x) {}
     Result operator()(Arg1 x, Arg2 y) const { return ptr(x, y); }
 };
 
@@ -333,22 +329,14 @@ struct constant_void_fun
   const result_type& operator()() const { return val; }
 };  
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Result, class Argument = Result>
-#else
-template <class Result, class Argument>
-#endif
+template <class Result, class Argument /* = Result */>
 struct constant_unary_fun : public unary_function<Argument, Result> {
   result_type val;
   constant_unary_fun(const result_type& v) : val(v) {}
   const result_type& operator()(const argument_type&) const { return val; }
 };
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Result, class Arg1 = Result, class Arg2 = Arg1>
-#else
-template <class Result, class Arg1, class Arg2>
-#endif
+template <class Result, class Arg1 /* = Result */, class Arg2 /* = Arg1 */>
 struct constant_binary_fun : public binary_function<Arg1, Arg2, Result> {
   result_type val;
   constant_binary_fun(const result_type& v) : val(v) {}
@@ -365,15 +353,15 @@ inline constant_void_fun<Result> constant0(const Result& val)
 }
 
 template <class Result>
-inline constant_unary_fun<Result,Result> constant1(const Result& val)
+inline constant_unary_fun<Result, Result> constant1(const Result& val)
 {
-  return constant_unary_fun<Result,Result>(val);
+  return constant_unary_fun<Result, Result>(val);
 }
 
 template <class Result>
-inline constant_binary_fun<Result,Result,Result> constant2(const Result& val)
+inline constant_binary_fun<Result, Result, Result> constant2(const Result& val)
 {
-  return constant_binary_fun<Result,Result,Result>(val);
+  return constant_binary_fun<Result, Result, Result>(val);
 }
 
 // Note: this code assumes that int is 32 bits.
@@ -383,6 +371,9 @@ private:
   size_t index1;
   size_t index2;
 public:
+  subtractive_rng(unsigned int seed) { initialize(seed); }
+  subtractive_rng() { initialize(161803398u); }
+
   unsigned int operator()(unsigned int limit) {
     index1 = (index1 + 1) % 55;
     index2 = (index2 + 1) % 55;
@@ -408,227 +399,7 @@ public:
     index1 = 0;
     index2 = 31;
   }
-
-  subtractive_rng(unsigned int seed) { initialize(seed); }
-  subtractive_rng() { initialize(161803398u); }
 };
 
 
-// Adaptor function objects: pointers to member functions.
-
-// There are a total of 16 = 2^4 function objects in this family.
-//  (1) Member functions taking no arguments vs member functions taking
-//       one argument.
-//  (2) Call through pointer vs call through reference.
-//  (3) Member function with void return type vs member function with
-//      non-void return type.
-//  (4) Const vs non-const member function.
-
-// Note that choice (4) is not present in the 8/97 draft C++ standard, 
-//  which only allows these adaptors to be used with non-const functions.
-//  This is likely to be recified before the standard becomes final.
-// Note also that choice (3) is nothing more than a workaround: according
-//  to the draft, compilers should handle void and non-void the same way.
-//  This feature is not yet widely implemented, though.  You can only use
-//  member functions returning void if your compiler supports partial
-//  specialization.
-
-// All of this complexity is in the function objects themselves.  You can
-//  ignore it by using the helper function mem_fun, mem_fun_ref,
-//  mem_fun1, and mem_fun1_ref, which create whichever type of adaptor
-//  is appropriate.
-
-
-template <class S, class T>
-class mem_fun_t : public unary_function<T*, S> {
-public:
-  explicit mem_fun_t(S (T::*pf)()) : f(pf) {}
-  S operator()(T* p) const { return (p->*f)(); }
-private:
-  S (T::*f)();
-};
-
-template <class S, class T>
-class const_mem_fun_t : public unary_function<const T*, S> {
-public:
-  explicit const_mem_fun_t(S (T::*pf)() const) : f(pf) {}
-  S operator()(const T* p) const { return (p->*f)(); }
-private:
-  S (T::*f)() const;
-};
-
-
-template <class S, class T>
-class mem_fun_ref_t : public unary_function<T, S> {
-public:
-  explicit mem_fun_ref_t(S (T::*pf)()) : f(pf) {}
-  S operator()(T& r) const { return (r.*f)(); }
-private:
-  S (T::*f)();
-};
-
-template <class S, class T>
-class const_mem_fun_ref_t : public unary_function<T, S> {
-public:
-  explicit const_mem_fun_ref_t(S (T::*pf)() const) : f(pf) {}
-  S operator()(const T& r) const { return (r.*f)(); }
-private:
-  S (T::*f)() const;
-};
-
-template <class S, class T, class A>
-class mem_fun1_t : public binary_function<T*, A, S> {
-public:
-  explicit mem_fun1_t(S (T::*pf)(A)) : f(pf) {}
-  S operator()(T* p, A x) const { return (p->*f)(x); }
-private:
-  S (T::*f)(A);
-};
-
-template <class S, class T, class A>
-class const_mem_fun1_t : public binary_function<const T*, A, S> {
-public:
-  explicit const_mem_fun1_t(S (T::*pf)(A) const) : f(pf) {}
-  S operator()(const T* p, A x) const { return (p->*f)(x); }
-private:
-  S (T::*f)(A) const;
-};
-
-template <class S, class T, class A>
-class mem_fun1_ref_t : public binary_function<T, A, S> {
-public:
-  explicit mem_fun1_ref_t(S (T::*pf)(A)) : f(pf) {}
-  S operator()(T& r, A x) const { return (r.*f)(x); }
-private:
-  S (T::*f)(A);
-};
-
-template <class S, class T, class A>
-class const_mem_fun1_ref_t : public binary_function<T, A, S> {
-public:
-  explicit const_mem_fun1_ref_t(S (T::*pf)(A) const) : f(pf) {}
-  S operator()(const T& r, A x) const { return (r.*f)(x); }
-private:
-  S (T::*f)(A) const;
-};
-
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-
-template <class T>
-class mem_fun_t<void, T> : public unary_function<T*, void> {
-public:
-  explicit mem_fun_t(void (T::*pf)()) : f(pf) {}
-  void operator()(T* p) const { (p->*f)(); }
-private:
-  void (T::*f)();
-};
-
-template <class T>
-class const_mem_fun_t<void, T> : public unary_function<const T*, void> {
-public:
-  explicit const_mem_fun_t(void (T::*pf)() const) : f(pf) {}
-  void operator()(const T* p) const { (p->*f)(); }
-private:
-  void (T::*f)() const;
-};
-
-template <class T>
-class mem_fun_ref_t<void, T> : public unary_function<T, void> {
-public:
-  explicit mem_fun_ref_t(void (T::*pf)()) : f(pf) {}
-  void operator()(T& r) const { (r.*f)(); }
-private:
-  void (T::*f)();
-};
-
-template <class T>
-class const_mem_fun_ref_t<void, T> : public unary_function<T, void> {
-public:
-  explicit const_mem_fun_ref_t(void (T::*pf)() const) : f(pf) {}
-  void operator()(const T& r) const { (r.*f)(); }
-private:
-  void (T::*f)() const;
-};
-
-template <class T, class A>
-class mem_fun1_t<void, T, A> : public binary_function<T*, A, void> {
-public:
-  explicit mem_fun1_t(void (T::*pf)(A)) : f(pf) {}
-  void operator()(T* p, A x) const { (p->*f)(x); }
-private:
-  void (T::*f)(A);
-};
-
-template <class T, class A>
-class const_mem_fun1_t<void, T, A> : public binary_function<const T*, A, void> {
-public:
-  explicit const_mem_fun1_t(void (T::*pf)(A) const) : f(pf) {}
-  void operator()(const T* p, A x) const { (p->*f)(x); }
-private:
-  void (T::*f)(A) const;
-};
-
-template <class T, class A>
-class mem_fun1_ref_t<void, T, A> : public binary_function<T, A, void> {
-public:
-  explicit mem_fun1_ref_t(void (T::*pf)(A)) : f(pf) {}
-  void operator()(T& r, A x) const { (r.*f)(x); }
-private:
-  void (T::*f)(A);
-};
-
-template <class T, class A>
-class const_mem_fun1_ref_t<void, T, A> : public binary_function<T, A, void> {
-public:
-  explicit const_mem_fun1_ref_t(void (T::*pf)(A) const) : f(pf) {}
-  void operator()(const T& r, A x) const { (r.*f)(x); }
-private:
-  void (T::*f)(A) const;
-};
-
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-
-// Mem_fun adaptor helper functions.  There are only four:
-//  mem_fun, mem_fun_ref, mem_fun1, mem_fun1_ref.
-
-template <class S, class T>
-inline mem_fun_t<S,T> mem_fun(S (T::*f)()) { 
-  return mem_fun_t<S,T>(f);
-}
-
-template <class S, class T>
-inline const_mem_fun_t<S,T> mem_fun(S (T::*f)() const) {
-  return const_mem_fun_t<S,T>(f);
-}
-
-template <class S, class T>
-inline mem_fun_ref_t<S,T> mem_fun_ref(S (T::*f)()) { 
-  return mem_fun_ref_t<S,T>(f);
-}
-
-template <class S, class T>
-inline const_mem_fun_ref_t<S,T> mem_fun_ref(S (T::*f)() const) {
-  return const_mem_fun_ref_t<S,T>(f);
-}
-
-template <class S, class T, class A>
-inline mem_fun1_t<S,T,A> mem_fun1(S (T::*f)(A)) { 
-  return mem_fun1_t<S,T,A>(f);
-}
-
-template <class S, class T, class A>
-inline const_mem_fun1_t<S,T,A> mem_fun1(S (T::*f)(A) const) {
-  return const_mem_fun1_t<S,T,A>(f);
-}
-
-template <class S, class T, class A>
-inline mem_fun1_ref_t<S,T,A> mem_fun1_ref(S (T::*f)(A)) { 
-  return mem_fun1_ref_t<S,T,A>(f);
-}
-
-template <class S, class T, class A>
-inline const_mem_fun1_ref_t<S,T,A> mem_fun1_ref(S (T::*f)(A) const) {
-  return const_mem_fun1_ref_t<S,T,A>(f);
-}
-
-#endif /* __SGI_STL_FUNCTION_H */
+#endif

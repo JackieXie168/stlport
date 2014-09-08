@@ -24,17 +24,14 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_MULTISET_H
-#define __SGI_STL_MULTISET_H
+#ifndef MULTISET_H
+#define MULTISET_H
 
 #include <tree.h>
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class Compare = less<Key>, class Alloc = alloc>
-#else
-template <class Key, class Compare, class Alloc = alloc>
-#endif
+template <class Key, class Compare /*= less<Key>*/ /*, class Alloc = alloc*/>
 class multiset {
+  typedef alloc Alloc;
 public:
   // typedefs:
 
@@ -60,16 +57,8 @@ public:
   // allocation/deallocation
 
   multiset() : t(Compare()) {}
-  explicit multiset(const Compare& comp) : t(comp) {}
+  multiset(const Compare& comp) : t(comp) {}
 
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  multiset(InputIterator first, InputIterator last)
-    : t(Compare()) { t.insert_equal(first, last); }
-  template <class InputIterator>
-  multiset(InputIterator first, InputIterator last, const Compare& comp)
-    : t(comp) { t.insert_equal(first, last); }
-#else
   multiset(const value_type* first, const value_type* last)
     : t(Compare()) { t.insert_equal(first, last); }
   multiset(const value_type* first, const value_type* last,
@@ -80,11 +69,11 @@ public:
     : t(Compare()) { t.insert_equal(first, last); }
   multiset(const_iterator first, const_iterator last, const Compare& comp)
     : t(comp) { t.insert_equal(first, last); }
-#endif /* __STL_MEMBER_TEMPLATES */
 
-  multiset(const multiset<Key, Compare, Alloc>& x) : t(x.t) {}
-  multiset<Key, Compare, Alloc>&
-  operator=(const multiset<Key, Compare, Alloc>& x) {
+
+  multiset(const multiset<Key, Compare/*, Alloc*/>& x) : t(x.t) {}
+  multiset<Key, Compare/*, Alloc*/>&
+  operator=(const multiset<Key, Compare/*, Alloc*/>& x) {
     t = x.t; 
     return *this;
   }
@@ -100,7 +89,7 @@ public:
   bool empty() const { return t.empty(); }
   size_type size() const { return t.size(); }
   size_type max_size() const { return t.max_size(); }
-  void swap(multiset<Key, Compare, Alloc>& x) { t.swap(x.t); }
+  void swap(multiset<Key, Compare/*, Alloc*/>& x) { t.swap(x.t); }
 
   // insert/erase
   iterator insert(const value_type& x) { 
@@ -109,20 +98,12 @@ public:
   iterator insert(iterator position, const value_type& x) {
     return t.insert_equal((rep_type::iterator&)position, x);
   }
-
-#ifdef __STL_MEMBER_TEMPLATES  
-  template <class InputIterator>
-  void insert(InputIterator first, InputIterator last) {
-    t.insert_equal(first, last);
-  }
-#else
   void insert(const value_type* first, const value_type* last) {
     t.insert_equal(first, last);
   }
   void insert(const_iterator first, const_iterator last) {
     t.insert_equal(first, last);
   }
-#endif /* __STL_MEMBER_TEMPLATES */
   void erase(iterator position) { 
     t.erase((rep_type::iterator&)position); 
   }
@@ -148,20 +129,23 @@ public:
   pair<iterator,iterator> equal_range(const key_type& x) const {
     return t.equal_range(x);
   }
-  friend bool operator==(const multiset&, const multiset&);
-  friend bool operator<(const multiset&, const multiset&);
+  bool operator==(const multiset& x) const { return t == x.t; }
+  bool operator<(const multiset& x) const { return t < x.t; }
+
+//   friend bool operator==(const multiset&, const multiset&);
+//   friend bool operator<(const multiset&, const multiset&);
 };
 
-template <class Key, class Compare, class Alloc>
-inline bool operator==(const multiset<Key, Compare, Alloc>& x, 
-                       const multiset<Key, Compare, Alloc>& y) {
-  return x.t == y.t;
-}
+// template <class Key, class Compare/*, class Alloc*/>
+// inline bool operator==(const multiset<Key, Compare/*, Alloc*/>& x, 
+//                        const multiset<Key, Compare/*, Alloc*/>& y) {
+//   return x.t == y.t;
+// }
 
-template <class Key, class Compare, class Alloc>
-inline bool operator<(const multiset<Key, Compare, Alloc>& x, 
-                      const multiset<Key, Compare, Alloc>& y) {
-  return x.t < y.t;
-}
+// template <class Key, class Compare/*, class Alloc*/>
+// inline bool operator<(const multiset<Key, Compare/*, Alloc*/>& x, 
+//                       const multiset<Key, Compare/*, Alloc*/>& y) {
+//   return x.t < y.t;
+// }
 
-#endif /* __SGI_STL_MULTISET_H */
+#endif

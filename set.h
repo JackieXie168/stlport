@@ -24,17 +24,14 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_SET_H
-#define __SGI_STL_SET_H
+#ifndef SET_H
+#define SET_H
 
 #include <tree.h>
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class Compare = less<Key>, class Alloc = alloc>
-#else
-template <class Key, class Compare, class Alloc = alloc>
-#endif
+template <class Key, class Compare /* = less<Key>*/ /*, class Alloc = alloc*/>
 class set {
+  typedef alloc Alloc;
 public:
   // typedefs:
 
@@ -60,17 +57,8 @@ public:
   // allocation/deallocation
 
   set() : t(Compare()) {}
-  explicit set(const Compare& comp) : t(comp) {}
+  set(const Compare& comp) : t(comp) {}
 
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  set(InputIterator first, InputIterator last)
-    : t(Compare()) { t.insert_unique(first, last); }
-
-  template <class InputIterator>
-  set(InputIterator first, InputIterator last, const Compare& comp)
-    : t(comp) { t.insert_unique(first, last); }
-#else
   set(const value_type* first, const value_type* last) 
     : t(Compare()) { t.insert_unique(first, last); }
   set(const value_type* first, const value_type* last, const Compare& comp)
@@ -80,10 +68,9 @@ public:
     : t(Compare()) { t.insert_unique(first, last); }
   set(const_iterator first, const_iterator last, const Compare& comp)
     : t(comp) { t.insert_unique(first, last); }
-#endif /* __STL_MEMBER_TEMPLATES */
 
-  set(const set<Key, Compare, Alloc>& x) : t(x.t) {}
-  set<Key, Compare, Alloc>& operator=(const set<Key, Compare, Alloc>& x) { 
+  set(const set<Key, Compare/*, Alloc*/>& x) : t(x.t) {}
+  set<Key, Compare/*, Alloc*/>& operator=(const set<Key, Compare/*, Alloc*/>& x) { 
     t = x.t; 
     return *this;
   }
@@ -99,7 +86,7 @@ public:
   bool empty() const { return t.empty(); }
   size_type size() const { return t.size(); }
   size_type max_size() const { return t.max_size(); }
-  void swap(set<Key, Compare, Alloc>& x) { t.swap(x.t); }
+  void swap(set<Key, Compare/*, Alloc*/>& x) { t.swap(x.t); }
 
   // insert/erase
   typedef  pair<iterator, bool> pair_iterator_bool; 
@@ -110,19 +97,12 @@ public:
   iterator insert(iterator position, const value_type& x) {
     return t.insert_unique((rep_type::iterator&)position, x);
   }
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  void insert(InputIterator first, InputIterator last) {
-    t.insert_unique(first, last);
-  }
-#else
   void insert(const_iterator first, const_iterator last) {
     t.insert_unique(first, last);
   }
   void insert(const value_type* first, const value_type* last) {
     t.insert_unique(first, last);
   }
-#endif /* __STL_MEMBER_TEMPLATES */
   void erase(iterator position) { 
     t.erase((rep_type::iterator&)position); 
   }
@@ -148,20 +128,22 @@ public:
   pair<iterator,iterator> equal_range(const key_type& x) const {
     return t.equal_range(x);
   }
-  friend bool operator==(const set&, const set&);
-  friend bool operator<(const set&, const set&);
+  bool operator==(const set& x) const { return t == x.t; }
+  bool operator<(const set& x) const { return t < x.t; }
+//   friend bool operator==(const set&, const set&);
+//   friend bool operator<(const set&, const set&);
 };
 
-template <class Key, class Compare, class Alloc>
-inline bool operator==(const set<Key, Compare, Alloc>& x, 
-                       const set<Key, Compare, Alloc>& y) {
-  return x.t == y.t;
-}
+// template <class Key, class Compare/*, class Alloc*/>
+// inline bool operator==(const set<Key, Compare/*, Alloc*/>& x, 
+//                        const set<Key, Compare/*, Alloc*/>& y) {
+//   return x.t == y.t;
+// }
 
-template <class Key, class Compare, class Alloc>
-inline bool operator<(const set<Key, Compare, Alloc>& x, 
-                      const set<Key, Compare, Alloc>& y) {
-  return x.t < y.t;
-}
+// template <class Key, class Compare/*, class Alloc*/>
+// inline bool operator<(const set<Key, Compare/*, Alloc*/>& x, 
+//                       const set<Key, Compare/*, Alloc*/>& y) {
+//   return x.t < y.t;
+// }
 
-#endif /* __SGI_STL_SET_H */
+#endif

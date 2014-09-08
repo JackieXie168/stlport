@@ -24,18 +24,14 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_ALGO_H
-#define __SGI_STL_ALGO_H
+#ifndef ALGO_H
+#define ALGO_H
 
 #include <stdlib.h>
 #include <limits.h>
 #include <algobase.h>
 #include <heap.h>
 #include <tempbuf.h>
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1209
-#endif
 
 template <class T>
 inline const T& __median(const T& a, const T& b, const T& c) {
@@ -73,9 +69,8 @@ inline const T& __median(const T& a, const T& b, const T& c, Compare comp) {
 
 template <class InputIterator, class Function>
 Function for_each(InputIterator first, InputIterator last, Function f) {
-  for ( ; first != last; ++first)
-    f(*first);
-  return f;
+    while (first != last) f(*first++);
+    return f;
 }
 
 template <class InputIterator, class T>
@@ -117,74 +112,41 @@ ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last,
 template <class InputIterator, class T, class Size>
 void count(InputIterator first, InputIterator last, const T& value,
 	   Size& n) {
-  for ( ; first != last; ++first)
-    if (*first == value)
-      ++n;
+    while (first != last) 
+	if (*first++ == value) ++n;
 }
 
 template <class InputIterator, class Predicate, class Size>
 void count_if(InputIterator first, InputIterator last, Predicate pred,
 	      Size& n) {
-  for ( ; first != last; ++first)
-    if (pred(*first))
-      ++n;
+    while (first != last)
+	if (pred(*first++)) ++n;
 }
-
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-
-template <class InputIterator, class T>
-iterator_traits<InputIterator>::difference_type
-count(InputIterator first, InputIterator last, const T& value) {
-  iterator_traits<InputIterator>::difference_type n = 0;
-  for ( ; first != last; ++first)
-    if (*first == value)
-      ++n;
-  return n;
-}
-
-template <class InputIterator, class Predicate>
-iterator_traits<InputIterator>::difference_type
-count_if(InputIterator first, InputIterator last, Predicate pred) {
-  iterator_traits<InputIterator>::difference_type n = 0;
-  for ( ; first != last; ++first)
-    if (pred(*first))
-      ++n;
-  return n;
-}
-
-
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
 template <class ForwardIterator1, class ForwardIterator2, class Distance1,
-          class Distance2>
+	  class Distance2>
 ForwardIterator1 __search(ForwardIterator1 first1, ForwardIterator1 last1,
-                          ForwardIterator2 first2, ForwardIterator2 last2,
-                          Distance1*, Distance2*) {
-  Distance1 d1 = 0;
-  distance(first1, last1, d1);
-  Distance2 d2 = 0;
-  distance(first2, last2, d2);
+			  ForwardIterator2 first2, ForwardIterator2 last2,
+			  Distance1*, Distance2*) {
+    Distance1 d1 = 0;
+    distance(first1, last1, d1);
+    Distance2 d2 = 0;
+    distance(first2, last2, d2);
 
-  if (d1 < d2) return last1;
+    if (d1 < d2) return last1;
 
-  ForwardIterator1 current1 = first1;
-  ForwardIterator2 current2 = first2;
+    ForwardIterator1 current1 = first1;
+    ForwardIterator2 current2 = first2;
 
-  while (current2 != last2) 
-    if (*current1 == *current2) {
-      ++current1;
-      ++current2;
-    }
-    else {
-      if (d1 == d2)
-        return last1;
-      else {
-        current1 = ++first1;
-        current2 = first2;
-        --d1;
-      }
-    }
-  return first1;
+    while (current2 != last2)
+	if (*current1++ != *current2++)
+	    if (d1-- == d2)
+		return last1;
+	    else {
+		current1 = ++first1;
+		current2 = first2;
+	    }
+    return (current2 == last2) ? first1 : last1;
 }
 
 template <class ForwardIterator1, class ForwardIterator2>
@@ -196,35 +158,29 @@ inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
 }
 
 template <class ForwardIterator1, class ForwardIterator2,
-          class BinaryPredicate, class Distance1, class Distance2>
+	  class BinaryPredicate, class Distance1, class Distance2>
 ForwardIterator1 __search(ForwardIterator1 first1, ForwardIterator1 last1,
-                          ForwardIterator2 first2, ForwardIterator2 last2,
-                          BinaryPredicate binary_pred, Distance1*, Distance2*) {
-  Distance1 d1 = 0;
-  distance(first1, last1, d1);
-  Distance2 d2 = 0;
-  distance(first2, last2, d2);
+			  ForwardIterator2 first2, ForwardIterator2 last2,
+			  BinaryPredicate binary_pred, Distance1*, Distance2*) {
+    Distance1 d1 = 0;
+    distance(first1, last1, d1);
+    Distance2 d2 = 0;
+    distance(first2, last2, d2);
 
-  if (d1 < d2) return last1;
+    if (d1 < d2) return last1;
 
-  ForwardIterator1 current1 = first1;
-  ForwardIterator2 current2 = first2;
+    ForwardIterator1 current1 = first1;
+    ForwardIterator2 current2 = first2;
 
-  while (current2 != last2)
-    if (binary_pred(*current1, *current2)) {
-      ++current1;
-      ++current2;
-    }
-    else {
-      if (d1 == d2)
-        return last1;
-      else {
-        current1 = ++first1;
-        current2 = first2;
-        --d1;
-      }
-    }
-  return first1;
+    while (current2 != last2)
+	if (!binary_pred(*current1++, *current2++))
+	    if (d1-- == d2)
+		return last1;
+	    else {
+		current1 = ++first1;
+		current2 = first2;
+	    }
+    return (current2 == last2) ? first1 : last1;
 }
 
 template <class ForwardIterator1, class ForwardIterator2,
@@ -236,77 +192,18 @@ inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
 		    distance_type(first1), distance_type(first2));
 }
 
-template <class ForwardIterator, class Integer, class T>
-ForwardIterator search_n(ForwardIterator first, ForwardIterator last,
-                         Integer count, const T& value) {
-  if (count <= 0)
-    return first;
-  else {
-    first = find(first, last, value);
-    while (first != last) {
-      Integer n = count - 1;
-      ForwardIterator i = first;
-      ++i;
-      while (i != last && n != 0 && *i == value) {
-        ++i;
-        --n;
-      }
-      if (n == 0)
-        return first;
-      else
-        first = find(i, last, value);
-    }
-    return last;
-  }
-}
-
-template <class ForwardIterator, class Integer, class T, class BinaryPredicate>
-ForwardIterator search_n(ForwardIterator first, ForwardIterator last,
-                         Integer count, const T& value,
-                         BinaryPredicate binary_pred) {
-  if (count <= 0)
-    return first;
-  else {
-    while (first != last) {
-      if (binary_pred(*first, value)) break;
-      ++first;
-    }
-    while (first != last) {
-      Integer n = count - 1;
-      ForwardIterator i = first;
-      ++i;
-      while (i != last && n != 0 && binary_pred(*i, value)) {
-        ++i;
-        --n;
-      }
-      if (n == 0)
-        return first;
-      else {
-        while (i != last) {
-          if (binary_pred(*i, value)) break;
-          ++i;
-        }
-        first = i;
-      }
-    }
-    return last;
-  }
-} 
-
 template <class ForwardIterator1, class ForwardIterator2>
 ForwardIterator2 swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1,
 			     ForwardIterator2 first2) {
-  for ( ; first1 != last1; ++first1, ++first2)
-    iter_swap(first1, first2);
-  return first2;
+    while (first1 != last1) iter_swap(first1++, first2++);
+    return first2;
 }
 
 template <class InputIterator, class OutputIterator, class UnaryOperation>
 OutputIterator transform(InputIterator first, InputIterator last,
 			 OutputIterator result, UnaryOperation op) {
-  for ( ; first != last; ++first, ++result)
-    *result = op(*first);
-  return result;
+    while (first != last) *result++ = op(*first++);
+    return result;
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator,
@@ -314,76 +211,79 @@ template <class InputIterator1, class InputIterator2, class OutputIterator,
 OutputIterator transform(InputIterator1 first1, InputIterator1 last1,
 			 InputIterator2 first2, OutputIterator result,
 			 BinaryOperation binary_op) {
-  for ( ; first1 != last1; ++first1, ++first2, ++result)
-    *result = binary_op(*first1, *first2);
-  return result;
+    while (first1 != last1) *result++ = binary_op(*first1++, *first2++);
+    return result;
 }
 
 template <class ForwardIterator, class T>
 void replace(ForwardIterator first, ForwardIterator last, const T& old_value,
 	     const T& new_value) {
-  for ( ; first != last; ++first)
-    if (*first == old_value) *first = new_value;
+    while (first != last) {
+	if (*first == old_value) *first = new_value;
+	++first;
+    }
 }
 
 template <class ForwardIterator, class Predicate, class T>
 void replace_if(ForwardIterator first, ForwardIterator last, Predicate pred,
 		const T& new_value) {
-  for ( ; first != last; ++first)
-    if (pred(*first)) *first = new_value;
+    while (first != last) {
+	if (pred(*first)) *first = new_value;
+	++first;
+    }
 }
 
 template <class InputIterator, class OutputIterator, class T>
 OutputIterator replace_copy(InputIterator first, InputIterator last,
 			    OutputIterator result, const T& old_value,
 			    const T& new_value) {
-  for ( ; first != last; ++first, ++result)
-    *result = *first == old_value ? new_value : *first;
-  return result;
+    while (first != last) {
+	*result++ = *first == old_value ? new_value : *first;
+	++first;
+    }
+    return result;
 }
 
 template <class Iterator, class OutputIterator, class Predicate, class T>
 OutputIterator replace_copy_if(Iterator first, Iterator last,
 			       OutputIterator result, Predicate pred,
 			       const T& new_value) {
-  for ( ; first != last; ++first, ++result)
-    *result = pred(*first) ? new_value : *first;
-  return result;
+    while (first != last) {
+	*result++ = pred(*first) ? new_value : *first;
+	++first;
+    }
+    return result;
 }
 
 template <class ForwardIterator, class Generator>
 void generate(ForwardIterator first, ForwardIterator last, Generator gen) {
-  for ( ; first != last; ++first)
-    *first = gen();
+    while (first != last) *first++ = gen();
 }
 
 template <class OutputIterator, class Size, class Generator>
 OutputIterator generate_n(OutputIterator first, Size n, Generator gen) {
-  for ( ; n > 0; --n, ++first)
-    *first = gen();
-  return first;
+    while (n-- > 0) *first++ = gen();
+    return first;
 }
 
 template <class InputIterator, class OutputIterator, class T>
 OutputIterator remove_copy(InputIterator first, InputIterator last,
-                           OutputIterator result, const T& value) {
-  for ( ; first != last; ++first)
-    if (*first != value) {
-      *result = *first;
-      ++result;
+			   OutputIterator result, const T& value) {
+    while (first != last) {
+	if (*first != value) *result++ = *first;
+	++first;
     }
-  return result;
+    return result;
 }
 
 template <class InputIterator, class OutputIterator, class Predicate>
 OutputIterator remove_copy_if(InputIterator first, InputIterator last,
-                              OutputIterator result, Predicate pred) {
-  for ( ; first != last; ++first)
-    if (!pred(*first)) {
-      *result = *first;
-      ++result;
+			      OutputIterator result, Predicate pred) {
+    while (first != last) {
+	if (!pred(*first)) *result++ = *first;
+	++first;
     }
-  return result;
+    return result;
 }
 
 template <class ForwardIterator, class T>
@@ -554,30 +454,23 @@ inline void reverse(BidirectionalIterator first, BidirectionalIterator last) {
 
 template <class BidirectionalIterator, class OutputIterator>
 OutputIterator reverse_copy(BidirectionalIterator first,
-                            BidirectionalIterator last,
-                            OutputIterator result) {
-  while (first != last) {
-    --last;
-    *result = *last;
-    ++result;
-  }
-  return result;
+			    BidirectionalIterator last,
+			    OutputIterator result) {
+    while (first != last) *result++ = *--last;
+    return result;
 }
 
 template <class ForwardIterator, class Distance>
 void __rotate(ForwardIterator first, ForwardIterator middle,
-              ForwardIterator last, Distance*, forward_iterator_tag) {
-  for (ForwardIterator i = middle; ;) {
-    iter_swap(first, i);
-    ++first;
-    ++i;
-    if (first == middle) {
-      if (i == last) return;
-      middle = i;
+	      ForwardIterator last, Distance*, forward_iterator_tag) {
+    for (ForwardIterator i = middle; ;) {
+	iter_swap(first++, i++);
+	if (first == middle) {
+	    if (i == last) return;
+	    middle = i;
+	} else if (i == last)
+	    i = middle;
     }
-    else if (i == last)
-      i = middle;
-  }
 }
 
 template <class BidirectionalIterator, class Distance>
@@ -646,10 +539,11 @@ void __random_shuffle(RandomAccessIterator first, RandomAccessIterator last,
 		      Distance*) {
     if (first == last) return;
     for (RandomAccessIterator i = first + 1; i != last; ++i) 
+      iter_swap(i,
 #ifdef __STL_NO_DRAND48
-      iter_swap(i, first + Distance(rand() % ((i - first) + 1)));
+                first + Distance(rand() % ((i - first) + 1)));
 #else
-      iter_swap(i, first + Distance(lrand48() % ((i - first) + 1)));
+                first + Distance(lrand48() % ((i - first) + 1)));
 #endif
 }
 
@@ -681,8 +575,7 @@ OutputIterator random_sample_n(ForwardIterator first, ForwardIterator last,
 #else
     if (lrand48() % remaining < m) {
 #endif
-      *out = *first;
-      ++out;
+      *out++ = *first;
       --m;
     }
 
@@ -704,8 +597,7 @@ OutputIterator random_sample_n(ForwardIterator first, ForwardIterator last,
 
   while (m > 0) {
     if (rand(remaining) < m) {
-      *out = *first;
-      ++out;
+      *out++ = *first;
       --m;
     }
 
@@ -722,8 +614,8 @@ RandomAccessIterator __random_sample(InputIterator first, InputIterator last,
 {
   Distance m = 0;
   Distance t = n;
-  for ( ; first != last && m < n; ++m, ++first) 
-    out[m] = *first;
+  while (first != last && m < n) 
+    out[m++] = *first++;
 
   while (first != last) {
     ++t;
@@ -749,8 +641,8 @@ RandomAccessIterator __random_sample(InputIterator first, InputIterator last,
 {
   Distance m = 0;
   Distance t = n;
-  for ( ; first != last && m < n; ++m, ++first)
-    out[m] = *first;
+  while (first != last && m < n) 
+    out[m++] = *first++;
 
   while (first != last) {
     ++t;
@@ -826,69 +718,85 @@ ForwardIterator __inplace_stable_partition(ForwardIterator first,
     return first_cut;
 }
 
-template <class ForwardIterator, class Pointer, class Predicate, 
-          class Distance>
+template <class ForwardIterator, class Pointer, class Predicate,
+	  class Distance, class T>
 ForwardIterator __stable_partition_adaptive(ForwardIterator first,
-                                            ForwardIterator last,
-                                            Predicate pred, Distance len,
-                                            Pointer buffer,
-                                            Distance buffer_size) {
-  if (len <= buffer_size) {
-    ForwardIterator result1 = first;
-    Pointer result2 = buffer;
-    for ( ; first != last ; ++first)
-      if (pred(*first)) {
-        *result1 = *first;
-        ++result1;
-      }
-      else {
-        *result2 = *first;
-        ++result2;
-      }
-    copy(buffer, result2, result1);
-    return result1;
-  }
-  else {
+					    ForwardIterator last,
+					    Predicate pred, Distance len,
+					    Pointer buffer,
+					    Distance buffer_size,
+					    Distance& fill_pointer, T*) {
+    if (len <= buffer_size) {
+	len = 0;
+	ForwardIterator result1 = first;
+	Pointer result2 = buffer;
+	while (first != last && len < fill_pointer)
+	    if (pred(*first))
+		*result1++ = *first++;
+	    else {
+		*result2++ = *first++;
+		++len;
+	    }
+	if (first != last) {
+	    raw_storage_iterator<Pointer, T> result3 = result2;
+	    while (first != last)           
+		if (pred(*first))
+		    *result1++ = *first++;
+		else {
+		    *result3++ = *first++;
+		    ++len;
+		}
+	    fill_pointer = len;
+	}
+	copy(buffer, buffer + len, result1);
+	return result1;
+    }
     ForwardIterator middle = first;
     advance(middle, len / 2);
-    ForwardIterator first_cut =
-      __stable_partition_adaptive(first, middle, pred, len / 2,
-                                  buffer, buffer_size);
-    ForwardIterator second_cut =
-      __stable_partition_adaptive(middle, last, pred, len - len / 2,
-                                  buffer, buffer_size);
-
+    ForwardIterator first_cut = __stable_partition_adaptive
+	(first, middle, pred, len / 2, buffer, buffer_size, fill_pointer, 
+	 (T*)0);
+    ForwardIterator second_cut = __stable_partition_adaptive
+	(middle, last, pred, len - len / 2, buffer, buffer_size, 
+	 fill_pointer, (T*)0);
     rotate(first_cut, middle, second_cut);
     len = 0;
     distance(middle, second_cut, len);
     advance(first_cut, len);
     return first_cut;
-  }
 }
 
-template <class ForwardIterator, class Predicate, class T, class Distance>
+template <class ForwardIterator, class Predicate, class Pointer,
+	  class Distance>
+ForwardIterator __stable_partition(ForwardIterator first, ForwardIterator last,
+				   Predicate pred, Distance len,
+				   pair<Pointer, Distance> p) {
+    if (p.first == 0)
+	return __inplace_stable_partition(first, last, pred, len);
+    Distance fill_pointer = 0;
+    ForwardIterator result = 
+	__stable_partition_adaptive(first, last, pred, len, p.first, p.second,
+				    fill_pointer, value_type(first)); 
+    destroy(p.first, p.first + fill_pointer);
+    return_temporary_buffer(p.first);
+    return result;
+}
+
+template <class ForwardIterator, class Predicate, class Distance>
 inline ForwardIterator __stable_partition_aux(ForwardIterator first,
-                                              ForwardIterator last, 
-                                              Predicate pred, T*, Distance*) {
-  temporary_buffer<ForwardIterator, T> buf(first, last);
-  if (buf.size() > 0)
-    return __stable_partition_adaptive(first, last, pred,
-                                       Distance(buf.requested_size()),
-                                       buf.begin(), buf.size());
-  else
-    return __inplace_stable_partition(first, last, pred, 
-                                      Distance(buf.requested_size()));
+					      ForwardIterator last, 
+					      Predicate pred, Distance*) {
+    Distance len = 0;
+    distance(first, last, len);
+    return __stable_partition(first, last, pred, len,
+			      get_temporary_buffer(len, value_type(first)));
 }
 
 template <class ForwardIterator, class Predicate>
 inline ForwardIterator stable_partition(ForwardIterator first,
-                                        ForwardIterator last, 
-                                        Predicate pred) {
-  if (first == last)
-    return first;
-  else
-    return __stable_partition_aux(first, last, pred,
-                                  value_type(first), distance_type(first));
+					ForwardIterator last, 
+					Predicate pred) {
+    return __stable_partition_aux(first, last, pred, distance_type(first));
 }
 
 template <class RandomAccessIterator, class T>
@@ -928,8 +836,7 @@ void __unguarded_linear_insert(RandomAccessIterator last, T value) {
     --next;
     while (value < *next) {
 	*last = *next;
-	last = next;
-        --next;
+	last = next--;
     }
     *last = value;
 }
@@ -941,8 +848,7 @@ void __unguarded_linear_insert(RandomAccessIterator last, T value,
     --next;  
     while (comp(value , *next)) {
 	*last = *next;
-	last = next;
-        --next;
+	last = next--;
     }
     *last = value;
 }
@@ -1157,32 +1063,32 @@ void __merge_sort_loop(RandomAccessIterator1 first,
 }
 
 const int __stl_chunk_size = 7;
-        
+	
 template <class RandomAccessIterator, class Distance>
 void __chunk_insertion_sort(RandomAccessIterator first, 
-                            RandomAccessIterator last, Distance chunk_size) {
-  while (last - first >= chunk_size) {
-    __insertion_sort(first, first + chunk_size);
-    first += chunk_size;
-  }
-  __insertion_sort(first, last);
+			      RandomAccessIterator last, Distance chunk_size) {
+    while (last - first >= chunk_size) {
+	__insertion_sort(first, first + chunk_size);
+	first += chunk_size;
+    }
+    __insertion_sort(first, last);
 }
 
 template <class RandomAccessIterator, class Distance, class Compare>
 void __chunk_insertion_sort(RandomAccessIterator first, 
-                            RandomAccessIterator last,
-                            Distance chunk_size, Compare comp) {
-  while (last - first >= chunk_size) {
-    __insertion_sort(first, first + chunk_size, comp);
-    first += chunk_size;
-  }
-  __insertion_sort(first, last, comp);
+			    RandomAccessIterator last,
+			    Distance chunk_size, Compare comp) {
+    while (last - first >= chunk_size) {
+	__insertion_sort(first, first + chunk_size, comp);
+	first += chunk_size;
+    }
+    __insertion_sort(first, last, comp);
 }
 
-template <class RandomAccessIterator, class Pointer, class Distance>
+template <class RandomAccessIterator, class Pointer, class Distance, class T>
 void __merge_sort_with_buffer(RandomAccessIterator first, 
-                              RandomAccessIterator last,
-                              Pointer buffer, Distance*) {
+			      RandomAccessIterator last,
+			      Pointer buffer, Distance*, T*) {
     Distance len = last - first;
     Pointer buffer_last = buffer + len;
 
@@ -1197,11 +1103,11 @@ void __merge_sort_with_buffer(RandomAccessIterator first,
     }
 }
 
-template <class RandomAccessIterator, class Pointer, class Distance,
-          class Compare>
+template <class RandomAccessIterator, class Pointer, class Distance, class T,
+	  class Compare>
 void __merge_sort_with_buffer(RandomAccessIterator first, 
-                              RandomAccessIterator last, Pointer buffer,
-                              Distance*, Compare comp) {
+			      RandomAccessIterator last, Pointer buffer,
+			      Distance*, T*, Compare comp) {
     Distance len = last - first;
     Pointer buffer_last = buffer + len;
 
@@ -1216,64 +1122,87 @@ void __merge_sort_with_buffer(RandomAccessIterator first,
     }
 }
 
-template <class RandomAccessIterator, class Pointer, class Distance>
+template <class RandomAccessIterator, class Pointer, class Distance, class T>
 void __stable_sort_adaptive(RandomAccessIterator first, 
 			    RandomAccessIterator last, Pointer buffer,
-			    Distance buffer_size) {
+			    Distance buffer_size, T*) {
     Distance len = (last - first + 1) / 2;
     RandomAccessIterator middle = first + len;
     if (len > buffer_size) {
-	__stable_sort_adaptive(first, middle, buffer, buffer_size);
-	__stable_sort_adaptive(middle, last, buffer, buffer_size);
+	__stable_sort_adaptive(first, middle, buffer, buffer_size, (T*)0);
+	__stable_sort_adaptive(middle, last, buffer, buffer_size, (T*)0);
     } else {
-	__merge_sort_with_buffer(first, middle, buffer, (Distance*)0);
-	__merge_sort_with_buffer(middle, last, buffer, (Distance*)0);
+	__merge_sort_with_buffer(first, middle, buffer, (Distance*)0, (T*)0);
+	__merge_sort_with_buffer(middle, last, buffer, (Distance*)0, (T*)0);
     }
     __merge_adaptive(first, middle, last, Distance(middle - first), 
-		     Distance(last - middle), buffer, buffer_size);
+		     Distance(last - middle), buffer, buffer_size, (T*)0);
 }
 
-template <class RandomAccessIterator, class Pointer, class Distance, 
-          class Compare>
+template <class RandomAccessIterator, class Pointer, class Distance, class T,
+	  class Compare>
 void __stable_sort_adaptive(RandomAccessIterator first, 
-                            RandomAccessIterator last, Pointer buffer,
-                            Distance buffer_size, Compare comp) {
+			    RandomAccessIterator last, Pointer buffer,
+			    Distance buffer_size, T*, Compare comp) {
     Distance len = (last - first + 1) / 2;
     RandomAccessIterator middle = first + len;
     if (len > buffer_size) {
-        __stable_sort_adaptive(first, middle, buffer, buffer_size, 
-                               comp);
-        __stable_sort_adaptive(middle, last, buffer, buffer_size, 
-                               comp);
+	__stable_sort_adaptive(first, middle, buffer, buffer_size, (T*)0, comp);
+	__stable_sort_adaptive(middle, last, buffer, buffer_size, (T*)0, comp);
     } else {
-        __merge_sort_with_buffer(first, middle, buffer, (Distance*)0, comp);
-        __merge_sort_with_buffer(middle, last, buffer, (Distance*)0, comp);
+	__merge_sort_with_buffer(first, middle, buffer, (Distance*)0, (T*)0,
+				 comp);
+	__merge_sort_with_buffer(middle, last, buffer, (Distance*)0, (T*)0,
+				 comp);
     }
     __merge_adaptive(first, middle, last, Distance(middle - first), 
-                     Distance(last - middle), buffer, buffer_size,
-                     comp);
+		     Distance(last - middle), buffer, buffer_size, (T*)0, comp);
+}
+
+template <class RandomAccessIterator, class Pointer, class Distance, class T>
+inline void __stable_sort(RandomAccessIterator first,
+			  RandomAccessIterator last,
+			  pair<Pointer, Distance> p, T*) {
+    if (p.first == 0) {
+	__inplace_stable_sort(first, last);
+	return;
+    }
+    Distance len = min(p.second, last - first);
+    copy(first, first + len, raw_storage_iterator<Pointer, T>(p.first));
+    __stable_sort_adaptive(first, last, p.first, p.second, (T*)0);
+    destroy(p.first, p.first + len);
+    return_temporary_buffer(p.first);
+}
+
+template <class RandomAccessIterator, class Pointer, class Distance, class T,
+	  class Compare>
+inline void __stable_sort(RandomAccessIterator first,
+			  RandomAccessIterator last,
+			  pair<Pointer, Distance> p, T*, Compare comp) {
+    if (p.first == 0) {
+	__inplace_stable_sort(first, last, comp);
+	return;
+    }
+    Distance len = min(p.second, last - first);
+    copy(first, first + len, raw_storage_iterator<Pointer, T>(p.first));
+    __stable_sort_adaptive(first, last, p.first, p.second, (T*)0, comp);
+    destroy(p.first, p.first + len);
+    return_temporary_buffer(p.first);
 }
 
 template <class RandomAccessIterator, class T, class Distance>
 inline void __stable_sort_aux(RandomAccessIterator first,
 			      RandomAccessIterator last, T*, Distance*) {
-  temporary_buffer<RandomAccessIterator, T> buf(first, last);
-  if (buf.begin() == 0)
-    __inplace_stable_sort(first, last);
-  else 
-    __stable_sort_adaptive(first, last, buf.begin(), Distance(buf.size()));
+    __stable_sort(first, last, get_temporary_buffer(Distance(last - first),
+						    (T*)0), (T*)0);
 }
 
 template <class RandomAccessIterator, class T, class Distance, class Compare>
 inline void __stable_sort_aux(RandomAccessIterator first,
 			      RandomAccessIterator last, T*, Distance*,
 			      Compare comp) {
-  temporary_buffer<RandomAccessIterator, T> buf(first, last);
-  if (buf.begin() == 0)
-    __inplace_stable_sort(first, last, comp);
-  else 
-    __stable_sort_adaptive(first, last, buf.begin(), Distance(buf.size()),
-                           comp);
+    __stable_sort(first, last, get_temporary_buffer(Distance(last - first),
+						    (T*)0), (T*)0, comp);
 }
 
 template <class RandomAccessIterator>
@@ -1332,11 +1261,8 @@ RandomAccessIterator __partial_sort_copy(InputIterator first,
 					 Distance*, T*) {
     if (result_first == result_last) return result_last;
     RandomAccessIterator result_real_last = result_first;
-    while(first != last && result_real_last != result_last) {
-	*result_real_last = *first;
-        ++result_real_last;
-        ++first;
-    }
+    while(first != last && result_real_last != result_last)
+	*result_real_last++ = *first++;
     make_heap(result_first, result_real_last);
     while (first != last) {
 	if (*first < *result_first) 
@@ -1366,11 +1292,8 @@ RandomAccessIterator __partial_sort_copy(InputIterator first,
 					 Compare comp, Distance*, T*) {
     if (result_first == result_last) return result_last;
     RandomAccessIterator result_real_last = result_first;
-    while(first != last && result_real_last != result_last) {
-	*result_real_last = *first;
-        ++result_real_last;
-        ++first;
-    }
+    while(first != last && result_real_last != result_last)
+	*result_real_last++ = *first++;
     make_heap(result_first, result_real_last, comp);
     while (first != last) {
 	if (comp(*first, *result_first))
@@ -1457,6 +1380,15 @@ ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
     return first;
 }
 
+template <class ForwardIterator, class T, class Distance>
+inline ForwardIterator __lower_bound(ForwardIterator first,
+				     ForwardIterator last,
+				     const T& value, Distance*,
+				     bidirectional_iterator_tag) {
+    return __lower_bound(first, last, value, (Distance*)0,
+			 forward_iterator_tag());
+}
+
 template <class RandomAccessIterator, class T, class Distance>
 RandomAccessIterator __lower_bound(RandomAccessIterator first,
 				   RandomAccessIterator last, const T& value,
@@ -1505,6 +1437,15 @@ ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
 	    len = half;
     }
     return first;
+}
+
+template <class ForwardIterator, class T, class Compare, class Distance>
+inline ForwardIterator __lower_bound(ForwardIterator first,
+				     ForwardIterator last,
+				     const T& value, Compare comp, Distance*,
+				     bidirectional_iterator_tag) {
+    return __lower_bound(first, last, value, comp, (Distance*)0,
+			 forward_iterator_tag());
 }
 
 template <class RandomAccessIterator, class T, class Compare, class Distance>
@@ -1559,6 +1500,15 @@ ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
     return first;
 }
 
+template <class ForwardIterator, class T, class Distance>
+inline ForwardIterator __upper_bound(ForwardIterator first,
+				     ForwardIterator last,
+				     const T& value, Distance*,
+				     bidirectional_iterator_tag) {
+    return __upper_bound(first, last, value, (Distance*)0,
+			 forward_iterator_tag());
+}
+
 template <class RandomAccessIterator, class T, class Distance>
 RandomAccessIterator __upper_bound(RandomAccessIterator first,
 				   RandomAccessIterator last, const T& value,
@@ -1609,6 +1559,15 @@ ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
 	}
     }
     return first;
+}
+
+template <class ForwardIterator, class T, class Compare, class Distance>
+inline ForwardIterator __upper_bound(ForwardIterator first,
+				     ForwardIterator last,
+				     const T& value, Compare comp, Distance*,
+				     bidirectional_iterator_tag) {
+    return __upper_bound(first, last, value, comp, (Distance*)0,
+			 forward_iterator_tag());
 }
 
 template <class RandomAccessIterator, class T, class Compare, class Distance>
@@ -1667,6 +1626,14 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
 	}
     }
     return pair<ForwardIterator, ForwardIterator>(first, first);
+}
+
+template <class ForwardIterator, class T, class Distance>
+inline pair<ForwardIterator, ForwardIterator>
+__equal_range(ForwardIterator first, ForwardIterator last, const T& value,
+	      Distance*, bidirectional_iterator_tag) {
+    return __equal_range(first, last, value, (Distance*)0, 
+			 forward_iterator_tag());
 }
 
 template <class RandomAccessIterator, class T, class Distance>
@@ -1731,6 +1698,14 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
     return pair<ForwardIterator, ForwardIterator>(first, first);
 }           
 
+template <class ForwardIterator, class T, class Compare, class Distance>
+inline pair<ForwardIterator, ForwardIterator>
+__equal_range(ForwardIterator first, ForwardIterator last, const T& value,
+	      Compare comp, Distance*, bidirectional_iterator_tag) {
+    return __equal_range(first, last, value, comp, (Distance*)0, 
+			 forward_iterator_tag());
+}
+
 template <class RandomAccessIterator, class T, class Compare, class Distance>
 pair<RandomAccessIterator, RandomAccessIterator>
 __equal_range(RandomAccessIterator first, RandomAccessIterator last,
@@ -1782,39 +1757,27 @@ bool binary_search(ForwardIterator first, ForwardIterator last, const T& value,
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
-                     InputIterator2 first2, InputIterator2 last2,
-                     OutputIterator result) {
-  while (first1 != last1 && first2 != last2) {
-    if (*first2 < *first1) {
-      *result = *first2;
-      ++first2;
-    }
-    else {
-      *result = *first1;
-      ++first1;
-    }
-    ++result;
-  }
-  return copy(first2, last2, copy(first1, last1, result));
+		     InputIterator2 first2, InputIterator2 last2,
+		     OutputIterator result) {
+    while (first1 != last1 && first2 != last2)
+	if (*first2 < *first1)
+	    *result++ = *first2++;
+	else
+	    *result++ = *first1++;
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator,
-          class Compare>
+	  class Compare>
 OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
-                     InputIterator2 first2, InputIterator2 last2,
-                     OutputIterator result, Compare comp) {
-  while (first1 != last1 && first2 != last2) {
-    if (comp(*first2, *first1)) {
-      *result = *first2;
-      ++first2;
-    }
-    else {
-      *result = *first1;
-      ++first1;
-    }
-    ++result;
-  }
-  return copy(first2, last2, copy(first1, last1, result));
+		     InputIterator2 first2, InputIterator2 last2,
+		     OutputIterator result, Compare comp) {
+    while (first1 != last1 && first2 != last2)
+	if (comp(*first2, *first1))
+	    *result++ = *first2++;
+	else
+	    *result++ = *first1++;
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class BidirectionalIterator, class Distance>
@@ -1956,11 +1919,11 @@ BidirectionalIterator3 __merge_backward(BidirectionalIterator1 first1,
     }
 }
 
-template <class BidirectionalIterator, class Distance, class Pointer>
+template <class BidirectionalIterator, class Distance, class Pointer, class T>
 void __merge_adaptive(BidirectionalIterator first, 
 		      BidirectionalIterator middle, 
 		      BidirectionalIterator last, Distance len1, Distance len2,
-		      Pointer buffer, Distance buffer_size) {
+		      Pointer buffer, Distance buffer_size, T*) {
     if (len1 <= len2 && len1 <= buffer_size) {
         Pointer end_buffer = copy(first, middle, buffer);
         merge(buffer, end_buffer, middle, last, first);
@@ -1987,18 +1950,18 @@ void __merge_adaptive(BidirectionalIterator first,
 	    __rotate_adaptive(first_cut, middle, second_cut, len1 - len11,
 			      len22, buffer, buffer_size);
 	__merge_adaptive(first, first_cut, new_middle, len11, len22, buffer,
-			 buffer_size);
+			 buffer_size, (T*)0);
 	__merge_adaptive(new_middle, second_cut, last, len1 - len11,
-			 len2 - len22, buffer, buffer_size);
+			 len2 - len22, buffer, buffer_size, (T*)0);
     }
 }
 
-template <class BidirectionalIterator, class Distance, class Pointer,
+template <class BidirectionalIterator, class Distance, class Pointer, class T,
 	  class Compare>
 void __merge_adaptive(BidirectionalIterator first, 
 		      BidirectionalIterator middle, 
 		      BidirectionalIterator last, Distance len1, Distance len2,
-		      Pointer buffer, Distance buffer_size, Compare comp) {
+		      Pointer buffer, Distance buffer_size, T*, Compare comp) {
     if (len1 <= len2 && len1 <= buffer_size) {
 	Pointer end_buffer = copy(first, middle, buffer);
 	merge(buffer, end_buffer, middle, last, first, comp);
@@ -2025,10 +1988,44 @@ void __merge_adaptive(BidirectionalIterator first,
 	    __rotate_adaptive(first_cut, middle, second_cut, len1 - len11,
 			      len22, buffer, buffer_size);
 	__merge_adaptive(first, first_cut, new_middle, len11, len22, buffer,
-			 buffer_size, comp);
+			 buffer_size, (T*)0, comp);
 	__merge_adaptive(new_middle, second_cut, last, len1 - len11,
-			 len2 - len22, buffer, buffer_size, comp);
+			 len2 - len22, buffer, buffer_size, (T*)0, comp);
     }
+}
+
+template <class BidirectionalIterator, class Distance, class Pointer, class T>
+void __inplace_merge(BidirectionalIterator first,
+		     BidirectionalIterator middle, 
+		     BidirectionalIterator last, Distance len1, Distance len2,
+		     pair<Pointer, Distance> p, T*) {
+    if (p.first == 0) {
+	__merge_without_buffer(first, middle, last, len1, len2);
+	return;
+    }
+    Distance len = min(p.second, len1 + len2);
+    fill_n(raw_storage_iterator<Pointer, T>(p.first), len, *first);
+    __merge_adaptive(first, middle, last, len1, len2, p.first, p.second, (T*)0);
+    destroy(p.first, p.first + len);
+    return_temporary_buffer(p.first);
+}
+
+template <class BidirectionalIterator, class Distance, class Pointer, class T,
+	  class Compare>
+void __inplace_merge(BidirectionalIterator first,
+		     BidirectionalIterator middle, 
+		     BidirectionalIterator last, Distance len1, Distance len2,
+		     pair<Pointer, Distance> p, T*, Compare comp) {
+    if (p.first == 0) {
+	__merge_without_buffer(first, middle, last, len1, len2, comp);
+	return;
+    }
+    Distance len = min(p.second, len1 + len2);
+    fill_n(raw_storage_iterator<Pointer, T>(p.first), len, *first);
+    __merge_adaptive(first, middle, last, len1, len2, p.first, p.second, (T*)0,
+		     comp); 
+    destroy(p.first, p.first + len);
+    return_temporary_buffer(p.first);
 }
 
 template <class BidirectionalIterator, class T, class Distance>
@@ -2039,13 +2036,8 @@ inline void __inplace_merge_aux(BidirectionalIterator first,
     distance(first, middle, len1);
     Distance len2 = 0;
     distance(middle, last, len2);
-
-    temporary_buffer<BidirectionalIterator, T> buf(first, last);
-    if (buf.begin() == 0)
-      __merge_without_buffer(first, middle, last, len1, len2);
-    else
-      __merge_adaptive(first, middle, last, len1, len2,
-                       buf.begin(), Distance(buf.size()));
+    __inplace_merge(first, middle, last, len1, len2,
+		    get_temporary_buffer(len1 + len2, (T*)0), (T*)0);
 }
 
 template <class BidirectionalIterator, class T, class Distance, class Compare>
@@ -2057,14 +2049,9 @@ inline void __inplace_merge_aux(BidirectionalIterator first,
     distance(first, middle, len1);
     Distance len2 = 0;
     distance(middle, last, len2);
-
-    temporary_buffer<BidirectionalIterator, T> buf(first, last);
-    if (buf.begin() == 0)
-      __merge_without_buffer(first, middle, last, len1, len2, comp);
-    else
-      __merge_adaptive(first, middle, last, len1, len2,
-                       buf.begin(), Distance(buf.size()),
-                       comp);
+    __inplace_merge(first, middle, last, len1, len2,
+		    get_temporary_buffer(len1 + len2, (T*)0), (T*)0,
+		    comp);
 }
 
 template <class BidirectionalIterator>
@@ -2115,174 +2102,138 @@ bool includes(InputIterator1 first1, InputIterator1 last1,
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator set_union(InputIterator1 first1, InputIterator1 last1,
-                         InputIterator2 first2, InputIterator2 last2,
-                         OutputIterator result) {
-  while (first1 != last1 && first2 != last2) {
-    if (*first1 < *first2) {
-      *result = *first1;
-      ++first1;
-    }
-    else if (*first2 < *first1) {
-      *result = *first2;
-      ++first2;
-    }
-    else {
-      *result = *first1;
-      ++first1;
-      ++first2;
-    }
-    ++result;
-  }
-  return copy(first2, last2, copy(first1, last1, result));
+			 InputIterator2 first2, InputIterator2 last2,
+			 OutputIterator result) {
+    while (first1 != last1 && first2 != last2)
+	if (*first1 < *first2)
+	    *result++ = *first1++;
+	else if (*first2 < *first1)
+	    *result++ = *first2++;
+	else {
+	    *result++ = *first1++;
+	    first2++;
+	}
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator,
-          class Compare>
+	  class Compare>
 OutputIterator set_union(InputIterator1 first1, InputIterator1 last1,
-                         InputIterator2 first2, InputIterator2 last2,
-                         OutputIterator result, Compare comp) {
-  while (first1 != last1 && first2 != last2) {
-    if (comp(*first1, *first2)) {
-      *result = *first1;
-      ++first1;
-    }
-    else if (comp(*first2, *first1)) {
-      *result = *first2;
-      ++first2;
-    }
-    else {
-      *result = *first1;
-      ++first1;
-      ++first2;
-    }
-    ++result;
-  }
-  return copy(first2, last2, copy(first1, last1, result));
+			 InputIterator2 first2, InputIterator2 last2,
+			 OutputIterator result, Compare comp) {
+    while (first1 != last1 && first2 != last2)
+	if (comp(*first1, *first2))
+	    *result++ = *first1++;
+	else if (comp(*first2, *first1))
+	    *result++ = *first2++;
+	else {
+	    *result++ = *first1++;
+	    ++first2;
+	}
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator set_intersection(InputIterator1 first1, InputIterator1 last1,
-                                InputIterator2 first2, InputIterator2 last2,
-                                OutputIterator result) {
-  while (first1 != last1 && first2 != last2) 
-    if (*first1 < *first2) 
-      ++first1;
-    else if (*first2 < *first1) 
-      ++first2;
-    else {
-      *result = *first1;
-      ++first1;
-      ++first2;
-      ++result;
-    }
-  return result;
+				InputIterator2 first2, InputIterator2 last2,
+				OutputIterator result) {
+    while (first1 != last1 && first2 != last2)
+	if (*first1 < *first2)
+	    ++first1;
+	else if (*first2 < *first1)
+	    ++first2;
+	else {
+	    *result++ = *first1++;
+	    ++first2;
+	}
+    return result;
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator,
-          class Compare>
+	  class Compare>
 OutputIterator set_intersection(InputIterator1 first1, InputIterator1 last1,
-                                InputIterator2 first2, InputIterator2 last2,
-                                OutputIterator result, Compare comp) {
-  while (first1 != last1 && first2 != last2)
-    if (comp(*first1, *first2))
-      ++first1;
-    else if (comp(*first2, *first1))
-      ++first2;
-    else {
-      *result = *first1;
-      ++first1;
-      ++first2;
-      ++result;
-    }
-  return result;
+				InputIterator2 first2, InputIterator2 last2,
+				OutputIterator result, Compare comp) {
+    while (first1 != last1 && first2 != last2)
+	if (comp(*first1, *first2))
+	    ++first1;
+	else if (comp(*first2, *first1))
+	    ++first2;
+	else {
+	    *result++ = *first1++;
+	    ++first2;
+	}
+    return result;
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator set_difference(InputIterator1 first1, InputIterator1 last1,
-                              InputIterator2 first2, InputIterator2 last2,
-                              OutputIterator result) {
-  while (first1 != last1 && first2 != last2)
-    if (*first1 < *first2) {
-      *result = *first1;
-      ++first1;
-      ++result;
-    }
-    else if (*first2 < *first1)
-      ++first2;
-    else {
-      ++first1;
-      ++first2;
-    }
-  return copy(first1, last1, result);
+			      InputIterator2 first2, InputIterator2 last2,
+			      OutputIterator result) {
+    while (first1 != last1 && first2 != last2)
+	if (*first1 < *first2)
+	    *result++ = *first1++;
+	else if (*first2 < *first1)
+	    ++first2;
+	else {
+	    ++first1;
+	    ++first2;
+	}
+    return copy(first1, last1, result);
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator, 
-          class Compare>
+	  class Compare>
 OutputIterator set_difference(InputIterator1 first1, InputIterator1 last1,
-                              InputIterator2 first2, InputIterator2 last2, 
-                              OutputIterator result, Compare comp) {
-  while (first1 != last1 && first2 != last2)
-    if (comp(*first1, *first2)) {
-      *result = *first1;
-      ++first1;
-      ++result;
-    }
-    else if (comp(*first2, *first1))
-      ++first2;
-    else {
-      ++first1;
-      ++first2;
-    }
-  return copy(first1, last1, result);
+			      InputIterator2 first2, InputIterator2 last2, 
+			      OutputIterator result, Compare comp) {
+    while (first1 != last1 && first2 != last2)
+	if (comp(*first1, *first2))
+	    *result++ = *first1++;
+	else if (comp(*first2, *first1))
+	    ++first2;
+	else {
+	    ++first1;
+	    ++first2;
+	}
+    return copy(first1, last1, result);
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator set_symmetric_difference(InputIterator1 first1,
-                                        InputIterator1 last1,
-                                        InputIterator2 first2,
-                                        InputIterator2 last2,
-                                        OutputIterator result) {
-  while (first1 != last1 && first2 != last2)
-    if (*first1 < *first2) {
-      *result = *first1;
-      ++first1;
-      ++result;
-    }
-    else if (*first2 < *first1) {
-      *result = *first2;
-      ++first2;
-      ++result;
-    }
-    else {
-      ++first1;
-      ++first2;
-    }
-  return copy(first2, last2, copy(first1, last1, result));
+					InputIterator1 last1,
+					InputIterator2 first2,
+					InputIterator2 last2,
+					OutputIterator result) {
+    while (first1 != last1 && first2 != last2)
+	if (*first1 < *first2)
+	    *result++ = *first1++;
+	else if (*first2 < *first1)
+	    *result++ = *first2++;
+	else {
+	    ++first1;
+	    ++first2;
+	}
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class InputIterator1, class InputIterator2, class OutputIterator,
-          class Compare>
+	  class Compare>
 OutputIterator set_symmetric_difference(InputIterator1 first1,
-                                        InputIterator1 last1,
-                                        InputIterator2 first2,
-                                        InputIterator2 last2,
-                                        OutputIterator result, Compare comp) {
-  while (first1 != last1 && first2 != last2)
-    if (comp(*first1, *first2)) {
-      *result = *first1;
-      ++first1;
-      ++result;
-    }
-    else if (comp(*first2, *first1)) {
-      *result = *first2;
-      ++first2;
-      ++result;
-    }
-    else {
-      ++first1;
-      ++first2;
-    }
-  return copy(first2, last2, copy(first1, last1, result));
+					InputIterator1 last1,
+					InputIterator2 first2,
+					InputIterator2 last2,
+					OutputIterator result, Compare comp) {
+    while (first1 != last1 && first2 != last2)
+	if (comp(*first1, *first2))
+	    *result++ = *first1++;
+	else if (comp(*first2, *first1))
+	    *result++ = *first2++;
+	else {
+	    ++first1;
+	    ++first2;
+	}
+    return copy(first2, last2, copy(first1, last1, result));
 }
 
 template <class ForwardIterator>
@@ -2334,8 +2285,7 @@ bool next_permutation(BidirectionalIterator first,
     --i;
 
     for(;;) {
-	BidirectionalIterator ii = i;
-        --i;
+	BidirectionalIterator ii = i--;
 	if (*i < *ii) {
 	    BidirectionalIterator j = last;
 	    while (!(*i < *--j));
@@ -2361,8 +2311,7 @@ bool next_permutation(BidirectionalIterator first, BidirectionalIterator last,
     --i;
 
     for(;;) {
-	BidirectionalIterator ii = i;
-        --i;
+	BidirectionalIterator ii = i--;
 	if (comp(*i, *ii)) {
 	    BidirectionalIterator j = last;
 	    while (!comp(*i, *--j));
@@ -2388,8 +2337,7 @@ bool prev_permutation(BidirectionalIterator first,
     --i;
 
     for(;;) {
-	BidirectionalIterator ii = i;
-        --i;
+	BidirectionalIterator ii = i--;
 	if (*ii < *i) {
 	    BidirectionalIterator j = last;
 	    while (!(*--j < *i));
@@ -2415,8 +2363,7 @@ bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last,
     --i;
 
     for(;;) {
-	BidirectionalIterator ii = i;
-        --i;
+	BidirectionalIterator ii = i--;
 	if (comp(*ii, *i)) {
 	    BidirectionalIterator j = last;
 	    while (!comp(*--j, *i));
@@ -2433,35 +2380,35 @@ bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last,
 
 template <class InputIterator, class T>
 T accumulate(InputIterator first, InputIterator last, T init) {
-  for ( ; first != last; ++first)
-    init = init + *first;
-  return init;
+    while (first != last) 
+	init = init + *first++;
+    return init;
 }
 
 template <class InputIterator, class T, class BinaryOperation>
 T accumulate(InputIterator first, InputIterator last, T init,
-             BinaryOperation binary_op) {
-  for ( ; first != last; ++first)
-    init = binary_op(init, *first);
-  return init;
+	     BinaryOperation binary_op) {
+    while (first != last) 
+	init = binary_op(init, *first++);
+    return init;
 }
 
 template <class InputIterator1, class InputIterator2, class T>
 T inner_product(InputIterator1 first1, InputIterator1 last1,
-                InputIterator2 first2, T init) {
-  for ( ; first1 != last1; ++first1, ++first2)
-    init = init + (*first1 * *first2);
-  return init;
+		InputIterator2 first2, T init) {
+    while (first1 != last1) 
+	init = init + (*first1++ * *first2++);
+    return init;
 }
 
 template <class InputIterator1, class InputIterator2, class T,
-          class BinaryOperation1, class BinaryOperation2>
+	  class BinaryOperation1, class BinaryOperation2>
 T inner_product(InputIterator1 first1, InputIterator1 last1,
-                InputIterator2 first2, T init, BinaryOperation1 binary_op1,
-                BinaryOperation2 binary_op2) {
-  for ( ; first1 != last1; ++first1, ++first2)
-    init = binary_op1(init, binary_op2(*first1, *first2));
-  return init;
+		InputIterator2 first2, T init, BinaryOperation1 binary_op1,
+		BinaryOperation2 binary_op2) {
+    while (first1 != last1) 
+	init = binary_op1(init, binary_op2(*first1++, *first2++));
+    return init;
 }
 
 template <class InputIterator, class OutputIterator, class T>
@@ -2548,244 +2495,6 @@ OutputIterator adjacent_difference(InputIterator first, InputIterator last,
 				 binary_op);
 }
 
-template <class InputIterator, class ForwardIterator>
-InputIterator find_first_of(InputIterator first1, InputIterator last1,
-                            ForwardIterator first2, ForwardIterator last2)
-{
-  for ( ; first1 != last1; ++first1) 
-    for (ForwardIterator iter = first2; iter != last2; ++iter)
-      if (*first1 == *iter)
-        return first1;
-  return last1;
-}
-
-template <class InputIterator, class ForwardIterator, class BinaryPredicate>
-InputIterator find_first_of(InputIterator first1, InputIterator last1,
-                            ForwardIterator first2, ForwardIterator last2,
-                            BinaryPredicate comp)
-{
-  for ( ; first1 != last1; ++first1) 
-    for (ForwardIterator iter = first2; iter != last2; ++iter)
-      if (comp(*first1, *iter))
-        return first1;
-  return last1;
-}
-
-
-// Search [first2, last2) as a subsequence in [first1, last1).
-
-// find_end for forward iterators. 
-template <class ForwardIterator1, class ForwardIterator2>
-ForwardIterator1 __find_end(ForwardIterator1 first1, ForwardIterator1 last1,
-                            ForwardIterator2 first2, ForwardIterator2 last2,
-                            forward_iterator_tag, forward_iterator_tag)
-{
-  if (first2 == last2)
-    return last1;
-  else {
-    ForwardIterator1 result = last1;
-    while (1) {
-      ForwardIterator1 new_result = search(first1, last1, first2, last2);
-      if (new_result == last1)
-        return result;
-      else {
-        result = new_result;
-        first1 = new_result;
-        ++first1;
-      }
-    }
-  }
-}
-
-template <class ForwardIterator1, class ForwardIterator2,
-          class BinaryPredicate>
-ForwardIterator1 __find_end(ForwardIterator1 first1, ForwardIterator1 last1,
-                            ForwardIterator2 first2, ForwardIterator2 last2,
-                            forward_iterator_tag, forward_iterator_tag,
-                            BinaryPredicate comp)
-{
-  if (first2 == last2)
-    return last1;
-  else {
-    ForwardIterator1 result = last1;
-    while (1) {
-      ForwardIterator1 new_result = search(first1, last1, first2, last2, comp);
-      if (new_result == last1)
-        return result;
-      else {
-        result = new_result;
-        first1 = new_result;
-        ++first1;
-      }
-    }
-  }
-}
-
-// find_end for bidirectional iterators.  Requires partial specialization.
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-
-template <class BidirectionalIterator1, class BidirectionalIterator2>
-BidirectionalIterator1
-__find_end(BidirectionalIterator1 first1, BidirectionalIterator1 last1,
-           BidirectionalIterator2 first2, BidirectionalIterator2 last2,
-           bidirectional_iterator_tag, bidirectional_iterator_tag)
-{
-  typedef reverse_iterator<BidirectionalIterator1> reviter1;
-  typedef reverse_iterator<BidirectionalIterator2> reviter2;
-
-  reviter1 rlast1(first1);
-  reviter2 rlast2(first2);
-  reviter1 rresult = search(reviter1(last1), rlast1, reviter2(last2), rlast2);
-
-  if (rresult == rlast1)
-    return last1;
-  else {
-    BidirectionalIterator1 result = rresult.base();
-    advance(result, -distance(first2, last2));
-    return result;
-  }
-}
-
-template <class BidirectionalIterator1, class BidirectionalIterator2,
-          class BinaryPredicate>
-BidirectionalIterator1
-__find_end(BidirectionalIterator1 first1, BidirectionalIterator1 last1,
-           BidirectionalIterator2 first2, BidirectionalIterator2 last2,
-           bidirectional_iterator_tag, bidirectional_iterator_tag, 
-           BinaryPredicate comp)
-{
-  typedef reverse_iterator<BidirectionalIterator1> reviter1;
-  typedef reverse_iterator<BidirectionalIterator2> reviter2;
-
-  reviter1 rlast1(first1);
-  reviter2 rlast2(first2);
-  reviter1 rresult = search(reviter1(last1), rlast1, reviter2(last2), rlast2,
-                            comp);
-
-  if (rresult == rlast1)
-    return last1;
-  else {
-    BidirectionalIterator1 result = rresult.base();
-    advance(result, -distance(first2, last2));
-    return result;
-  }
-}
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-
-// Dispatching functions.
-
-template <class ForwardIterator, class BidirectionalIterator>
-inline ForwardIterator 
-__find_end(ForwardIterator first1, ForwardIterator last1, 
-           BidirectionalIterator first2, BidirectionalIterator last2,
-           forward_iterator_tag, bidirectional_iterator_tag)
-{
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag());
-}
- 
-template <class BidirectionalIterator, class ForwardIterator>
-inline BidirectionalIterator
-__find_end(BidirectionalIterator first1, BidirectionalIterator last1, 
-           ForwardIterator first2, ForwardIterator last2,
-           bidirectional_iterator_tag, forward_iterator_tag)
-{
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag());
-}
-
-template <class ForwardIterator, class BidirectionalIterator,
-          class BinaryPredicate>
-inline ForwardIterator 
-__find_end(ForwardIterator first1, ForwardIterator last1, 
-           BidirectionalIterator first2, BidirectionalIterator last2,
-           forward_iterator_tag, bidirectional_iterator_tag,
-           BinaryPredicate comp)
-{
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag(),
-                    comp);
-
-}
- 
-template <class BidirectionalIterator, class ForwardIterator,
-          class BinaryPredicate>
-inline BidirectionalIterator
-__find_end(BidirectionalIterator first1, BidirectionalIterator last1, 
-           ForwardIterator first2, ForwardIterator last2,
-           bidirectional_iterator_tag, forward_iterator_tag, 
-           BinaryPredicate comp)
-{
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag(),
-                    comp);
-}
-
-template <class ForwardIterator1, class ForwardIterator2>
-inline ForwardIterator1 
-find_end(ForwardIterator1 first1, ForwardIterator1 last1, 
-         ForwardIterator2 first2, ForwardIterator2 last2)
-{
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-  return __find_end(first1, last1, first2, last2,
-                    iterator_traits<ForwardIterator1>::iterator_category(),
-                    iterator_traits<ForwardIterator2>::iterator_category());
-#else /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag());
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-}
-
-template <class ForwardIterator1, class ForwardIterator2, 
-          class BinaryPredicate>
-inline ForwardIterator1 
-find_end(ForwardIterator1 first1, ForwardIterator1 last1, 
-         ForwardIterator2 first2, ForwardIterator2 last2,
-         BinaryPredicate comp)
-{
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-  return __find_end(first1, last1, first2, last2,
-                    iterator_traits<ForwardIterator1>::iterator_category(),
-                    iterator_traits<ForwardIterator2>::iterator_category(),
-                    comp);
-#else /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-  return __find_end(first1, last1, first2, last2,
-                    forward_iterator_tag(), forward_iterator_tag(),
-                    comp);
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-}
-
-// Returns x ** n, where n >= 0.  Note that "multiplication"
-//  is required to be associative, but not necessarily commutative.
-    
-template <class T, class Integer, class MonoidOperation>
-T power(T x, Integer n, MonoidOperation op) {
-  if (n == 0)
-    return identity_element(op);
-  else {
-    while ((n & 1) == 0) {
-      n >>= 1;
-      x = op(x, x);
-    }
-
-    T result = x;
-    n >>= 1;
-    while (n != 0) {
-      x = op(x, x);
-      if ((n & 1) != 0)
-        result = op(result, x);
-      n >>= 1;
-    }
-    return result;
-  }
-}
-
-template <class T, class Integer>
-inline T power(T x, Integer n) {
-  return power(x, n, multiplies<T>());
-}
-
-
 template <class ForwardIterator, class T>
 void iota(ForwardIterator first, ForwardIterator last, T value) {
     while (first != last) *first++ = value++;
@@ -2870,8 +2579,5 @@ bool is_sorted(ForwardIterator first, ForwardIterator last,
   return true;
 }
 
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1209
 #endif
 
-#endif /* __SGI_STL_ALGO_H */

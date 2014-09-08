@@ -14,7 +14,7 @@
 #ifndef __ALLOC_H
 #define __ALLOC_H
 
-#include <stl_config.h>
+#include <bool.h>
 
 #ifdef __SUNPRO_CC
 #  define __PRIVATE public
@@ -49,6 +49,7 @@
 #endif
 #ifdef __STL_WIN32THREADS
 #   include <windows.h>
+//  This must precede bool.h
 #endif
 
 #include <stddef.h>
@@ -67,8 +68,11 @@
 # ifdef _PTHREADS
     // POSIX Threads
     // This is dubious, since this is likely to be a high contention
-    // lock.   Performance may not be adequate.
+    // lock.  The Posix standard appears to require an implemention
+    // that makes convoy effects likely.  Performance may not be
+    // adequate.
 #   include <pthread.h>
+    pthread_mutex_t __node_allocator_lock = PTHREAD_MUTEX_INITIALIZER;
 #   define __NODE_ALLOCATOR_LOCK \
         if (threads) pthread_mutex_lock(&__node_allocator_lock)
 #   define __NODE_ALLOCATOR_UNLOCK \
@@ -77,8 +81,10 @@
 #   define __VOLATILE volatile  // Needed at -O3 on SGI
 # endif
 # ifdef __STL_WIN32THREADS
-    // The lock needs to be initialized by constructing an allocator
-    // objects of the right type.  We do that here explicitly for alloc.
+    // This one needs to be global so that a single constructor
+    // call suffices for initialization.
+    CRITICAL_SECTION __node_allocator_lock;
+    bool __node_allocator_lock_initialized;
 #   define __NODE_ALLOCATOR_LOCK \
         EnterCriticalSection(&__node_allocator_lock)
 #   define __NODE_ALLOCATOR_UNLOCK \
@@ -90,11 +96,7 @@
     // This should work without threads, with sproc threads, or with
     // pthreads.  It is suboptimal in all cases.
     // It is unlikely to even compile on nonSGI machines.
-
-    extern int __us_rsthread_malloc;
-	// The above is copied from malloc.h.  Including <malloc.h>
-	// would be cleaner but fails with certain levels of standard
-	// conformance.
+#   include <malloc.h>
 #   define __NODE_ALLOCATOR_LOCK if (threads && __us_rsthread_malloc) \
                 { __lock(&__node_allocator_lock); }
 #   define __NODE_ALLOCATOR_UNLOCK if (threads && __us_rsthread_malloc) \
@@ -109,10 +111,6 @@
 #   define __NODE_ALLOCATOR_THREADS false
 #   define __VOLATILE
 # endif
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma set woff 1174
-#endif
 
 // Malloc-based allocator.  Typically slower than default alloc below.
 // Typically thread-safe and more storage efficient.
@@ -207,18 +205,18 @@ void * __malloc_alloc_template<inst>::oom_realloc(void *p, size_t n)
 
 typedef __malloc_alloc_template<0> malloc_alloc;
 
-template<class T, class Alloc>
+template<class T, class alloc>
 class simple_alloc {
 
 public:
     static T *allocate(size_t n)
-                { return 0 == n? 0 : (T*) Alloc::allocate(n * sizeof (T)); }
+                { return 0 == n? 0 : (T*) alloc::allocate(n * sizeof (T)); }
     static T *allocate(void)
-                { return (T*) Alloc::allocate(sizeof (T)); }
+                { return (T*) alloc::allocate(sizeof (T)); }
     static void deallocate(T *p, size_t n)
-                { if (0 != n) Alloc::deallocate(p, n * sizeof (T)); }
+                { if (0 != n) alloc::deallocate(p, n * sizeof (T)); }
     static void deallocate(T *p)
-                { Alloc::deallocate(p, sizeof (T)); }
+                { alloc::deallocate(p, sizeof (T)); }
 };
 
 // Allocator adaptor to check size arguments for debugging.
@@ -355,22 +353,6 @@ private:
     static pthread_mutex_t __node_allocator_lock;
 # endif
 
-# ifdef __STL_WIN32THREADS
-    static CRITICAL_SECTION __node_allocator_lock;
-    static bool __node_allocator_lock_initialized;
-
-  public:
-    __default_alloc_template() {
-	// This assumes the first constructor is called before threads
-	// are started.
-        if (!__node_allocator_lock_initialized) {
-            InitializeCriticalSection(&__node_allocator_lock);
-            __node_allocator_lock_initialized = true;
-        }
-    }
-  private:
-# endif
-
     class lock {
         public:
             lock() { __NODE_ALLOCATOR_LOCK; }
@@ -380,23 +362,30 @@ private:
 
 public:
 
+# ifdef __STL_WIN32THREADS
+    __default_alloc_template() {
+        if (!__node_allocator_lock_initialized) {
+            InitializeCriticalSection(&__node_allocator_lock);
+            __node_allocator_lock_initialized = true;
+        }
+    }
+# endif
+
   /* n must be > 0      */
   static void * allocate(size_t n)
   {
     obj * __VOLATILE * my_free_list;
     obj * __RESTRICT result;
 
-    if (n > (size_t) __MAX_BYTES) {
+    if (n > __MAX_BYTES) {
         return(malloc_alloc::allocate(n));
     }
     my_free_list = free_list + FREELIST_INDEX(n);
     // Acquire the lock here with a constructor call.
     // This ensures that it is released in exit or during stack
     // unwinding.
-#       ifndef _NOTHREADS
         /*REFERENCED*/
         lock lock_instance;
-#       endif
     result = *my_free_list;
     if (result == 0) {
         void *r = refill(ROUND_UP(n));
@@ -412,16 +401,14 @@ public:
     obj *q = (obj *)p;
     obj * __VOLATILE * my_free_list;
 
-    if (n > (size_t) __MAX_BYTES) {
+    if (n > __MAX_BYTES) {
         malloc_alloc::deallocate(p, n);
         return;
     }
     my_free_list = free_list + FREELIST_INDEX(n);
     // acquire lock
-#       ifndef _NOTHREADS
         /*REFERENCED*/
         lock lock_instance;
-#       endif /* _NOTHREADS */
     q -> free_list_link = *my_free_list;
     *my_free_list = q;
     // lock is released here
@@ -487,7 +474,6 @@ __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int& nobjs)
                     // right free list.
                 }
             }
-	    end_free = 0;	// In case of exception.
             start_free = (char *)malloc_alloc::allocate(bytes_to_get);
             // This should either throw an
             // exception or remedy the situation.  Thus we assume it
@@ -541,7 +527,7 @@ __default_alloc_template<threads, inst>::reallocate(void *p,
     void * result;
     size_t copy_sz;
 
-    if (old_sz > (size_t) __MAX_BYTES && new_sz > (size_t) __MAX_BYTES) {
+    if (old_sz > __MAX_BYTES && new_sz > __MAX_BYTES) {
         return(realloc(p, new_sz));
     }
     if (ROUND_UP(old_sz) == ROUND_UP(new_sz)) return(p);
@@ -557,15 +543,6 @@ __default_alloc_template<threads, inst>::reallocate(void *p,
     pthread_mutex_t
     __default_alloc_template<threads, inst>::__node_allocator_lock
         = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
-#ifdef __STL_WIN32THREADS
-    template <bool threads, int inst> CRITICAL_SECTION
-    __default_alloc_template<threads, inst>::__node_allocator_lock;
-
-    template <bool threads, int inst> bool
-    __default_alloc_template<threads, inst>::__node_allocator_lock_initialized
-	= false;
 #endif
 
 #ifdef __STL_SGI_THREADS
@@ -668,17 +645,9 @@ __default_alloc_template<threads, inst> ::free_list[
 
 # ifdef __STL_WIN32THREADS
   // Create one to get critical section initialized.
-  // We do this onece per file, but only the first constructor
-  // does anything.
-  static alloc __node_allocator_dummy_instance;
+  alloc __node_allocator_dummy_instance;
 # endif
 
+
 #endif /* ! __USE_MALLOC */
-
-#if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
-#pragma reset woff 1174
-#endif
-
-#undef __PRIVATE
-
-#endif /* __ALLOC_H */
+#endif /* __NODE_ALLOC_H */

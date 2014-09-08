@@ -27,8 +27,8 @@
 // vector<bool> is replaced by bit_vector at present because partial 
 // specialization is not yet implemented.  
 
-#ifndef __SGI_STL_BVECTOR_H
-#define __SGI_STL_BVECTOR_H
+#ifndef BVECTOR_H
+#define BVECTOR_H
 
 #include <stddef.h>
 #include <algobase.h>
@@ -72,18 +72,10 @@ public:
 	}
 	void flip() { *p ^= mask; }
     };
-
     typedef bool const_reference;
-
-    typedef reference bit_reference;
-    typedef const_reference bit_const_reference;
-
     class iterator : public random_access_iterator<bool, difference_type> {
       friend class bit_vector;
       friend class const_iterator;
-    public:
-      typedef bit_reference  reference;
-      typedef bit_reference* pointer;
     protected:
 	unsigned int* p;
 	unsigned int offset;
@@ -162,9 +154,6 @@ public:
     class const_iterator : public random_access_iterator<bool, difference_type>
     {
       friend class bit_vector;
-    public:
-      typedef bit_const_reference reference;
-      typedef const bool*         pointer;
     protected:
 	unsigned int* p;
 	unsigned int offset;
@@ -185,7 +174,7 @@ public:
 	const_iterator(unsigned int* x, unsigned int y) : p(x), offset(y) {}
 	const_iterator(const iterator& x) : p(x.p), offset(x.offset) {}
 	const_reference operator*() const {
-	    return bit_vector::reference(p, 1U << offset);
+	    return reference(p, 1U << offset);
 	}
 	const_iterator& operator++() {
 	    bump_up();
@@ -245,15 +234,10 @@ public:
 	}
     };
 
-#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-    typedef reverse_iterator<const_iterator> const_reverse_iterator;
-    typedef reverse_iterator<iterator> reverse_iterator;
-#else /* __STL_CLASS_PARTIAL_SPECIALIZATION */
     typedef reverse_iterator<const_iterator, value_type, const_reference, 
                              difference_type> const_reverse_iterator;
     typedef reverse_iterator<iterator, value_type, reference, difference_type>
         reverse_iterator;
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
 protected:
     typedef simple_alloc<unsigned int, alloc> data_allocator;
@@ -290,63 +274,6 @@ protected:
       }
     }
 
-#ifdef __STL_MEMBER_TEMPLATES
-    template <class InputIterator>
-    void initialize_range(InputIterator first, InputIterator last,
-                          input_iterator_tag) {
-      start = iterator();
-      finish = iterator();
-      end_of_storage = 0;
-      for ( ; first != last; ++first) 
-        push_back(*first);
-    }
-
-    template <class ForwardIterator>
-    void initialize_range(ForwardIterator first, ForwardIterator last,
-                          forward_iterator_tag) {
-      size_type n = 0;
-      distance(first, last, n);
-      initialize(n);
-      copy(first, last, start);
-    }
-
-    template <class InputIterator>
-    void insert_range(iterator pos,
-                      InputIterator first, InputIterator last,
-                      input_iterator_tag) {
-      for ( ; first != last; ++first) {
-        pos = insert(pos, *first);
-        ++pos;
-      }
-    }
-
-    template <class ForwardIterator>
-    void insert_range(iterator position,
-                      ForwardIterator first, ForwardIterator last,
-                      forward_iterator_tag) {
-      if (first != last) {
-        size_type n = 0;
-        distance(first, last, n);
-        if (capacity() - size() >= n) {
-          copy_backward(position, end(), finish + n);
-          copy(first, last, position);
-          finish += n;
-        }
-        else {
-          size_type len = size() + max(size(), n);
-          unsigned int* q = bit_alloc(len);
-          iterator i = copy(begin(), position, iterator(q, 0));
-          i = copy(first, last, i);
-          finish = copy(position, end(), i);
-          deallocate();
-          end_of_storage = q + (len + __WORD_BIT - 1)/__WORD_BIT;
-          start = iterator(q, 0);
-        }
-      }
-    }      
-
-#endif /* __STL_MEMBER_TEMPLATES */
-
     typedef bit_vector self;
 public:
     iterator begin() { return start; }
@@ -372,33 +299,14 @@ public:
     reference operator[](size_type n) { return *(begin() + n); }
     const_reference operator[](size_type n) const { return *(begin() + n); }
     bit_vector() : start(iterator()), finish(iterator()), end_of_storage(0) {}
-    bit_vector(size_type n, bool value) {
-        initialize(n);
-        fill(start.p, end_of_storage, value ? ~0 : 0);
-    }
-    bit_vector(int n, bool value) {
-        initialize(n);
-        fill(start.p, end_of_storage, value ? ~0 : 0);
-    }
-    bit_vector(long n, bool value) {
-        initialize(n);
-        fill(start.p, end_of_storage, value ? ~0 : 0);
-    }
-    explicit bit_vector(size_type n) {
-        initialize(n);
-        fill(start.p, end_of_storage, 0);
+    bit_vector(size_type n, bool value = bool()) {
+	initialize(n);
+	fill(start.p, end_of_storage, value ? ~0 : 0);
     }
     bit_vector(const self& x) {
 	initialize(x.size());
 	copy(x.begin(), x.end(), start);
     }
-
-#ifdef __STL_MEMBER_TEMPLATES
-    template <class InputIterator>
-    bit_vector(InputIterator first, InputIterator last) {
-        initialize_range(first, last, iterator_category(first));
-    }
-#else /* __STL_MEMBER_TEMPLATES */
     bit_vector(const_iterator first, const_iterator last) {
 	size_type n = 0;
 	distance(first, last, n);
@@ -411,8 +319,6 @@ public:
 	initialize(n);
 	copy(first, last, start);
     }
-#endif /* __STL_MEMBER_TEMPLATES */
-
     ~bit_vector() { deallocate(); }
     self& operator=(const self& x) {
 	if (&x == this) return *this;
@@ -456,14 +362,6 @@ public:
 	    insert_aux(position, x);
 	return begin() + n;
     }
-
-#ifdef __STL_MEMBER_TEMPLATES
-    template <class InputIterator> void insert(iterator position,
-                                               InputIterator first,
-                                               InputIterator last) {
-      insert_range(position, first, last, iterator_category(first));
-    }
-#else /* __STL_MEMBER_TEMPLATES */
     void insert(iterator position, const_iterator first, 
 		const_iterator last) {
       if (first == last) return;
@@ -504,7 +402,6 @@ public:
 	start = iterator(q, 0);
       }
     }
-#endif /* __STL_MEMBER_TEMPLATES */
   
     void insert(iterator position, size_type n, bool x) {
       if (n == 0) return;
@@ -524,9 +421,6 @@ public:
       }
     }
 
-    void insert(iterator pos, int n, bool x)  { insert(pos, (size_type)n, x); }
-    void insert(iterator pos, long n, bool x) { insert(pos, (size_type)n, x); }
-
     void pop_back() { --finish; }
     void erase(iterator position) {
 	if (position + 1 != end())
@@ -536,13 +430,6 @@ public:
     void erase(iterator first, iterator last) {
 	finish = copy(last, end(), first);
     }
-    void resize(size_type new_size, bool x = bool()) {
-      if (new_size < size()) 
-        erase(begin() + new_size, end());
-      else
-        insert(end(), new_size - size(), x);
-    }
-    void clear() { erase(begin(), end()); }
 };
 
 inline bool operator==(const bit_vector& x, const bit_vector& y) {
@@ -561,4 +448,6 @@ inline void swap(bit_vector::reference x, bit_vector::reference y) {
 
 #undef __WORD_BIT
 
-#endif /* __SGI_STL_BVECTOR_H */
+#endif
+
+ 

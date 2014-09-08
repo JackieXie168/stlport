@@ -24,24 +24,20 @@
  *
  */
 
-#ifndef __SGI_STL_HASH_MAP_H
-#define __SGI_STL_HASH_MAP_H
+#ifndef SGI_STL_HASH_MAP_H
+#define SGI_STL_HASH_MAP_H
 
-#ifndef __SGI_STL_HASHTABLE_H
+#ifndef SGI_STL_HASHTABLE_H
 #include <hashtable.h>
-#endif /* __SGI_STL_HASHTABLE_H */
+#endif /* SGI_STL_HASHTABLE_H */
 
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class T, class HashFcn = hash<Key>,
-          class EqualKey = equal_to<Key>,
-          class Alloc = alloc>
-#else
-template <class Key, class T, class HashFcn, class EqualKey, 
-          class Alloc = alloc>
-#endif
+template <class Key, class T, class HashFcn /* = hash<Key> */,
+          class EqualKey /* = equal_to<Key>, */
+         /* class Alloc = alloc */>
 class hash_map
 {
+  typedef alloc Alloc;
 private:
   typedef hashtable<pair<const Key, T>, Key, HashFcn,
                     select1st<pair<const Key, T> >, EqualKey, Alloc> ht;
@@ -69,28 +65,11 @@ public:
 
 public:
   hash_map() : rep(100, hasher(), key_equal()) {}
-  explicit hash_map(size_type n) : rep(n, hasher(), key_equal()) {}
+  hash_map(size_type n) : rep(n, hasher(), key_equal()) {}
   hash_map(size_type n, const hasher& hf) : rep(n, hf, key_equal()) {}
   hash_map(size_type n, const hasher& hf, const key_equal& eql)
     : rep(n, hf, eql) {}
 
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  hash_map(InputIterator f, InputIterator l)
-    : rep(100, hasher(), key_equal()) { rep.insert_unique(f, l); }
-  template <class InputIterator>
-  hash_map(InputIterator f, InputIterator l, size_type n)
-    : rep(n, hasher(), key_equal()) { rep.insert_unique(f, l); }
-  template <class InputIterator>
-  hash_map(InputIterator f, InputIterator l, size_type n,
-           const hasher& hf)
-    : rep(n, hf, key_equal()) { rep.insert_unique(f, l); }
-  template <class InputIterator>
-  hash_map(InputIterator f, InputIterator l, size_type n,
-           const hasher& hf, const key_equal& eql)
-    : rep(n, hf, eql) { rep.insert_unique(f, l); }
-
-#else
   hash_map(const value_type* f, const value_type* l)
     : rep(100, hasher(), key_equal()) { rep.insert_unique(f, l); }
   hash_map(const value_type* f, const value_type* l, size_type n)
@@ -112,15 +91,14 @@ public:
   hash_map(const_iterator f, const_iterator l, size_type n,
            const hasher& hf, const key_equal& eql)
     : rep(n, hf, eql) { rep.insert_unique(f, l); }
-#endif /*__STL_MEMBER_TEMPLATES */
 
 public:
   size_type size() const { return rep.size(); }
   size_type max_size() const { return rep.max_size(); }
   bool empty() const { return rep.empty(); }
   void swap(hash_map& hs) { rep.swap(hs.rep); }
-  friend bool operator==(const hash_map<Key,T,HashFcn,EqualKey,Alloc>&,
-                         const hash_map<Key,T,HashFcn,EqualKey,Alloc>&);
+  friend bool operator==(const hash_map<Key,T,HashFcn,EqualKey/*,Alloc*/>&,
+                         const hash_map<Key,T,HashFcn,EqualKey/*,Alloc*/>&);
 
   iterator begin() { return rep.begin(); }
   iterator end() { return rep.end(); }
@@ -130,15 +108,8 @@ public:
 public:
   pair<iterator, bool> insert(const value_type& obj)
     { return rep.insert_unique(obj); }
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  void insert(InputIterator f, InputIterator l) { rep.insert_unique(f,l); }
-#else
-  void insert(const value_type* f, const value_type* l) {
-    rep.insert_unique(f,l);
-  }
+  void insert(const value_type* f, const value_type* l) { rep.insert_unique(f,l); }
   void insert(const_iterator f, const_iterator l) { rep.insert_unique(f, l); }
-#endif /*__STL_MEMBER_TEMPLATES */
   pair<iterator, bool> insert_noresize(const value_type& obj)
     { return rep.insert_unique_noresize(obj); }    
 
@@ -170,23 +141,19 @@ public:
     { return rep.elems_in_bucket(n); }
 };
 
-template <class Key, class T, class HashFcn, class EqualKey, class Alloc>
-inline bool operator==(const hash_map<Key, T, HashFcn, EqualKey, Alloc>& hm1,
-                       const hash_map<Key, T, HashFcn, EqualKey, Alloc>& hm2)
+template <class Key, class T, class HashFcn, class EqualKey/*, class Alloc*/>
+inline bool operator==(const hash_map<Key, T, HashFcn, EqualKey/*, Alloc*/>& hm1,
+                       const hash_map<Key, T, HashFcn, EqualKey/*, Alloc*/>& hm2)
 {
   return hm1.rep == hm2.rep;
 }
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class T, class HashFcn = hash<Key>,
-          class EqualKey = equal_to<Key>,
-          class Alloc = alloc>
-#else
-template <class Key, class T, class HashFcn, class EqualKey,
-          class Alloc = alloc>
-#endif
+template <class Key, class T, class HashFcn /* = hash<Key> */,
+          class EqualKey /* = equal_to<Key>, */
+          /* class Alloc = alloc */>
 class hash_multimap
 {
+  typedef alloc Alloc;
 private:
   typedef hashtable<pair<const Key, T>, Key, HashFcn,
                     select1st<pair<const Key, T> >, EqualKey, Alloc> ht;
@@ -214,37 +181,20 @@ public:
 
 public:
   hash_multimap() : rep(100, hasher(), key_equal()) {}
-  explicit hash_multimap(size_type n) : rep(n, hasher(), key_equal()) {}
+  hash_multimap(size_type n) : rep(n, hasher(), key_equal()) {}
   hash_multimap(size_type n, const hasher& hf) : rep(n, hf, key_equal()) {}
   hash_multimap(size_type n, const hasher& hf, const key_equal& eql)
     : rep(n, hf, eql) {}
 
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  hash_multimap(InputIterator f, InputIterator l)
-    : rep(100, hasher(), key_equal()) { rep.insert_equal(f, l); }
-  template <class InputIterator>
-  hash_multimap(InputIterator f, InputIterator l, size_type n)
-    : rep(n, hasher(), key_equal()) { rep.insert_equal(f, l); }
-  template <class InputIterator>
-  hash_multimap(InputIterator f, InputIterator l, size_type n,
-                const hasher& hf)
-    : rep(n, hf, key_equal()) { rep.insert_equal(f, l); }
-  template <class InputIterator>
-  hash_multimap(InputIterator f, InputIterator l, size_type n,
-                const hasher& hf, const key_equal& eql)
-    : rep(n, hf, eql) { rep.insert_equal(f, l); }
-
-#else
   hash_multimap(const value_type* f, const value_type* l)
     : rep(100, hasher(), key_equal()) { rep.insert_equal(f, l); }
   hash_multimap(const value_type* f, const value_type* l, size_type n)
     : rep(n, hasher(), key_equal()) { rep.insert_equal(f, l); }
   hash_multimap(const value_type* f, const value_type* l, size_type n,
-                const hasher& hf)
+           const hasher& hf)
     : rep(n, hf, key_equal()) { rep.insert_equal(f, l); }
   hash_multimap(const value_type* f, const value_type* l, size_type n,
-                const hasher& hf, const key_equal& eql)
+           const hasher& hf, const key_equal& eql)
     : rep(n, hf, eql) { rep.insert_equal(f, l); }
 
   hash_multimap(const_iterator f, const_iterator l)
@@ -252,20 +202,19 @@ public:
   hash_multimap(const_iterator f, const_iterator l, size_type n)
     : rep(n, hasher(), key_equal()) { rep.insert_equal(f, l); }
   hash_multimap(const_iterator f, const_iterator l, size_type n,
-                const hasher& hf)
+           const hasher& hf)
     : rep(n, hf, key_equal()) { rep.insert_equal(f, l); }
   hash_multimap(const_iterator f, const_iterator l, size_type n,
-                const hasher& hf, const key_equal& eql)
+           const hasher& hf, const key_equal& eql)
     : rep(n, hf, eql) { rep.insert_equal(f, l); }
-#endif /*__STL_MEMBER_TEMPLATES */
 
 public:
   size_type size() const { return rep.size(); }
   size_type max_size() const { return rep.max_size(); }
   bool empty() const { return rep.empty(); }
   void swap(hash_multimap& hs) { rep.swap(hs.rep); }
-  friend bool operator==(const hash_multimap<Key,T,HashFcn,EqualKey,Alloc>&,
-                         const hash_multimap<Key,T,HashFcn,EqualKey,Alloc>&);
+  friend bool operator==(const hash_multimap<Key,T,HashFcn,EqualKey/*,Alloc*/>&,
+                         const hash_multimap<Key,T,HashFcn,EqualKey/*,Alloc*/>&);
 
   iterator begin() { return rep.begin(); }
   iterator end() { return rep.end(); }
@@ -274,15 +223,8 @@ public:
 
 public:
   iterator insert(const value_type& obj) { return rep.insert_equal(obj); }
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  void insert(InputIterator f, InputIterator l) { rep.insert_equal(f,l); }
-#else
-  void insert(const value_type* f, const value_type* l) {
-    rep.insert_equal(f,l);
-  }
+  void insert(const value_type* f, const value_type* l) { rep.insert_equal(f,l); }
   void insert(const_iterator f, const_iterator l) { rep.insert_equal(f, l); }
-#endif /*__STL_MEMBER_TEMPLATES */
   iterator insert_noresize(const value_type& obj)
     { return rep.insert_equal_noresize(obj); }    
 
@@ -309,11 +251,11 @@ public:
     { return rep.elems_in_bucket(n); }
 };
 
-template <class Key, class T, class HF, class EqKey, class Alloc>
-inline bool operator==(const hash_multimap<Key, T, HF, EqKey, Alloc>& hm1,
-                       const hash_multimap<Key, T, HF, EqKey, Alloc>& hm2)
+template <class Key, class T, class HF, class EqKey/*, class Alloc*/>
+inline bool operator==(const hash_multimap<Key, T, HF, EqKey/*, Alloc*/>& hm1,
+                       const hash_multimap<Key, T, HF, EqKey/*, Alloc*/>& hm2)
 {
   return hm1.rep == hm2.rep;
 }
 
-#endif /* __SGI_STL_HASH_MAP_H */
+#endif /* SGI_STL_HASH_MAP_H */

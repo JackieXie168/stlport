@@ -24,17 +24,14 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
-#ifndef __SGI_STL_MAP_H
-#define __SGI_STL_MAP_H
+#ifndef MAP_H
+#define MAP_H
 
 #include <tree.h>
 
-#ifndef __STL_LIMITED_DEFAULT_TEMPLATES
-template <class Key, class T, class Compare = less<Key>, class Alloc = alloc>
-#else
-template <class Key, class T, class Compare, class Alloc = alloc>
-#endif
+template <class Key, class T, class Compare /*= less<Key>*/ /*, class Alloc = alloc*/>
 class map {
+  typedef alloc Alloc;
 public:
 
 // typedefs:
@@ -46,7 +43,7 @@ public:
     
   class value_compare
         : public binary_function<value_type, value_type, bool> {
-    friend class map<Key, T, Compare, Alloc>;
+    friend class map<Key, T, Compare/*, Alloc*/>;
     protected :
         Compare comp;
         value_compare(Compare c) : comp(c) {}
@@ -74,17 +71,8 @@ public:
   // allocation/deallocation
 
   map() : t(Compare()) {}
-  explicit map(const Compare& comp) : t(comp) {}
+  map(const Compare& comp) : t(comp) {}
 
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  map(InputIterator first, InputIterator last)
-    : t(Compare()) { t.insert_unique(first, last); }
-
-  template <class InputIterator>
-  map(InputIterator first, InputIterator last, const Compare& comp)
-    : t(comp) { t.insert_unique(first, last); }
-#else
   map(const value_type* first, const value_type* last)
     : t(Compare()) { t.insert_unique(first, last); }
   map(const value_type* first, const value_type* last, const Compare& comp)
@@ -94,10 +82,10 @@ public:
     : t(Compare()) { t.insert_unique(first, last); }
   map(const_iterator first, const_iterator last, const Compare& comp)
     : t(comp) { t.insert_unique(first, last); }
-#endif /* __STL_MEMBER_TEMPLATES */
 
-  map(const map<Key, T, Compare, Alloc>& x) : t(x.t) {}
-  map<Key, T, Compare, Alloc>& operator=(const map<Key, T, Compare, Alloc>& x)
+
+  map(const map<Key, T, Compare/*, Alloc*/>& x) : t(x.t) {}
+  map<Key, T, Compare/*, Alloc*/>& operator=(const map<Key, T, Compare/*, Alloc*/>& x)
   {
     t = x.t;
     return *this; 
@@ -121,7 +109,7 @@ public:
   T& operator[](const key_type& k) {
     return (*((insert(value_type(k, T()))).first)).second;
   }
-  void swap(map<Key, T, Compare, Alloc>& x) { t.swap(x.t); }
+  void swap(map<Key, T, Compare/*, Alloc*/>& x) { t.swap(x.t); }
 
   // insert/erase
 
@@ -129,20 +117,12 @@ public:
   iterator insert(iterator position, const value_type& x) {
     return t.insert_unique(position, x);
   }
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  void insert(InputIterator first, InputIterator last) {
-    t.insert_unique(first, last);
-  }
-#else
   void insert(const value_type* first, const value_type* last) {
     t.insert_unique(first, last);
   }
   void insert(const_iterator first, const_iterator last) {
     t.insert_unique(first, last);
   }
-#endif /* __STL_MEMBER_TEMPLATES */
-
   void erase(iterator position) { t.erase(position); }
   size_type erase(const key_type& x) { return t.erase(x); }
   void erase(iterator first, iterator last) { t.erase(first, last); }
@@ -168,21 +148,23 @@ public:
   pair<const_iterator,const_iterator> equal_range(const key_type& x) const {
     return t.equal_range(x);
   }
-  friend bool operator==(const map&, const map&);
-  friend bool operator<(const map&, const map&);
+  bool operator==(const map& x) const { return t == x.t; }
+  bool operator<(const map& x) const { return t < x.t; }
+
+//   friend bool operator==(const map&, const map&);
+//   friend bool operator<(const map&, const map&);
 };
 
-template <class Key, class T, class Compare, class Alloc>
-inline bool operator==(const map<Key, T, Compare, Alloc>& x, 
-                       const map<Key, T, Compare, Alloc>& y) {
-  return x.t == y.t;
-}
+// template <class Key, class T, class Compare/*, class Alloc*/>
+// inline bool operator==(const map<Key, T, Compare/*, Alloc*/>& x, 
+//                        const map<Key, T, Compare/*, Alloc*/>& y) {
+//   return x.t == y.t;
+// }
 
-template <class Key, class T, class Compare, class Alloc>
-inline bool operator<(const map<Key, T, Compare, Alloc>& x, 
-                      const map<Key, T, Compare, Alloc>& y) {
-  return x.t < y.t;
-}
+// template <class Key, class T, class Compare/*, class Alloc*/>
+// inline bool operator<(const map<Key, T, Compare/*, Alloc*/>& x, 
+//                       const map<Key, T, Compare/*, Alloc*/>& y) {
+//   return x.t < y.t;
+// }
 
-#endif /* __SGI_STL_MAP_H */
-
+#endif

@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef __SGI_STL_HASHTABLE_H
-#define __SGI_STL_HASHTABLE_H
+#ifndef SGI_STL_HASHTABLE_H
+#define SGI_STL_HASHTABLE_H
 
 // Hashtable class, used to implement the hashed associative containers
 // hash_set, hash_map, hash_multiset, and hash_multimap.
@@ -94,7 +94,7 @@ struct __hashtable_node
 };  
 
 template <class Value, class Key, class HashFcn,
-          class ExtractKey, class EqualKey, class Alloc = alloc>
+          class ExtractKey, class EqualKey, class Alloc>
 class hashtable;
 
 template <class Value, class Key, class HashFcn,
@@ -117,13 +117,9 @@ struct __hashtable_iterator {
                                      ExtractKey, EqualKey, Alloc>
           const_iterator;
   typedef __hashtable_node<Value> node;
-
-  typedef forward_iterator_tag iterator_category;
-  typedef Value value_type;
-  typedef ptrdiff_t difference_type;
   typedef size_t size_type;
   typedef Value& reference;
-  typedef Value* pointer;
+  typedef const Value& const_reference;
 
   node* cur;
   hashtable* ht;
@@ -131,9 +127,6 @@ struct __hashtable_iterator {
   __hashtable_iterator(node* n, hashtable* tab) : cur(n), ht(tab) {}
   __hashtable_iterator() {}
   reference operator*() const { return cur->val; }
-#ifndef __SGI_STL_NO_ARROW_OPERATOR
-  pointer operator->() const { return &(operator*()); }
-#endif /* __SGI_STL_NO_ARROW_OPERATOR */
   iterator& operator++();
   iterator operator++(int);
   bool operator==(const iterator& it) const { return cur == it.cur; }
@@ -153,13 +146,9 @@ struct __hashtable_const_iterator {
                                      ExtractKey, EqualKey, Alloc>
           const_iterator;
   typedef __hashtable_node<Value> node;
-
-  typedef forward_iterator_tag iterator_category;
-  typedef Value value_type;
-  typedef ptrdiff_t difference_type;
   typedef size_t size_type;
-  typedef const Value& reference;
-  typedef const Value* pointer;
+  typedef Value& reference;
+  typedef const Value& const_reference;
 
   const node* cur;
   const hashtable* ht;
@@ -168,10 +157,7 @@ struct __hashtable_const_iterator {
     : cur(n), ht(tab) {}
   __hashtable_const_iterator() {}
   __hashtable_const_iterator(const iterator& it) : cur(it.cur), ht(it.ht) {}
-  reference operator*() const { return cur->val; }
-#ifndef __SGI_STL_NO_ARROW_OPERATOR
-  pointer operator->() const { return &(operator*()); }
-#endif /* __SGI_STL_NO_ARROW_OPERATOR */
+  const_reference operator*() const { return cur->val; }
   const_iterator& operator++();
   const_iterator operator++(int);
   bool operator==(const const_iterator& it) const { return cur == it.cur; }
@@ -192,9 +178,9 @@ static const unsigned long __stl_prime_list[__stl_num_primes] =
 
 inline unsigned long __stl_next_prime(unsigned long n)
 {
-  const unsigned long* first = __stl_prime_list;
   const unsigned long* last = __stl_prime_list + __stl_num_primes;
-  const unsigned long* pos = lower_bound(first, last, n);
+  const unsigned long* pos =
+    lower_bound((const unsigned long*) __stl_prime_list, last, n);
   return pos == last ? *(last - 1) : *pos;
 }
 
@@ -227,7 +213,7 @@ private:
   typedef __hashtable_node<Value> node;
   typedef simple_alloc<node, Alloc> node_allocator;
 
-  vector<node*,Alloc> buckets;
+  vector<node* /*,Alloc*/> buckets;
   size_type num_elements;
 
 public:
@@ -263,7 +249,7 @@ public:
   }
 
   hashtable(const hashtable& ht)
-    : hash(ht.hash), equals(ht.equals), get_key(ht.get_key), num_elements(0)
+    : hash(ht.hash), equals(ht.equals), get_key(ht.get_key)
   {
     copy_from(ht);
   }
@@ -271,10 +257,11 @@ public:
   hashtable& operator= (const hashtable& ht)
   {
     if (&ht != this) {
-      clear();
       hash = ht.hash;
       equals = ht.equals;
       get_key = ht.get_key;
+      clear();
+      buckets.erase(buckets.begin(), buckets.end());
       copy_from(ht);
     }
     return *this;
@@ -352,81 +339,29 @@ public:
   pair<iterator, bool> insert_unique_noresize(const value_type& obj);
   iterator insert_equal_noresize(const value_type& obj);
  
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class InputIterator>
-  void insert_unique(InputIterator f, InputIterator l)
-  {
-    insert_unique(f, l, iterator_category(f));
-  }
-
-  template <class InputIterator>
-  void insert_equal(InputIterator f, InputIterator l)
-  {
-    insert_equal(f, l, iterator_category(f));
-  }
-
-  template <class InputIterator>
-  void insert_unique(InputIterator f, InputIterator l,
-                     input_iterator_tag)
-  {
-    for ( ; f != l; ++f)
-      insert_unique(*f);
-  }
-
-  template <class InputIterator>
-  void insert_equal(InputIterator f, InputIterator l,
-                    input_iterator_tag)
-  {
-    for ( ; f != l; ++f)
-      insert_equal(*f);
-  }
-
-  template <class ForwardIterator>
-  void insert_unique(ForwardIterator f, ForwardIterator l,
-                     forward_iterator_tag)
-  {
-    size_type n = 0;
-    distance(f, l, n);
-    resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_unique_noresize(*f);
-  }
-
-  template <class ForwardIterator>
-  void insert_equal(ForwardIterator f, ForwardIterator l,
-                    forward_iterator_tag)
-  {
-    size_type n = 0;
-    distance(f, l, n);
-    resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_equal_noresize(*f);
-  }
-
-#else /* __STL_MEMBER_TEMPLATES */
   void insert_unique(const value_type* f, const value_type* l)
   {
     size_type n = l - f;
     resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_unique_noresize(*f);
+    for ( ; n > 0; --n)
+      insert_unique_noresize(*f++);
   }
 
   void insert_equal(const value_type* f, const value_type* l)
   {
     size_type n = l - f;
     resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_equal_noresize(*f);
+    for ( ; n > 0; --n)
+      insert_equal_noresize(*f++);
   }
 
-  void insert_unique(const_iterator f, const_iterator l)
+ void insert_unique(const_iterator f, const_iterator l)
   {
     size_type n = 0;
     distance(f, l, n);
     resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_unique_noresize(*f);
+    for ( ; n > 0; --n)
+      insert_unique_noresize(*f++);
   }
 
   void insert_equal(const_iterator f, const_iterator l)
@@ -434,10 +369,9 @@ public:
     size_type n = 0;
     distance(f, l, n);
     resize(num_elements + n);
-    for ( ; n > 0; --n, ++f)
-      insert_equal_noresize(*f);
+    for ( ; n > 0; --n)
+      insert_equal_noresize(*f++);
   }
-#endif /*__STL_MEMBER_TEMPLATES */
 
   reference find_or_insert(const value_type& obj);
 
@@ -521,24 +455,13 @@ private:
   node* new_node(const value_type& obj)
   {
     node* n = node_allocator::allocate();
-    n->next = 0;
-#       ifdef __STL_USE_EXCEPTIONS
-    try {
-#       endif /* __STL_USE_EXCEPTIONS */
-      construct(&n->val, obj);
-      return n;
-#       ifdef __STL_USE_EXCEPTIONS
-    }
-    catch(...) {
-      node_allocator::deallocate(n);
-      throw;
-    }
-#       endif /* __STL_USE_EXCEPTIONS */
+    construct(&(n->val), obj);
+    return n;
   }
   
   void delete_node(node* n)
   {
-    destroy(&n->val);
+    destroy(&(n->val));
     node_allocator::deallocate(n);
   }
 
@@ -550,21 +473,7 @@ private:
 };
 
 template <class V, class K, class HF, class ExK, class EqK, class A>
-__hashtable_iterator<V, K, HF, ExK, EqK, A>&
-__hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++()
-{
-  const node* old = cur;
-  cur = cur->next;
-  if (!cur) {
-    size_type bucket = ht->bkt_num(old->val);
-    while (!cur && ++bucket < ht->buckets.size())
-      cur = ht->buckets[bucket];
-  }
-  return *this;
-}
-
-template <class V, class K, class HF, class ExK, class EqK, class A>
-inline __hashtable_iterator<V, K, HF, ExK, EqK, A>
+__hashtable_iterator<V, K, HF, ExK, EqK, A>
 __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
 {
   iterator tmp = *this;
@@ -573,7 +482,7 @@ __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
 }
 
 template <class V, class K, class HF, class ExK, class EqK, class A>
-__hashtable_const_iterator<V, K, HF, ExK, EqK, A>&
+inline __hashtable_const_iterator<V, K, HF, ExK, EqK, A>&
 __hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++()
 {
   const node* old = cur;
@@ -595,7 +504,6 @@ __hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
   return tmp;
 }
 
-#ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
 
 template <class V, class K, class HF, class ExK, class EqK, class All>
 inline forward_iterator_tag
@@ -611,10 +519,10 @@ inline V* value_type(const __hashtable_iterator<V, K, HF, ExK, EqK, All>&)
 }
 
 template <class V, class K, class HF, class ExK, class EqK, class All>
-inline hashtable<V, K, HF, ExK, EqK, All>::difference_type*
+inline ptrdiff_t*
 distance_type(const __hashtable_iterator<V, K, HF, ExK, EqK, All>&)
 {
-  return (hashtable<V, K, HF, ExK, EqK, All>::difference_type*) 0;
+  return (ptrdiff_t*) 0;
 }
 
 template <class V, class K, class HF, class ExK, class EqK, class All>
@@ -632,13 +540,12 @@ value_type(const __hashtable_const_iterator<V, K, HF, ExK, EqK, All>&)
 }
 
 template <class V, class K, class HF, class ExK, class EqK, class All>
-inline hashtable<V, K, HF, ExK, EqK, All>::difference_type*
+inline ptrdiff_t*
 distance_type(const __hashtable_const_iterator<V, K, HF, ExK, EqK, All>&)
 {
-  return (hashtable<V, K, HF, ExK, EqK, All>::difference_type*) 0;
+  return (ptrdiff_t*) 0;
 }
 
-#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
 template <class V, class K, class HF, class Ex, class Eq, class A>
 bool operator==(const hashtable<V, K, HF, Ex, Eq, A>& ht1,
@@ -784,7 +691,6 @@ hashtable<V, K, HF, Ex, Eq, A>::erase(const key_type& key)
         delete_node(next);
         next = cur->next;
         ++erased;
-        --num_elements;
       }
       else {
         cur = next;
@@ -795,16 +701,17 @@ hashtable<V, K, HF, Ex, Eq, A>::erase(const key_type& key)
       buckets[n] = first->next;
       delete_node(first);
       ++erased;
-      --num_elements;
     }
   }
+  num_elements -= erased;
   return erased;
 }
 
 template <class V, class K, class HF, class Ex, class Eq, class A>
 void hashtable<V, K, HF, Ex, Eq, A>::erase(const iterator& it)
 {
-  if (node* const p = it.cur) {
+  node* const p = it.cur;
+  if (p) {
     const size_type n = bkt_num(p->val);
     node* cur = buckets[n];
 
@@ -876,34 +783,18 @@ void hashtable<V, K, HF, Ex, Eq, A>::resize(size_type num_elements_hint)
   if (num_elements_hint > old_n) {
     const size_type n = next_size(num_elements_hint);
     if (n > old_n) {
-      vector<node*, A> tmp(n, (node*) 0);
-#         ifdef __STL_USE_EXCEPTIONS
-      try {
-#         endif /* __STL_USE_EXCEPTIONS */
-        for (size_type bucket = 0; bucket < old_n; ++bucket) {
-          node* first = buckets[bucket];
-          while (first) {
-            size_type new_bucket = bkt_num(first->val, n);
-            buckets[bucket] = first->next;
-            first->next = tmp[new_bucket];
-            tmp[new_bucket] = first;
-            first = buckets[bucket];          
-          }
+      vector<node* /*, A*/> tmp(n, (node*) 0);
+      for (size_type bucket = 0; bucket < old_n; ++bucket) {
+        node* first = buckets[bucket];
+        while (first) {
+          size_type new_bucket = bkt_num(first->val, n);
+          buckets[bucket] = first->next;
+          first->next = tmp[new_bucket];
+          tmp[new_bucket] = first;
+          first = buckets[bucket];          
         }
-        buckets.swap(tmp);
-#         ifdef __STL_USE_EXCEPTIONS
       }
-      catch(...) {
-        for (size_type bucket = 0; bucket < tmp.size(); ++bucket) {
-          while (tmp[bucket]) {
-            node* next = tmp[bucket]->next;
-            delete_node(tmp[bucket]);
-            tmp[bucket] = next;
-          }
-        }
-        throw;
-      }
-#         endif /* __STL_USE_EXCEPTIONS */
+      buckets = tmp;
     }
   }
 }
@@ -961,32 +852,38 @@ void hashtable<V, K, HF, Ex, Eq, A>::clear()
 template <class V, class K, class HF, class Ex, class Eq, class A>
 void hashtable<V, K, HF, Ex, Eq, A>::copy_from(const hashtable& ht)
 {
-  buckets.clear();
   buckets.reserve(ht.buckets.size());
   buckets.insert(buckets.end(), ht.buckets.size(), (node*) 0);
-#   ifdef __STL_USE_EXCEPTIONS
-  try {
-#   endif /* __STL_USE_EXCEPTIONS */
-    for (size_type i = 0; i < ht.buckets.size(); ++i) {
-      if (const node* cur = ht.buckets[i]) {
-        node* copy = new_node(cur->val);
-        buckets[i] = copy;
+  for (size_type i = 0; i < ht.buckets.size(); ++i) {
+    const node* cur = ht.buckets[i];
+    if (cur) {
+      node* copy = new_node(cur->val);
+      buckets[i] = copy;
 
-        for (node* next = cur->next; next; cur = next, next = cur->next) {
-          copy->next = new_node(next->val);
-          copy = copy->next;
-        }
+      for (node* next = cur->next; next; cur = next, next = cur->next) {
+        copy->next = new_node(next->val);
+        copy = copy->next;
       }
+
+      copy->next = 0;
     }
-    num_elements = ht.num_elements;
-#   ifdef __STL_USE_EXCEPTIONS
   }
-  catch(...) {
-    clear();
-    throw;
+  num_elements = ht.num_elements;
+}
+
+template <class V, class K, class HF, class ExK, class EqK, class A>
+__hashtable_iterator<V, K, HF, ExK, EqK, A>&
+__hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++()
+{
+  const node* old = cur;
+  cur = cur->next;
+  if (!cur) {
+    size_type bucket = ht->bkt_num(old->val);
+    while (!cur && ++bucket < ht->buckets.size())
+      cur = ht->buckets[bucket];
   }
-#   endif /* __STL_USE_EXCEPTIONS */
+  return *this;
 }
 
 
-#endif /* __SGI_STL_HASHTABLE_H */
+#endif /* SGI_STL_HASHTABLE_H */

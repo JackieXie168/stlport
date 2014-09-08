@@ -27,7 +27,7 @@
 #ifndef PAIR_H
 #define PAIR_H
 
-#include <stl_config.h>
+#include <bool.h>
 
 template <class T1, class T2>
 struct pair {
@@ -38,11 +38,6 @@ struct pair {
     T2 second;
     pair() : first(T1()), second(T2()) {}
     pair(const T1& a, const T2& b) : first(a), second(b) {}
-
-#ifdef __STL_MEMBER_TEMPLATES
-    template <class U1, class U2>
-    pair(const pair<U1, U2>& p) : first(p.first), second(p.second) {}
-#endif
 };
 
 template <class T1, class T2>
