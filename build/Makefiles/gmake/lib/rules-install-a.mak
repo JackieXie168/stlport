@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/03/16 17:23:52 ptr>
-# $Id: rules-install-a.mak,v 1.1.2.2 2005/11/01 07:17:21 complement Exp $
+# $Id: rules-install-a.mak 1799 2005-11-01 07:17:21Z complement $
 
 PHONY += install-release-static install-dbg-static install-stldbg-static
 

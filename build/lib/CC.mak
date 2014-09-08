@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/12 20:35:49 ptr>
-# $Id: CC.mak,v 1.1.2.2 2005/11/17 21:16:07 complement Exp $
+# $Id: CC.mak 1835 2005-11-17 21:16:37Z complement $
 
 
 SRCROOT := ..

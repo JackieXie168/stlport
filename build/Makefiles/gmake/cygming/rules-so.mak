@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/27 18:15:05 ptr>
-# $Id: rules-so.mak,v 1.1.2.1 2004/12/24 11:29:56 ptr Exp $
+# $Id: rules-so.mak 1175 2004-12-24 11:29:56Z ptr $
 
 # Shared libraries tags
 

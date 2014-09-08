@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/07/09 18:08:47 ptr>
-# $Id: Makefile-gcc-app,v 1.1.2.1 2004/12/24 11:26:01 ptr Exp $
+# $Id: Makefile-gcc-app 1171 2004-12-24 11:26:01Z ptr $
 
 SRCROOT := ../../..
 COMPILER_NAME := gcc

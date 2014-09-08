@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/09/28 17:22:37 ptr>
-# $Id: macro.mak,v 1.1.2.4 2005/09/07 12:56:46 dums Exp $
+# $Id: macro.mak 1713 2005-09-07 12:56:46Z dums $
 
 DBG_SUFFIX = d
 STLDBG_SUFFIX = stl$(DBG_SUFFIX)

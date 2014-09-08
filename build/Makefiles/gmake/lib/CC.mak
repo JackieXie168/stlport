@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/08/23 23:07:35 ptr>
-# $Id: CC.mak,v 1.1.2.3 2005/11/20 08:42:08 complement Exp $
+# $Id: CC.mak 1855 2005-11-20 08:42:08Z complement $
 
 OPT += -xcode=pic32
 

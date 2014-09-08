@@ -1,5 +1,5 @@
 # Time-stamp: <04/02/04 14:15:31 ptr>
-# $Id: vc-common.mak,v 1.1.2.10 2006/02/06 20:53:48 dums Exp $
+# $Id: vc-common.mak 2153 2006-02-06 20:53:49Z dums $
 
 #INCLUDES = -I$(SRCROOT)/include
 #INCLUDES =

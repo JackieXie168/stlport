@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <04/05/01 00:46:11 ptr>
-# $Id: nmake-evc3.mak,v 1.1.2.2 2005/06/03 20:03:26 dums Exp $
+# $Id: nmake-evc3.mak 1560 2005-06-03 20:04:08Z dums $
 
 COMPILER_NAME=evc3
 CEVERSION=300

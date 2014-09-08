@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/03/31 08:10:19 ptr>
-# $Id: evc4.mak,v 1.1.2.5 2005/11/24 05:45:47 complement Exp $
+# $Id: evc4.mak 1869 2005-11-24 05:45:47Z complement $
 
 LDFLAGS_COMMON = commctrl.lib coredll.lib corelibc.lib /nologo /base:"0x00100000" /stack:0x10000,0x1000 /incremental:no /subsystem:WINDOWSCE /align:"4096" /nodefaultlib:LIBC.lib /nodefaultlib:OLDNAMES.lib
 

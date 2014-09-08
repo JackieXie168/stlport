@@ -1,5 +1,5 @@
 # Time-stamp: <03/09/28 13:44:57 ptr>
-# $Id: extern.mak,v 1.1.2.2 2005/04/07 20:42:27 dums Exp $
+# $Id: extern.mak 1435 2005-04-07 20:49:10Z dums $
 
 #!ifndef MSVC_LIB_DIR
 #MSVC_LIB_DIR = $(MSVC_DIR)\Lib

@@ -1,5 +1,5 @@
 # Time-stamp: <05/11/27 17:27:04 ptr>
-# $Id: targets.mak,v 1.1.2.4 2005/11/27 18:06:36 complement Exp $
+# $Id: targets.mak 1879 2005-11-27 18:06:37Z complement $
 
 # If we have no C++ sources, let's use C compiler for linkage instead of C++.
 ifeq ("$(sort ${SRC_CC} ${SRC_CPP} ${SRC_CXX})","")

@@ -13,7 +13,7 @@
  *
  */
 
-/* $Id: cppunit_mini.h,v 1.1.2.7 2005/11/17 21:23:29 complement Exp $ */
+/* $Id: cppunit_mini.h 1845 2005-11-17 21:23:29Z complement $ */
 
 #ifndef _CPPUNITMPFR_H_
 #define _CPPUNITMPFR_H_

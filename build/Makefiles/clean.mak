@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/07/15 12:19:04 ptr>
-# $Id: clean.mak,v 1.1.2.2 2005/09/19 19:55:47 dums Exp $
+# $Id: clean.mak 1737 2005-09-19 19:57:19Z dums $
 
 PHONY += clean clobber distclean
 

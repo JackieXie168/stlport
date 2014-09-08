@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <05/11/27 17:31:10 ptr>
-# $Id: rules.mak,v 1.1.2.3 2005/11/27 18:06:36 complement Exp $
+# $Id: rules.mak 1879 2005-11-27 18:06:37Z complement $
 
 dbg-shared:	$(OUTPUT_DIR_DBG) ${PRG_DBG}
 

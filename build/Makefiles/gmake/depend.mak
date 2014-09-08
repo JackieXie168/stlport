@@ -1,5 +1,5 @@
 # Time-stamp: <05/03/02 18:57:44 ptr>
-# $Id: depend.mak,v 1.1.2.3 2005/11/17 21:15:44 complement Exp $
+# $Id: depend.mak 1835 2005-11-17 21:16:37Z complement $
 
 PHONY += release-static-dep release-shared-dep dbg-static-dep dbg-shared-dep \
          stldbg-static-dep stldbg-shared-dep depend compiler-dep

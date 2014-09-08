@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/11/30 11:41:22 ptr>
-# $Id: icc.mak,v 1.1.2.1 2004/12/24 11:30:27 ptr Exp $
+# $Id: icc.mak 1176 2004-12-24 11:31:38Z ptr $
 
 
 # Oh, the commented below work for gmake 3.78.1 and above,

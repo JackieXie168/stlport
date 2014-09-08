@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/03/29 22:25:01 ptr>
-# $Id: nmake-src-prefix.mak,v 1.1.2.5 2006/02/06 20:53:49 dums Exp $
+# $Id: nmake-src-prefix.mak 2153 2006-02-06 20:53:49Z dums $
 
 ALLOBJS = $(ALLOBJS:../../../test/unit/=)
 ALLOBJS = $(ALLOBJS:cppunit/=)

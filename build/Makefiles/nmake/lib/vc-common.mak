@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/17 14:09:57 ptr>
-# $Id: vc-common.mak,v 1.1.2.3 2005/04/07 20:44:26 dums Exp $
+# $Id: vc-common.mak 1435 2005-04-07 20:49:10Z dums $
 
 
 # Oh, the commented below work for gmake 3.78.1 and above,

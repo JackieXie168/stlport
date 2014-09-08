@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <05/06/03 21:29:43 ptr>
-# $Id: mwccnlm.mak,v 1.1.2.3 2005/06/06 17:15:06 ptr Exp $
+# $Id: mwccnlm.mak 1562 2005-06-06 17:16:05Z ptr $
 
 LDFLAGS += -type generic -w off -nostdlib -msgstyle gcc
 

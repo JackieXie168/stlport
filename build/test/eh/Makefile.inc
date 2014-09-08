@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <05/03/29 23:39:01 ptr>
-# $Id: Makefile.inc,v 1.1.2.1 2005/03/30 07:26:41 ptr Exp $
+# $Id: Makefile.inc 1397 2005-03-30 07:26:41Z ptr $
 
 # this is the version number of needed STLport library for linking
 LIBMAJOR = 5

@@ -1,5 +1,5 @@
 # Time-stamp: <04/05/01 00:45:03 ptr>
-# $Id: targets.mak,v 1.1.2.5 2006/02/03 20:25:14 dums Exp $
+# $Id: targets.mak 2152 2006-02-03 20:25:15Z dums $
 
 # dependency output parser
 #!include ${RULESBASE}/dparser-$(COMPILER_NAME).mak

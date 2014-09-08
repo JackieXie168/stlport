@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <04/03/30 14:53:15 ptr>
-# $Id: nmake-vc6.mak,v 1.1.2.1 2005/05/13 19:15:31 dums Exp $
+# $Id: nmake-vc6.mak 1518 2005-05-13 19:23:28Z dums $
 
 COMPILER_NAME=vc6
 

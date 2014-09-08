@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/26 17:39:09 ptr>
-# $Id: nmake-vc-common.mak,v 1.1.2.6 2005/04/07 20:41:35 dums Exp $
+# $Id: nmake-vc-common.mak 1435 2005-04-07 20:49:10Z dums $
 
 SRCROOT=..
 

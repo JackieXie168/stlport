@@ -1,5 +1,5 @@
 # Time-stamp: <03/10/26 16:04:25 ptr>
-# $Id: top.mak,v 1.1.2.1 2004/12/24 11:26:36 ptr Exp $
+# $Id: top.mak 1172 2004-12-24 11:26:38Z ptr $
 
 .SUFFIXES: .o .cc
 

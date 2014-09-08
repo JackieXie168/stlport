@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/26 16:17:03 ptr>
-# $Id: clean.mak,v 1.1.2.4 2005/09/19 19:58:06 dums Exp $
+# $Id: clean.mak 1738 2005-09-19 19:58:07Z dums $
 
 clobber:	clean
 	@if exist $(PRG) del /F /Q $(PRG)

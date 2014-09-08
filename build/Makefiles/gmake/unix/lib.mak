@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/10/19 12:26:05 ptr>
-# $Id: lib.mak,v 1.1.2.2 2005/01/31 21:04:36 dums Exp $
+# $Id: lib.mak 1235 2005-01-31 21:04:53Z dums $
 
 DBG_SUFFIX := g
 STLDBG_SUFFIX := stl${DBG_SUFFIX}
