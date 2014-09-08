@@ -450,7 +450,7 @@ public:
   template<class _Integer>
   void _M_insert_dispatch(iterator __pos, _Integer __n, _Integer __x,
                           __true_type) {
-    insert(__pos, (size_type) __n, (_Tp) __x);
+    _M_fill_insert(__pos, (size_type) __n, (_Tp) __x);
   }
 
   template <class _InputIter>
@@ -473,7 +473,9 @@ public:
   void insert(iterator __position,
               const_iterator __first, const_iterator __last);
 #endif /* __STL_MEMBER_TEMPLATES */
-  void insert(iterator __pos, size_type __n, const _Tp& __x);
+  void insert(iterator __pos, size_type __n, const _Tp& __x)
+  { _M_fill_insert(__pos, __n, __x); }
+  void _M_fill_insert(iterator __pos, size_type __n, const _Tp& __x);
  
   void push_front(const _Tp& __x) { insert(begin(), __x); }
   void push_front() {insert(begin());}
@@ -553,7 +555,9 @@ public:
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
 
-  void assign(size_type __n, const _Tp& __val);
+  void assign(size_type __n, const _Tp& __val) { _M_fill_assign(__n, __val); }
+
+  void _M_fill_assign(size_type __n, const _Tp& __val);
 
 #ifdef __STL_MEMBER_TEMPLATES
 
@@ -787,7 +791,7 @@ list<_Tp, _Alloc>::insert(iterator __position,
 
 template <class _Tp, class _Alloc>
 void 
-list<_Tp, _Alloc>::insert(iterator __position, size_type __n, const _Tp& __x)
+list<_Tp, _Alloc>::_M_fill_insert(iterator __position, size_type __n, const _Tp& __x)
 {
   for ( ; __n > 0; --__n)
     insert(__position, __x);
@@ -835,7 +839,7 @@ list<_Tp, _Alloc>& list<_Tp, _Alloc>::operator=(const list<_Tp, _Alloc>& __x)
 }
 
 template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::assign(size_type __n, const _Tp& __val) {
+void list<_Tp, _Alloc>::_M_fill_assign(size_type __n, const _Tp& __val) {
   iterator __i = begin();
   for ( ; __i != end() && __n > 0; ++__i, --__n)
     *__i = __val;
@@ -952,12 +956,12 @@ void list<_Tp, _Alloc>::sort()
 template <class _Tp>
 class list : public __list__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
 {
-    typedef list<_Tp> _Self;
-public:
 #   define __LIST_SUPER __list__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
-    typedef __LIST_SUPER _Super;
-    __CONTAINER_SUPER_TYPEDEFS
-    __IMPORT_SUPER_COPY_ASSIGNMENT(list,__LIST_SUPER)
+  typedef __LIST_SUPER _Super;
+  typedef list<_Tp> _Self;
+public:
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(list, _Self, __LIST_SUPER)
     list() { }
     explicit list(size_type __n, const _Tp& __value) : __LIST_SUPER(__n, __value) { }
     explicit list(size_type __n) :  __LIST_SUPER(__n) { } 

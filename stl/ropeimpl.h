@@ -841,7 +841,8 @@ inline bool _Rope_insert_char_consumer<char>::operator()
     return true;
 }
 
-#if defined (__STL_WCHAR_T) && ! ( ( defined( __WATCOMC__ ) && __WATCOMC__ < 1100 ) || \
+#if 0
+// defined (__STL_WCHAR_T) && ! ( ( defined( __WATCOMC__ ) && __WATCOMC__ < 1100 ) || \
      defined ( __STL_MSVC ) || ( defined (__BORLANDC__) && __BORLANDC__ <=0x500))
 // I couldn't get this to work work with the VC++ version of basic_ostream.
 // It also doesn't really do the right thing unless o is a wide stream.
@@ -901,7 +902,7 @@ bool rope<_CharT, _Alloc>::_S_apply_to_pieces(
 		_CharT* __buffer =
 		  (_CharT*)alloc::allocate(__len * sizeof(_CharT));
 		__STL_TRY {
-		  (*(__f->_M_fn))(__begin, __end, __buffer);
+		  (*(__f->_M_fn))(__begin, __len, __buffer);
 		  __result = __c.operator()(__buffer, __len);
                   alloc::deallocate(__buffer, __len * sizeof(_CharT));
                 }

@@ -34,9 +34,13 @@
 #  if (__SUNPRO_CC >=0x500)
 #   undef  __STL_USE_OWN_NAMESPACE
 #   define __STL_USE_OWN_NAMESPACE 1
-#   ifndef __STL_USE_OWN_NAMESPACE
-#    define __STL_USE_SGI_STRING 1
-#   endif
+#  if (__SUNPRO_CC > 0x500)
+#   define __STL_NATIVE_C_HEADER(header) <../CC/std/##header>
+#  else
+#   define __STL_NATIVE_C_HEADER(header) <../CC/##header##.SUNWCCh>
+#  endif
+#  else
+#   define wint_t __wint_t 
 #  endif
 # endif
 
@@ -53,6 +57,9 @@
 #   undef  __STL_DEFAULT_TYPE_PARAM
 #   define  __STL_NO_NAMESPACES 1
 #   define  __STL_NO_AT_MEMBER_FUNCTION 1
+# elif (__STL_MSVC > 1100)
+typedef char __stl_char;
+#   define __STL_DEFAULTCHAR __stl_char
 # endif /* (__STL_MSVC < 1100 ) */
 # define __STL_MSVC50_COMPATIBILITY   1
 # undef __STL_MEMBER_TEMPLATES
@@ -81,6 +88,11 @@
 #  if defined ( __STRICT_ANSI__ )
 #    undef __STL_LONG_LONG
 #  endif
+
+#   ifdef __EXCEPTIONS
+#     undef  __STL_USE_EXCEPTIONS
+#     define __STL_USE_EXCEPTIONS  1
+#   endif
 
 #if (__GNUC_MINOR__ < 8)
 # define __STL_NATIVE_INCLUDE_PATH ../g++-include

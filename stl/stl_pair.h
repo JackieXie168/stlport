@@ -50,10 +50,9 @@ struct pair {
 #ifdef __STL_MEMBER_TEMPLATES
   template <class _U1, class _U2>
   pair(const pair<_U1, _U2>& __p) : first(__p.first), second(__p.second) {}
-#else
-  // some compilers need that
+#endif
+
   pair(const pair<_T1,_T2>& __o) : first(__o.first), second(__o.second) {}
-# endif
 
   __TRIVIAL_DESTRUCTOR(pair)
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996,1997
+ * Copyright (c) 1997-1999
  * Silicon Graphics Computer Systems, Inc.
  *
  * Copyright (c) 1999 
@@ -126,7 +126,7 @@ public:
   auto_ptr(auto_ptr_ref<_Y> __ref) __STL_NOTHROW
     : _M_ptr(__ref._M_ptr) {}
   template <class _Tp1> operator auto_ptr_ref<_Tp1>() __STL_NOTHROW 
-    { return auto_ptr_ref<_Tp>(this->release()); }
+    { return auto_ptr_ref<_Tp1>(this->release()); }
   template <class _Tp1> operator auto_ptr<_Tp1>() __STL_NOTHROW
     { return auto_ptr<_Tp1>(this->release()); }
 #else

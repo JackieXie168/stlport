@@ -628,7 +628,7 @@ __default_alloc_template<__threads, __inst>::_S_chunk_alloc(size_t __size,
       ((_Obj*)_S_start_free) -> _M_free_list_link = *__my_free_list;
       *__my_free_list = (_Obj*)_S_start_free;
     }
-    _S_start_free = (char*)malloc(__bytes_to_get);
+    _S_start_free = (char*)__STL_CHUNK_MALLOC(__bytes_to_get);
     if (0 == _S_start_free) {
       size_t __i;
       _Obj* __STL_VOLATILE* __my_free_list;

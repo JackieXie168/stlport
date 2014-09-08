@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 #if __MWERKS__	// Get command line.
 	argc = ccommand(&argv);
 #endif
-    int niters=100;
+    int niters=2;
     bool run_all=true;
     bool run_slist = false;
     bool run_list = false;

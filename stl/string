@@ -526,7 +526,12 @@ public:
 
   static const size_type npos;
   typedef _String_reserve_t _Reserve_t;
-
+# ifdef __STL_USE_OWN_NAMESPACE
+  // this typedef is being used for conversions
+  typedef __STL_VENDOR_STD::basic_string<_CharT,_Traits, 
+    __STL_VENDOR_STD::allocator<_CharT> >  __std_string;
+# endif
+  
 public:                         // Constructor, destructor, assignment.
   typedef typename _Base::allocator_type allocator_type;
   allocator_type get_allocator() const { return _Base::get_allocator(); }
@@ -599,6 +604,7 @@ public:                         // Constructor, destructor, assignment.
     _M_initialize_dispatch(__f, __l, _Integral());
   }
 #else /* __STL_MEMBER_TEMPLATES */
+
 # ifdef __STL_DEBUG
   basic_string(const_iterator __f, const_iterator __l)
     : _String_base<_CharT,_Alloc>(allocator_type())
@@ -612,6 +618,7 @@ public:                         // Constructor, destructor, assignment.
     _M_range_initialize(_Make_ptr(__f), _Make_ptr(__l));
   }
 # endif
+
   basic_string(const _CharT* __f, const _CharT* __l,
                const __STL_ALLOC_PARAM& __a = __STL_ALLOC_INSTANCE(__STL_ALLOC_PARAM))
     : _String_base<_CharT,_Alloc>(__a)
@@ -620,6 +627,18 @@ public:                         // Constructor, destructor, assignment.
   }
 
 #endif
+
+# ifdef __STL_USE_OWN_NAMESPACE
+  // these conversion operations still needed for
+  // strstream, etc.
+  basic_string (const __std_string& __x): _String_base<_CharT,_Alloc>(allocator_type())
+    {
+      const char* __s = __x.c_str();
+      _M_range_initialize(__s, __s + _Traits::length(__s)); 
+    }
+  
+  operator __std_string() const { return __std_string(this->c_str()); }
+# endif
 
   ~basic_string() { destroy(_M_start, _M_finish + 1); }
     
@@ -870,7 +889,7 @@ private:                        // Helper functions for append.
 #ifdef __STL_MEMBER_TEMPLATES
 
   template <class _InputIter>
-  _Self& append(_InputIter __f, _InputIter __l, input_iterator_tag)
+  _Self& append(_InputIter __first, _InputIter __last, input_iterator_tag)
   {
 	  for ( ; __first != __last ; ++__first)
 	    push_back(*__first);
@@ -2078,12 +2097,11 @@ operator+(const basic_string<_CharT,_Traits,_Alloc>& __s,
 {
   typedef basic_string<_CharT,_Traits,_Alloc> _Str;
   typedef typename _Str::_Reserve_t _Reserve_t;
-  _Reserve_t __reserve;
 # ifdef __GNUC__
   // gcc counts this as a function
-  _Str __result = _Str(__reserve,__s.size() + __y.size());
+  _Str __result  = _Str(_Reserve_t(),__s.size() + __y.size());
 # else
-  _Str __result(__reserve, __s.size() + __y.size());
+  _Str __result(_Reserve_t(), __s.size() + __y.size());
 # endif
   __result.append(__s);
   __result.append(__y);
@@ -2097,11 +2115,10 @@ operator+(const _CharT* __s,
   typedef basic_string<_CharT,_Traits,_Alloc> _Str;
   typedef typename _Str::_Reserve_t _Reserve_t;
   const size_t __n = _Traits::length(__s);
-  _Reserve_t __reserve;
 # ifdef __GNUC__
-  _Str __result = _Str(__reserve, __n + __y.size());
+  _Str __result = _Str(_Reserve_t(), __n + __y.size());
 # else
-  _Str __result(__reserve, __n + __y.size());
+  _Str __result(_Reserve_t(), __n + __y.size());
 # endif
   __result.append(__s, __s + __n);
   __result.append(__y);
@@ -2114,11 +2131,10 @@ operator+(_CharT __c,
           const basic_string<_CharT,_Traits,_Alloc>& __y) {
   typedef basic_string<_CharT,_Traits,_Alloc> _Str;
   typedef typename _Str::_Reserve_t _Reserve_t;
-  _Reserve_t __reserve;
 # ifdef __GNUC__
-  _Str __result = _Str(__reserve, 1 + __y.size());
+  _Str __result = _Str(_Reserve_t(), 1 + __y.size());
 # else
-  _Str __result(__reserve, 1 + __y.size());
+  _Str __result(_Reserve_t(), 1 + __y.size());
 # endif
   __result.push_back(__c);
   __result.append(__y);
@@ -2132,11 +2148,10 @@ operator+(const basic_string<_CharT,_Traits,_Alloc>& __x,
   typedef basic_string<_CharT,_Traits,_Alloc> _Str;
   typedef typename _Str::_Reserve_t _Reserve_t;
   const size_t __n = _Traits::length(__s);
-  _Reserve_t __reserve;
 # ifdef __GNUC__
-  _Str __result = _Str(__reserve, __x.size() + __n, __x.get_allocator());
+  _Str __result = _Str(_Reserve_t(), __x.size() + __n, __x.get_allocator());
 # else
-  _Str __result(__reserve, __x.size() + __n, __x.get_allocator());
+  _Str __result(_Reserve_t(), __x.size() + __n, __x.get_allocator());
 # endif
   __result.append(__x);
   __result.append(__s, __s + __n);
@@ -2149,11 +2164,10 @@ operator+(const basic_string<_CharT,_Traits,_Alloc>& __x,
           const _CharT __c) {
   typedef basic_string<_CharT,_Traits,_Alloc> _Str;
   typedef typename _Str::_Reserve_t _Reserve_t;
-  _Reserve_t __reserve;
 # ifdef __GNUC__
-  _Str __result = _Str(__reserve, __x.size() + 1, __x.get_allocator());
+  _Str __result = _Str(_Reserve_t(), __x.size() + 1, __x.get_allocator());
 # else
-  _Str __result(__reserve, __x.size() + 1, __x.get_allocator());
+  _Str __result(_Reserve_t(), __x.size() + 1, __x.get_allocator());
 # endif
   __result.append(__x);
   __result.push_back(__c);
@@ -2195,6 +2209,8 @@ operator!=(const basic_string<_CharT,_Traits,_Alloc>& __x,
   return !(__x == __y);
 }
 
+#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
+
 template <class _CharT, class _Traits, class _Alloc>
 inline bool
 operator!=(const _CharT* __s,
@@ -2209,7 +2225,7 @@ operator!=(const basic_string<_CharT,_Traits,_Alloc>& __x,
   return !(__x == __s);
 }
 
-#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
+
 
 // Operator< (and also >, <=, and >=).
 
@@ -2249,6 +2265,23 @@ operator>(const basic_string<_CharT,_Traits,_Alloc>& __x,
   return __y < __x;
 }
 
+
+template <class _CharT, class _Traits, class _Alloc>
+inline bool
+operator<=(const basic_string<_CharT,_Traits,_Alloc>& __x,
+           const basic_string<_CharT,_Traits,_Alloc>& __y) {
+  return !(__y < __x);
+}
+
+template <class _CharT, class _Traits, class _Alloc>
+inline bool
+operator>=(const basic_string<_CharT,_Traits,_Alloc>& __x,
+           const basic_string<_CharT,_Traits,_Alloc>& __y) {
+  return !(__x < __y);
+}
+
+#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
+
 template <class _CharT, class _Traits, class _Alloc>
 inline bool
 operator>(const _CharT* __s,
@@ -2261,13 +2294,6 @@ inline bool
 operator>(const basic_string<_CharT,_Traits,_Alloc>& __x,
           const _CharT* __s) {
   return __s < __x;
-}
-
-template <class _CharT, class _Traits, class _Alloc>
-inline bool
-operator<=(const basic_string<_CharT,_Traits,_Alloc>& __x,
-           const basic_string<_CharT,_Traits,_Alloc>& __y) {
-  return !(__y < __x);
 }
 
 template <class _CharT, class _Traits, class _Alloc>
@@ -2286,13 +2312,6 @@ operator<=(const basic_string<_CharT,_Traits,_Alloc>& __x,
 
 template <class _CharT, class _Traits, class _Alloc>
 inline bool
-operator>=(const basic_string<_CharT,_Traits,_Alloc>& __x,
-           const basic_string<_CharT,_Traits,_Alloc>& __y) {
-  return !(__x < __y);
-}
-
-template <class _CharT, class _Traits, class _Alloc>
-inline bool
 operator>=(const _CharT* __s,
            const basic_string<_CharT,_Traits,_Alloc>& __y) {
   return !(__s < __y);
@@ -2304,8 +2323,6 @@ operator>=(const basic_string<_CharT,_Traits,_Alloc>& __x,
            const _CharT* __s) {
   return !(__x < __s);
 }
-
-#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
 
 // Swap.
 
@@ -2432,6 +2449,7 @@ getline(basic_istream<_CharT, _Traits>& __is,
   typename __STL_VENDOR_STD::basic_istream<_CharT, _Traits>::sentry __sentry(__is, true);
   if (__sentry) {
     basic_streambuf<_CharT, _Traits>* __buf = __is.rdbuf();
+    __s.clear();
 
     int __c1;
     while (__nread < __s.max_size()) {

@@ -621,10 +621,10 @@ operator+(_Distance __n,
 
 # ifndef __STL_LIMITED_DEFAULT_TEMPLATES
 template <class _Tp, 
-          class _CharT, class _Traits,
-          class _Dist> 
+          class _CharT = __STL_DEFAULTCHAR, class _Traits = char_traits<_CharT>,
+          class _Dist = ptrdiff_t> 
 # else
-template <class _Tp, class _Dist> 
+template <class _Tp,__DFL_TYPE_PARAM(_Dist, ptrdiff_t)>
 #endif
 class istream_iterator {
 # ifdef __STL_LIMITED_DEFAULT_TEMPLATES
@@ -709,7 +709,7 @@ operator!=(const istream_iterator<_Tp, _CharT, _Traits, _Dist>& __x,
 
 #ifndef __STL_LIMITED_DEFAULT_TEMPLATES
 template <class _Tp,
-          class _CharT, class _Traits>
+          class _CharT = __STL_DEFAULTCHAR, class _Traits = char_traits<_CharT> >
 #else
 template <class _Tp>
 #endif
@@ -776,8 +776,14 @@ public:
     { return _M_is_initialized ? _M_c : _M_dereference_aux(); }
 
   istreambuf_iterator<_CharT, _Traits>& operator++() { this->_M_nextc(); return *this; }
-  istreambuf_iterator<_CharT, _Traits>  operator++(int) 
-    { istreambuf_iterator __tmp = *this; this->_M_nextc(); return __tmp; }
+
+  istreambuf_iterator  operator++(int) {
+    if (!_M_is_initialized)
+      _M_postincr_aux();
+    istreambuf_iterator __tmp = *this;
+    this->_M_nextc();
+    return __tmp;
+  }
 
   bool equal(const istreambuf_iterator<_CharT, _Traits>& __i) const {
     return this->_M_is_initialized && __i._M_is_initialized
@@ -794,6 +800,7 @@ private:
 
   char_type _M_dereference_aux() const;
   bool _M_equal_aux(const istreambuf_iterator<_CharT, _Traits>&) const;
+  void _M_postincr_aux();
 
   void _M_nextc() {
     int_type __c = _M_buf->snextc();
@@ -842,6 +849,12 @@ bool istreambuf_iterator<_CharT, _Traits>
     __i._M_getc();
 
   return this->_M_eof == __i._M_eof;
+}
+
+template<class _CharT, class _Traits>
+void istreambuf_iterator<_CharT, _Traits>::_M_postincr_aux()
+{
+  this->_M_getc();
 }
 
 template<class _CharT, class _Traits>
@@ -972,27 +985,16 @@ iterator_category(const ostreambuf_iterator<_CharT, _Traits>&) {
 
 #else /* __STL_USE_NEW_IOSTREAMS */
 
-// default params declared in <iosfwd>
-
-template <class _Tp, class _Dist>
-inline bool operator==(const istream_iterator<_Tp, _Dist>&,
-                       const istream_iterator<_Tp, _Dist>&);
-
-template <class _Tp, class _Dist>
+template <class _Tp, __DFL_TYPE_PARAM(_Dist, ptrdiff_t)>
 class istream_iterator {
-  friend inline bool
-  __STD_QUAL operator== __STL_NULL_TMPL_ARGS (const istream_iterator<_Tp, _Dist>& x,
-					      const istream_iterator<_Tp, _Dist>& y);
 protected:
   istream* _M_stream;
   _Tp _M_value;
   bool _M_end_marker;
   void _M_read() {
-    //    _M_end_marker = (*_M_stream) ? true : false;
-    _M_end_marker = !_M_stream->fail();		//*TY 01/05/1999 - use more explicit fail() member function
+    _M_end_marker = (*_M_stream) ? true : false;
     if (_M_end_marker) *_M_stream >> _M_value;
-    //    _M_end_marker = (*_M_stream) ? true : false;
-    _M_end_marker = !_M_stream->fail();		//*TY 01/05/1999 - use more explicit fail() member function
+    _M_end_marker = (*_M_stream) ? true : false;
 }
 public:
   typedef input_iterator_tag  iterator_category;
@@ -1015,6 +1017,11 @@ public:
     istream_iterator<_Tp, _Dist> __tmp = *this;
     _M_read();
     return __tmp;
+  }
+  inline bool _M_equal(const istream_iterator<_Tp, _Dist>& __y) const {
+    return (_M_stream == __y._M_stream &&
+	    _M_end_marker == __y._M_end_marker) ||
+      _M_end_marker == false && __y._M_end_marker == false;
   }
 };
 
@@ -1039,10 +1046,9 @@ distance_type(const istream_iterator<_Tp, _Dist>&) { return (_Dist*)0; }
 
 template <class _Tp, class _Distance>
 inline bool operator==(const istream_iterator<_Tp, _Distance>& __x,
-                       const istream_iterator<_Tp, _Distance>& __y) {
-  return (__x._M_stream == __y._M_stream &&
-          __x._M_end_marker == __y._M_end_marker) ||
-         __x._M_end_marker == false && __y._M_end_marker == false;
+                       const istream_iterator<_Tp, _Distance>& __y) 
+{
+  return  __x._M_equal(__y);
 }
 
 #ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER

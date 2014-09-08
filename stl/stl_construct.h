@@ -49,7 +49,7 @@ inline void destroy(_Tp* __pointer) {
     __pointer->~_Tp();
 # endif
 # ifdef __STL_SHRED_BYTE
-	fill_n((char*)__pointer, sizeof(_Tp), __STL_SHRED_BYTE);
+	fill_n((char*)__pointer, sizeof(_Tp), (char)__STL_SHRED_BYTE);
 # endif
 }
 
@@ -61,7 +61,7 @@ inline void destroy(_Tp* __pointer) {
 template <class _T1, class _T2>
 inline void construct(_T1* __p, const _T2& __value) {
 # ifdef __STL_SHRED_BYTE
-	fill_n((char*)__p, sizeof(_T1), __STL_SHRED_BYTE);
+	fill_n((char*)__p, sizeof(_T1), (char)__STL_SHRED_BYTE);
 # endif
     __STL_PLACEMENT_NEW (__p) _T1(__value);
 }
@@ -69,7 +69,7 @@ inline void construct(_T1* __p, const _T2& __value) {
 template <class _T1>
 inline void construct(_T1* __p) {
 # ifdef __STL_SHRED_BYTE
-	fill_n((char*)__p, sizeof(_T1), __STL_SHRED_BYTE);
+	fill_n((char*)__p, sizeof(_T1), (char)__STL_SHRED_BYTE);
 # endif
   __STL_PLACEMENT_NEW (__p) _T1();
 }
@@ -113,7 +113,7 @@ template <class _ForwardIterator>
 INLINE_LOOP void
 __destroy_aux(_ForwardIterator __first, _ForwardIterator __last, __false_type)
 {
-  for ( ; __first < __last; ++__first)
+  for ( ; __first != __last; ++__first)
     destroy(&*__first);
 }
 

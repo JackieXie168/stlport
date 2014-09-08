@@ -455,14 +455,11 @@ class hash_map : public __hash_map__<_Key, _Tp, _HashFcn, _EqualKey,
 public:
 # define __HM_SUPER __hash_map__<_Key, _Tp, _HashFcn, _EqualKey, __STL_DEFAULT_ALLOCATOR(_Tp) > 
   typedef __HM_SUPER _Super;
-  __IMPORT_CONTAINER_TYPEDEFS(_Super)
-  __IMPORT_ITERATORS(_Super)
+  __IMPORT_WITH_ITERATORS(_Super)
   typedef typename _Super::key_type key_type;
   typedef typename _Super::hasher hasher;
   typedef typename _Super::key_equal key_equal;
   typedef _Tp data_type;
-  typedef typename _Super::pointer pointer;
-  typedef typename _Super::const_pointer const_pointer;
   hash_map() {}
   hash_map(size_type __n) : __HM_SUPER(__n) {}
   hash_map(size_type __n, const hasher& __hf) : __HM_SUPER(__n, __hf) {}
@@ -507,14 +504,11 @@ public:
 # undef  __HM_SUPER
 # define __HM_SUPER __hash_multimap__<_Key, _Tp, _HashFcn, _EqualKey, __STL_DEFAULT_ALLOCATOR(_Tp) >
   typedef __HM_SUPER _Super;
-  __IMPORT_CONTAINER_TYPEDEFS(_Super)
-  __IMPORT_ITERATORS(_Super)
+  __IMPORT_WITH_ITERATORS(_Super)
   typedef typename _Super::key_type key_type;
   typedef typename _Super::hasher hasher;
   typedef typename _Super::key_equal key_equal;
   typedef _Tp data_type;
-  typedef typename _Super::pointer pointer;
-  typedef typename _Super::const_pointer const_pointer;
   hash_multimap() {}
   hash_multimap(size_type __n) : __HM_SUPER(__n) {}
   hash_multimap(size_type __n, const hasher& __hf) : __HM_SUPER(__n, __hf) {}

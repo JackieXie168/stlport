@@ -23,16 +23,16 @@
 #   define __STL_WCHAR_T 1
 #  endif
 #  define __STL_LOOP_INLINE_PROBLEMS 1
-// empty exception spec make things worse in BC:
-// #  define __STL_NO_EXCEPTION_SPEC
-//auto enable thread safety and debugging features:
+
+//auto enable thread safety and exceptions:
 #   ifdef _CPPUNWIND
 #     define __STL_USE_EXCEPTIONS
 #   endif
-// you should define _REENTRANT to turn these on
-//#  if defined(__MT__)
-//#   define __STL_WIN32THREADS
-//#  endif
+
+#   if defined ( __MT__ ) && !defined (_NOTHREADS) && !defined (_REENTRANT)
+#     define _REENTRANT 1
+#   endif
+
 #  if defined ( __DEBUG ) &&( __DEBUG > 0 )
 #   define __STL_DEBUG
 #  endif

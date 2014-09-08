@@ -470,7 +470,10 @@ public:
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
 
-  void assign(size_type __n, const _Tp& __val);
+  void assign(size_type __n, const _Tp& __val)
+    { _M_fill_assign(__n, __val); }
+
+  void _M_fill_assign(size_type __n, const _Tp& __val);
 
 #ifdef __STL_MEMBER_TEMPLATES
 
@@ -482,7 +485,7 @@ public:
 
   template <class _Integer>
   void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
-    { assign((size_type) __n, (_Tp) __val); }
+    { _M_fill_assign((size_type) __n, (_Tp) __val); }
 
   template <class _InputIter>
   void
@@ -900,7 +903,7 @@ slist<_Tp,_Alloc>& slist<_Tp,_Alloc>::operator=(const slist<_Tp,_Alloc>& __x)
 }
 
 template <class _Tp, class _Alloc>
-void slist<_Tp, _Alloc>::assign(__size_type__ __n, const _Tp& __val) {
+void slist<_Tp, _Alloc>::_M_fill_assign(__size_type__ __n, const _Tp& __val) {
   _Node_base* __prev = &_M_head;
   _Node* __node = (_Node*) _M_head._M_next;
   for ( ; __node != 0 && __n > 0 ; --__n) {
@@ -1069,13 +1072,11 @@ void slist<_Tp,_Alloc>::sort()
 template <class _Tp>
 class slist : public __slist__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
 {
-    typedef slist<_Tp> _Self;
 public:
 #   define __SL_SUPER __slist__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
     typedef __SL_SUPER _Super;
-    __IMPORT_CONTAINER_TYPEDEFS(_Super)
-    __IMPORT_ITERATORS(_Super)
-    __IMPORT_SUPER_COPY_ASSIGNMENT(slist,__SL_SUPER)
+    __IMPORT_WITH_ITERATORS(_Super)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(slist, slist<_Tp>, __SL_SUPER)
     slist() { }
     explicit slist(size_type __n, const _Tp& __value) : __SL_SUPER(__n, __value) { }
     explicit slist(size_type __n) :  __SL_SUPER(__n) { } 

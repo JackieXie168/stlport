@@ -435,13 +435,10 @@ class hash_set : public __hash_set__<_Value, _HashFcn, _EqualKey,
 public:
 # define __HS_SUPER __hash_set__<_Value, _HashFcn, _EqualKey, __STL_DEFAULT_ALLOCATOR(_Value) >
   typedef  __HS_SUPER _Super;
-  __IMPORT_CONTAINER_TYPEDEFS(_Super)
-  __IMPORT_ITERATORS(_Super)
+  __IMPORT_WITH_ITERATORS(_Super)
   typedef typename _Super::key_type key_type;
   typedef typename _Super::hasher hasher;
   typedef typename _Super::key_equal key_equal;
-  typedef typename _Super::pointer pointer;
-  typedef typename _Super::const_pointer const_pointer;
   hash_set() {}
   hash_set(size_type n) : __HS_SUPER(n) {}
   hash_set(size_type n, const hasher& hf) : __HS_SUPER(n, hf) {}
@@ -486,13 +483,10 @@ public:
 # undef __HS_SUPER
 # define __HS_SUPER __hash_multiset__<_Value, _HashFcn, _EqualKey, __STL_DEFAULT_ALLOCATOR(_Value) >
   typedef __HS_SUPER _Super;
-  __IMPORT_CONTAINER_TYPEDEFS(_Super)
-  __IMPORT_ITERATORS(_Super)
+  __IMPORT_WITH_ITERATORS(_Super)
   typedef typename _Super::key_type key_type;
   typedef typename _Super::hasher hasher;
   typedef typename _Super::key_equal key_equal;
-  typedef typename _Super::pointer pointer;
-  typedef typename _Super::const_pointer const_pointer;
 
   hash_multiset() {}
   hash_multiset(size_type __n) : __HS_SUPER(__n) {}

@@ -29,6 +29,7 @@
 # include __STL_NATIVE_HEADER(vector)
 #endif
 
+#include <stl_range_errors.h>
 #include <stl_algobase.h>
 #include <stl_alloc.h>
 #include <stl_construct.h>

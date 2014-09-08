@@ -12,7 +12,7 @@ NULL=nul
 ################################################################################
 # Begin Project
 RSC=rc.exe
-CPP=cl.exe
+CPP=icl.exe
 F90=fl32.exe
 
 OUTDIR=.
@@ -142,7 +142,7 @@ check: stl_test.out
 
 stl_test.out : $(Dep_stl)
 	$(CPP) $(CPP_PROJ) $(Dep_stl)
-	stl_test.exe > stl_test.out < stdin
+	stl_test > stl_test.out < stdin
 	echo done
 
 clean :

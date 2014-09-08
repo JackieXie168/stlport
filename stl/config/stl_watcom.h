@@ -10,6 +10,7 @@
 #   define __STL_NON_TYPE_TMPL_PARAM_BUG 1
 #   define __STL_NONTEMPL_BASE_MATCH_BUG
 
+#   define __STL_NO_EXCEPTION_HEADER 1
 #   define __STL_NO_BAD_ALLOC 1
 
 // Get rid of Watcom's min and max macros 

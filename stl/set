@@ -29,7 +29,7 @@
 #include <stl_config.h>
 
 #if defined (__STL_USE_OWN_NAMESPACE)
-# include __STL_NATIVE_HEADER(iterator)
+# include __STL_NATIVE_HEADER(set)
 #endif
 
 #ifndef __SGI_STL_INTERNAL_TREE_H

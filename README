@@ -1,6 +1,6 @@
 *************************************************************
-*                 STLport 3.12 README file
-*                Last updated : March 08, 1999.
+*                 STLport 3.12.2 README file
+*                Last updated : April 11, 1999.
 *************************************************************
 
 Copyright (c) 1999 Boris Fomitchev
@@ -14,8 +14,8 @@ Permission to modify the code and to distribute modified code is granted,
 provided the above notices are retained, and a notice that the code was
 modified is included with the above copyright notice.
 
-STLport 3.12 corresponds to SGI STL public distribution
-v 3.12 (February 2, 1998), which is:
+STLport 3.12.2 corresponds to SGI STL public distribution
+v 3.13, which is:
 
 Copyright (c) 1994 Hewlett-Packard Company 
 

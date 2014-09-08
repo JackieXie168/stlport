@@ -255,12 +255,12 @@ inline void swap(map<_Key,_Tp,_Compare,_Alloc>& __x,
 template <class _Key, class _Tp, class _Compare>
 class map : public __map__<_Key, _Tp, _Compare, __STL_DEFAULT_ALLOCATOR(_Tp) >
 {
-    typedef map<_Key, _Tp, _Compare> _Self;
+  typedef map<_Key, _Tp,  _Compare> _Self;
 public:
 #   define __MAP_SUPER __map__<_Key, _Tp, _Compare, __STL_DEFAULT_ALLOCATOR(_Tp) >
     typedef __MAP_SUPER _Super;
-    __CONTAINER_SUPER_TYPEDEFS
-    __IMPORT_SUPER_COPY_ASSIGNMENT(map, __MAP_SUPER)
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(map, _Self, __MAP_SUPER)
     map() : __MAP_SUPER(_Compare()) {}
     explicit map(const _Compare& __comp) : __MAP_SUPER(__comp) {}
     map(const typename _Super::value_type* __first, 

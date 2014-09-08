@@ -265,13 +265,13 @@ inline void swap(multimap<_Key,_Tp,_Compare,_Alloc>& __x,
 template <class _Key, class _Tp, class _Compare>
 class multimap : public __multimap__<_Key, _Tp, _Compare, __STL_DEFAULT_ALLOCATOR(_Tp) >
 {
-    typedef multimap<_Key, _Tp, _Compare> _Self;
+  typedef multimap<_Key, _Tp,  _Compare> _Self;
 public:
 #   define __MMAP_SUPER __multimap__<_Key, _Tp, _Compare, __STL_DEFAULT_ALLOCATOR(_Tp) >
     typedef __MMAP_SUPER  _Super;
-    __CONTAINER_SUPER_TYPEDEFS
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
     // copy & assignment from super
-    __IMPORT_SUPER_COPY_ASSIGNMENT(multimap,__MMAP_SUPER)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(multimap, _Self, __MMAP_SUPER)
     multimap() : __MMAP_SUPER(_Compare()) {}
     explicit multimap(const _Compare& __comp) : __MMAP_SUPER(__comp) {}
     multimap(const typename _Super::value_type* __first, 

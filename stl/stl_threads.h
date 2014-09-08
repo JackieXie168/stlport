@@ -32,7 +32,7 @@
 #include <pthread.h>
 #elif defined(__STL_WIN32THREADS)
 #include <windows.h>
-#elif defined (__STL_SOLARIS_THREADS)
+#elif defined (__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
 #include <synch.h>
 #endif
 
@@ -68,7 +68,7 @@ struct _Refcount_Base
   pthread_mutex_t _M_ref_count_lock;
   _Refcount_Base(_RC_t __n) : _M_ref_count(__n)
     { pthread_mutex_init(&_M_ref_count_lock, 0); }
-# elif defined(__STL_SOLARIS_THREADS)
+# elif defined(__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
   mutex_t _M_ref_count_lock;
   _Refcount_Base(_RC_t __n) : _M_ref_count(__n)
   { mutex_init(&_M_ref_count_lock,0,NULL); }
@@ -95,7 +95,7 @@ struct _Refcount_Base
     pthread_mutex_unlock(&_M_ref_count_lock);
     return __tmp;
   }
-# elif defined(__STL_SOLARIS_THREADS)
+# elif defined(__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
   void _M_incr() {
     mutex_lock(&_M_ref_count_lock);
     ++_M_ref_count;
@@ -155,7 +155,7 @@ struct _Refcount_Base
         pthread_mutex_unlock(&_Swap_lock_struct<0>::_S_swap_lock);
         return __result;
     }
-# elif defined (__STL_SOLARIS_THREADS)
+# elif defined (__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
     // any better solutions ?
     // We use a template here only to get a unique initialized instance.
     template<int __dummy>
@@ -203,8 +203,8 @@ struct _STL_mutex_base
 #if defined(__STL_SGI_THREADS) || defined(__STL_WIN32THREADS)
   // It should be relatively easy to get this to work on any modern Unix.
   volatile unsigned long _M_lock;
-  void _Init() { _M_lock=0; }
-  void _Destroy() {}
+  void _M_initialize() { _M_lock=0; }
+  void _M_destroy() {}
   static void _S_nsec_sleep(int __log_nsec) {
 #     ifdef __STL_SGI_THREADS
           struct timespec __ts;
@@ -287,29 +287,29 @@ struct _STL_mutex_base
 
 #elif defined(__STL_PTHREADS)
   pthread_mutex_t _M_lock;
-  void _Init() {
+  void _M_initialize() {
 	pthread_mutex_init(&_M_lock, NULL);	
   }
-  void _Destroy() {
+  void _M_destroy() {
         pthread_mutex_destroy(&_M_lock);
   }
   void _M_acquire_lock() { pthread_mutex_lock(&_M_lock); }
   void _M_release_lock() { pthread_mutex_unlock(&_M_lock); }
 
-#elif defined (__STL_SOLARIS_THREADS)
+#elif defined (__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
   mutex_t _M_lock;
-  void _Init() {
+  void _M_initialize() {
     mutex_init(&_M_lock,0,NULL);	
   }
-  void _Destroy() {
+  void _M_destroy() {
     mutex_destroy(&_M_lock);
   }
   void _M_acquire_lock() { mutex_lock(&_M_lock); }
   void _M_release_lock() { mutex_unlock(&_M_lock); }
 
 #else /* No threads */
-  void _Init() {}
-  void _Destroy() {}
+  void _M_initialize() {}
+  void _M_destroy() {}
   void _M_acquire_lock() {}
   void _M_release_lock() {}
 #endif
@@ -318,11 +318,11 @@ struct _STL_mutex_base
 // Well - behaving class, does not need static initializer
 struct _STL_mutex_lock : public _STL_mutex_base {
   _STL_mutex_lock() {
-    _Init();
+    _M_initialize();
   }
 
   ~_STL_mutex_lock() {
-    _Destroy();
+    _M_destroy();
   }
 private:
   _STL_mutex_lock(const _STL_mutex_lock&);
@@ -335,7 +335,7 @@ private:
 #   define __STL_MUTEX_INITIALIZER = { PTHREAD_MUTEX_INITIALIZER }
 #elif defined(__STL_SGI_THREADS) || defined(__STL_WIN32THREADS)
 #   define __STL_MUTEX_INITIALIZER = { 0 }
-#elif defined (__STL_SOLARIS_THREADS)
+#elif defined (__STL_SOLARIS_THREADS) ||  defined (__STL_UITHREADS)
 # define   __STL_MUTEX_INITIALIZER = { DEFAULTMUTEX } 
 #else
 #   define __STL_MUTEX_INITIALIZER

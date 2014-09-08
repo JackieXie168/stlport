@@ -10,7 +10,6 @@
 #   define __STL_MUTABLE  1
 #   define __STL_NEW_STYLE_CASTS 1
 #   define __STL_NO_EXCEPTION_HEADER 1
-#   define __STL_NO_EXCEPTIONS       1
 // gcc fails to initialize builtin types in expr. like this : new(p) char(); 
 # define __STL_DEFAULT_CONSTRUCTOR_BUG 1
 // this should always work
@@ -24,7 +23,7 @@
 #   define __STL_DEFAULT_TYPE_PARAM 1
 
 # define  __STL_NO_BAD_ALLOC
-# define __SGI_STL_NO_ARROW_OPERATOR 1
+# define  __SGI_STL_NO_ARROW_OPERATOR 1
 # define  __STL_NO_STATIC_TEMPLATE_DATA
 
 #  if !defined (__CYGWIN32__) 
@@ -59,10 +58,6 @@
 #   define __STL_FULL_SPEC_SYNTAX 1
 #   define __STL_EXPLICIT_FUNCTION_TMPL_ARGS 1
 #   define __STL_TYPENAME 1
-#   ifdef __EXCEPTIONS
-#     undef  __STL_USE_EXCEPTIONS
-#     define __STL_USE_EXCEPTIONS  1
-#   endif
 #   define  __STL_METHOD_SPECIALIZATION 1
 // #   define  __STL_USE_NEW_STYLE_HEADERS 1
 #   if (__GNUC_MINOR__>= 90) /* egcs 1.1 */

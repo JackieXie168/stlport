@@ -1217,8 +1217,8 @@ class bitset : public __bitset__<_Nb, __stl_ulong>
 public:
 #   define _BS_SUPER __bitset__<_Nb, __stl_ulong >
   typedef _BS_SUPER  _Super;
-  __CONTAINER_SUPER_TYPEDEFS
-  __IMPORT_SUPER_COPY_ASSIGNMENT(bitset,_BS_SUPER)
+  typedef typename _BS_SUPER::reference reference;                                 \
+  __IMPORT_SUPER_COPY_ASSIGNMENT(bitset, _Self, _BS_SUPER)
   bitset() {}
   explicit bitset(const unsigned long __val) : _BS_SUPER(__val) { }
   explicit bitset(const string& __s,

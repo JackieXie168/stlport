@@ -245,13 +245,13 @@ inline void swap(set<_Key,_Compare,_Alloc>& __x,
 template <class _Key, class _Compare>
 class set : public __set__<_Key, _Compare, __STL_DEFAULT_ALLOCATOR(_Key) >
 {
-    typedef set<_Key, _Compare> _Self;
+  typedef set<_Key, _Compare> _Self;
 public:
 #   define __SET_SUPER __set__<_Key, _Compare, __STL_DEFAULT_ALLOCATOR(_Key) >
     typedef __SET_SUPER _Super;
-    __CONTAINER_SUPER_TYPEDEFS
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
     // copy & assignment from super
-    __IMPORT_SUPER_COPY_ASSIGNMENT(set,__SET_SUPER)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(set,_Self,__SET_SUPER)
     // specific constructors
     explicit set() : __SET_SUPER(_Compare()) {}
     explicit set(const _Compare& __comp) : __SET_SUPER(__comp) {}

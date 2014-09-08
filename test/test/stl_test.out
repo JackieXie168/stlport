@@ -1,0 +1,160 @@
+Results of accum1_test:
+sum = 15
+Results of accum2_test:
+prod = 120
+Results of adjdiff0_test:
+1 2 4 8 16 
+1 1 2 4 8 
+Results of adjdiff1_test:
+0 1 4 9 16 25 36 49 64 81 
+0 1 3 5 7 9 11 13 15 17 
+Results of adjdiff2_test:
+1 2 3 4 5 6 7 8 9 10 
+1 2 6 12 20 30 42 56 72 90 
+Results of adjfind0_test:
+No adjacent pairs
+Found adjacent pair of: 1 at offset 3
+Results of adjfind1_test:
+No adjacent pairs
+Found adjacent pair of: 7
+Results of adjfind2_test:
+Found two adjacent strings of equal length: Jack -and- Mike
+Results of advance_test:
+At Beginning: 0
+At Beginning + 5: 5
+Results of alg1_test:
+min(4, 7) = 4
+max('a', 'z') = z
+Results of alg2_test:
+Count of 2s = 3
+Results of alg3_test:
+Count of 2s = 3
+Results of alg4_test:
+1962
+1992
+1999
+2001
+Results of alg5_test:
+1962
+1992
+2001
+1999
+Results of bcompos1_test:
+1 is odd and positive
+Results of bcompos2_test:
+1 is odd and positive
+Results of bind1st1_test:
+1
+2
+Results of bind1st2_test:
+1
+2
+Results of bind2nd1_test:
+1
+2
+4
+Results of bind2nd2_test:
+1
+2
+4
+Results of binsert1_test:
+laurie
+jennifer
+leisa
+Results of binsert2_test:
+laurie
+jennifer
+leisa
+Results of binsrch1_test:
+found 42
+Results of binsrch2_test:
+ff is in labels.
+Results of bnegate1_test:
+1
+4
+7
+9
+Results of bnegate2_test:
+1
+4
+7
+9
+Results of bvec1_test:
+000
+101
+10101
+Results of copy1_test:
+ Src: A string to be copied.
+Dest: A string to be copied.
+Results of copy2_test:
+0 1 2 3 4 5 6 7 8 9 
+Results of copy3_test:
+0 1 2 3 4 5 6 7 8 9 
+Results of copy4_test:
+0 1 2 3 4 5 6 7 8 9 
+Results of copyb_test:
+0 1 2 3 4 5 6 7 8 9 
+Results of copyb0_test:
+1 2 3 4 5 
+1 2 3 4 5 
+Results of count0_test:
+Found 4 1's.
+Results of count1_test:
+Found 33 2's.
+Results of countif1_test:
+Found 33 odd elements.
+Results of deque1_test:
+d[0] = 1
+d[1] = 4
+d[2] = 9
+d[3] = 16
+
+d[0] = 4
+d[1] = 9
+d[2] = 25
+Results of divides_test:
+result = 2
+Results of eqlrnge0_test:
+2 can be inserted from before index 4 to before index 8
+Results of eqlrnge1_test:
+Within the collection:
+	0 0 0 1 1 1 2 2 2 3 
+2 can be inserted from before index 6 to before index 9
+Results of eqlrnge2_test:
+Within the collection:
+	aabbccddggghhklllmqqqqssyyzz
+q can be inserted from before index 18 to before index 22
+Results of equal0_test:
+numbers1 is not equal to numbers2
+numbers3 is equal to numbers1
+Results of equal1_test:
+v1 is not equal to v2
+v1 is equal to v2
+Results of equal2_test:
+v2[i] == v1[i] * v1[i]
+Results of equalto_test:
+1
+0
+1
+0
+Results of fill1_test:
+42 42 42 42 42 42 42 42 42 42 
+Results of filln1_test:
+42 42 42 42 42 42 42 42 42 42 
+Results of find0_test:
+Found 25 at offset 5
+Results of find1_test:
+Found 1972 at offset 3
+Results of findif0_test:
+Value 15 at offset 3 is odd
+Results of findif1_test:
+Value 9 at offset 2 is divisible by 3
+Results of finsert1_test:
+leisa
+jennifer
+laurie
+Results of finsert2_test:
+leisa
+jennifer
+laurie
+Results of foreach0_test:

@@ -55,8 +55,8 @@
 #  define EH_NEW_IOSTREAMS 1
 # endif
 
-# if defined (__STL_NO_EXCEPTIONS)
-#  define EH_NO_EXCEPTIONS __STL_NO_EXCEPTIONS
+# if !defined (__STL_USE_EXCEPTIONS)
+#  define EH_NO_EXCEPTIONS
 # endif
 
 # if defined (__STL_TEMPLATE_PARAM_SUBTYPE_BUG)

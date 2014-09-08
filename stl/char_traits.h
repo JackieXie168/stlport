@@ -27,7 +27,7 @@
 # include <cstring>
 #else
 # include <string.h>
-# if ! defined (__MRC__) && !defined (__SC__)
+# if defined __STL_WCHAR_T && ! defined (__MRC__) && !defined (__SC__)
 #   include <wchar.h>
 # endif			
 # include <stddef.h>							
@@ -113,11 +113,13 @@ template <class _CharT, class _IntT> struct __char_traits_base {
   }
 
   static char_type to_char_type(const int_type& __c) {
-    return __STATIC_CAST(char_type,__c);
+    //    return __STATIC_CAST(char_type,__c);
+    return (char_type)__c;
   }
 
   static int_type to_int_type(const char_type& __c) {
-    return __STATIC_CAST(int_type,__c);
+    //    return __STATIC_CAST(int_type,__c);
+    return (int_type)__c;
   }
 
   static bool eq_int_type(const int_type& __c1, const int_type& __c2) {
@@ -125,7 +127,8 @@ template <class _CharT, class _IntT> struct __char_traits_base {
   }
 
   static int_type eof() {
-    return __STATIC_CAST(int_type,-1);
+    return (int_type)-1;
+    //    return __STATIC_CAST(int_type,-1);
   }
 };
 

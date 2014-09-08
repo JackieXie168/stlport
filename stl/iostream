@@ -19,8 +19,11 @@
 # include <stl_config.h>
 
 # ifdef __STL_USE_NEW_IOSTREAMS
-// lower #ifdef level
-#  include __STL_NATIVE_HEADER(ios)
+
+# if defined (__STL_MSVC) && (__STL_MSVC < 1100)
+// lower ifdef level
+#  include <ios>
+# endif
 #  include __STL_NATIVE_HEADER(iostream)
 
 #  if defined  (__STL_USE_OWN_NAMESPACE)

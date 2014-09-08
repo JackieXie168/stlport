@@ -38,7 +38,7 @@ BOptsAt_osdexe = $(BLocalOptsAtC32_osdexe)
 Dep_os = stl_test.exe
 
 check: $(Dep_os)
-	stl_test.exe < stl_test.inp > stl_test.out
+	stl_test.exe < stdin > stl_test.out
 
 Dep_osdexe = \
    vec2.obj\

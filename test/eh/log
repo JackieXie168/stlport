@@ -1,0 +1,128 @@
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c TestClass.cpp
+TestClass.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c main.cpp
+main.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c nc_alloc.cpp
+nc_alloc.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c random_number.cpp
+random_number.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_algo.cpp
+test_algo.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_algobase.cpp
+test_algobase.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_bit_vector.cpp
+test_bit_vector.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=BitVector, Position=unsigned int, Iter=stlport::_Bit_iterator]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=BitVector, Iter=stlport::vector<bool, stlport::allocator<bool>>::iterator]" at line 179 of "LeakCheck.h"
+            instantiation of "void StrongCheck(const Value &, const Operation &, long) [with Value=BitVector, Operation=test_insert_range<BitVector, stlport::vector<bool, stlport::allocator<bool>>::iterator>]" 
+
+test_construct.h(95) : warning #592: variable "Val" is used before its value is set
+  		T t( n, Val );
+  		        ^
+          detected during:
+            instantiation of "void test_construct_n_instance<T>::operator()(int) const [with T=BitVector]" at line 133 of "LeakCheck.h"
+            instantiation of "void ConstCheck(const Value &, const Operation &, long) [with Value=int, Operation=test_construct_n_instance<BitVector>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_deque.cpp
+test_deque.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestDeque, Position=unsigned int, Iter=DQTestClass *]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestDeque, Iter=DQTestClass *]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestDeque, Operation=test_insert_range<TestDeque, DQTestClass *>]" 
+
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestDeque, Position=unsigned int, Iter=stlport::_Deque_iterator<DQTestClass, DQTestClass &, DQTestClass *, stlport::_Deque_base<DQTestClass, stlport::allocator<DQTestClass>, 0U>::_Deque_traits>]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestDeque, Iter=stlport::deque<DQTestClass, stlport::allocator<DQTestClass>, 0U>::iterator]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestDeque, Operation=test_insert_range<TestDeque, stlport::deque<DQTestClass, stlport::allocator<DQTestClass>, 0U>::iterator>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_hash_map.cpp
+test_hash_map.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_hash_set.cpp
+test_hash_set.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_list.cpp
+test_list.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestList, Position=unsigned int, Iter=TestClass *]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestList, Iter=TestClass *]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestList, Operation=test_insert_range<TestList, TestClass *>]" 
+
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestList, Position=unsigned int, Iter=stlport::_List_iterator<TestClass, TestClass &, TestClass *>]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestList, Iter=stlport::list<TestClass, stlport::allocator<TestClass>>::iterator]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestList, Operation=test_insert_range<TestList, stlport::list<TestClass, stlport::allocator<TestClass>>::iterator>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_map.cpp
+test_map.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_rope.cpp
+test_rope.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestRope, Position=unsigned int, Iter=stlport::rope<char, stlport::allocator<char>>::value_type *]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestRope, Iter=stlport::rope<char, stlport::allocator<char>>::value_type *]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestRope, Operation=test_insert_range<TestRope, stlport::rope<char, stlport::allocator<char>>::value_type *>]" 
+
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestRope, Position=unsigned int, Iter=stlport::_Rope_iterator<char, stlport::allocator<char>>]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestRope, Iter=stlport::rope<char, stlport::allocator<char>>::iterator]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestRope, Operation=test_insert_range<TestRope, stlport::rope<char, stlport::allocator<char>>::iterator>]" 
+
+test_construct.h(95) : warning #592: variable "Val" is used before its value is set
+  		T t( n, Val );
+  		        ^
+          detected during:
+            instantiation of "void test_construct_n_instance<T>::operator()(int) const [with T=TestRope]" at line 133 of "LeakCheck.h"
+            instantiation of "void ConstCheck(const Value &, const Operation &, long) [with Value=int, Operation=test_construct_n_instance<TestRope>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_set.cpp
+test_set.cpp
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_slist.cpp
+test_slist.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestSList, Position=unsigned int, Iter=TestClass *]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestSList, Iter=TestClass *]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestSList, Operation=test_insert_range<TestSList, TestClass *>]" 
+
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestSList, Position=unsigned int, Iter=stlport::_Slist_iterator<TestClass, TestClass &, TestClass *>]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestSList, Iter=stlport::slist<TestClass, stlport::allocator<TestClass>>::iterator]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestSList, Operation=test_insert_range<TestSList, stlport::slist<TestClass, stlport::allocator<TestClass>>::iterator>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_vector.cpp
+test_vector.cpp
+test_insert.h(446) : warning #540: declaration of "Iter" hides template parameter
+      typedef typename C::iterator Iter;
+                                   ^
+          detected during:
+            instantiation of "void do_insert_range(C &, Position, Iter, Iter, sequence_container_tag) [with C=TestVector, Position=unsigned int, Iter=TestClass *]" at line 513
+            instantiation of "void test_insert_range<C, Iter>::operator()(C &) const [with C=TestVector, Iter=TestClass *]" at line 94 of "LeakCheck.h"
+            instantiation of "void WeakCheck(const Value &, const Operation &, long) [with Value=TestVector, Operation=test_insert_range<TestVector, TestClass *>]" 
+
+	icl.exe /nologo /MD /W3 /GX /D "WIN32" /D__STL_DEBUG_ALLOC /D "_CONSOLE"   /I../../stl /I. /c test_string.cpp
+test_string.cpp

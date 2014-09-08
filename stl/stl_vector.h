@@ -30,12 +30,6 @@
 #ifndef __SGI_STL_INTERNAL_VECTOR_H
 #define __SGI_STL_INTERNAL_VECTOR_H
 
-#ifdef __STL_AT_MEMBER_FUNCTION
-# ifdef __STL_USE_EXCEPTIONS
-#  include <stdexcept>
-# endif
-#endif
-
 __STL_BEGIN_NAMESPACE 
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
@@ -443,19 +437,18 @@ public:
 
   reference operator[](size_type __n) { return *(begin() + __n); }
   const_reference operator[](size_type __n) const { return *(begin() + __n); }
-#ifdef __STL_AT_MEMBER_FUNCTION
-  const_reference at(size_type __n) const {
-      if ( __n >= size() )
-	__STL_THROW(out_of_range (string("Out of range exception occurred")));
-      return (*this)[__n];
-    }
-  
-  reference at (size_type __n) {
-      if ( __n >= size() )
-	  __STL_THROW(out_of_range (string("Out of range exception occurred")));
-      return (*this)[__n];
-    }
-#endif /*  __STL_AT_MEMBER_FUNCTION */
+
+#ifdef __STL_THROW_RANGE_ERRORS
+  void _M_range_check(size_type __n) const {
+    if (__n >= this->size())
+      __stl_throw_range_error("vector");
+  }
+
+  reference at(size_type __n)
+    { _M_range_check(__n); return (*this)[__n]; }
+  const_reference at(size_type __n) const
+    { _M_range_check(__n); return (*this)[__n]; }
+#endif /* __STL_THROW_RANGE_ERRORS */
 
   explicit vector(const __STL_ALLOC_PARAM& __a = __STL_ALLOC_INSTANCE(__STL_ALLOC_PARAM))
     : _Vector_base<_Tp, _Alloc>(__a) {
@@ -554,7 +547,8 @@ public:
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
 
-  void assign(size_type __n, const _Tp& __val);
+  void assign(size_type __n, const _Tp& __val) { _M_fill_assign(__n, __val); }
+  void _M_fill_assign(size_type __n, const _Tp& __val);
 
 #ifdef __STL_MEMBER_TEMPLATES
   
@@ -677,7 +671,7 @@ public:
   template <class _Integer>
   void _M_insert_dispatch(iterator __pos, _Integer __n, _Integer __val,
                           __true_type) {
-    insert(__pos, (size_type) __n, (_Tp) __val);
+    _M_fill_insert(__pos, (size_type) __n, (_Tp) __val);
   }
 
   template <class _InputIterator>
@@ -702,8 +696,10 @@ public:
 # endif /* __STL_DEBUG */
 #endif /* __STL_MEMBER_TEMPLATES */
 
-  void insert (iterator __pos, size_type __n, const _Tp& __x);
-// fbp : may need int/long also
+  void insert (iterator __pos, size_type __n, const _Tp& __x)
+    { _M_fill_insert(__pos, __n, __x); }
+
+  void _M_fill_insert (iterator __pos, size_type __n, const _Tp& __x);
 
   void pop_back() {
     __stl_verbose_assert(!empty(), __STL_MSG_EMPTY_CONTAINER);
@@ -950,7 +946,7 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
 }
 
 template <class _Tp, class _Alloc>
-void vector<_Tp, _Alloc>::assign(size_t __n, const _Tp& __val) {
+void vector<_Tp, _Alloc>::_M_fill_assign(size_t __n, const _Tp& __val) {
   if (__n > capacity()) {
     vector<_Tp, _Alloc> __tmp(__n, __val, get_allocator());
     __tmp.swap(*this);
@@ -1028,12 +1024,12 @@ vector<_Tp, _Alloc>::_M_insert_aux(_Tp* __position)
 
 template <class _Tp, class _Alloc>
 # if defined ( __STL_DEBUG )
-void vector<_Tp, _Alloc>::insert(__iterator__ __pos, __size_type__ __n, 
+void vector<_Tp, _Alloc>::_M_fill_insert(__iterator__ __pos, __size_type__ __n, 
                                  const _Tp& __x) {
     __stl_debug_check(__check_if_owner(&_M_iter_list, __pos));
     pointer __position=_Make_ptr(__pos);
 # else
-void vector<_Tp, _Alloc>::insert(__iterator__ __position, __size_type__ __n, 
+void vector<_Tp, _Alloc>::_M_fill_insert(__iterator__ __position, __size_type__ __n, 
                                  const _Tp& __x) {
 # endif
   if (__n != 0) {
@@ -1156,12 +1152,11 @@ vector<_Tp, _Alloc>::insert(__iterator__ __position,
 template <class _Tp>
 class vector : public __vector__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
 {
-    typedef vector<_Tp> _Self;
 public:
 #   define _VEC_SUPER __vector__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) >
     typedef _VEC_SUPER  _Super;
-    __CONTAINER_SUPER_TYPEDEFS
-    __IMPORT_SUPER_COPY_ASSIGNMENT(vector,_VEC_SUPER)
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(vector, vector<_Tp>, _VEC_SUPER)
     vector() {}
     explicit vector(size_type __n, const _Tp& __value) : _VEC_SUPER(__n, __value) { }
     explicit vector(size_type __n) : _VEC_SUPER(__n) { }

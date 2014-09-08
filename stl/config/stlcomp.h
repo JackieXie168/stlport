@@ -47,8 +47,8 @@
 #  define __GIVE_UP_WITH_STL(message) void give_up() \
    { upgrade_the_compiler_to_use_STL;}
 
-// distinguish real MSC
-# if defined(_MSC_VER) && !defined(__MWERKS__)
+// distinguish real MSC from Metrowerks and Intel
+# if defined(_MSC_VER) && !defined(__MWERKS__) && !defined (__ICL)
 #  define __STL_MSVC _MSC_VER
 # endif
 
@@ -126,6 +126,16 @@
 
 // HP compilers
 #  include <config/stl_hpacc.h>
+
+# elif defined(__ICL)
+
+// Intel compiler
+#  include <config/stl_intel.h>
+
+// SCO UDK 7 compiler (UnixWare 7x, OSR 5, UnixWare 2x)
+#elif defined(__USLC__)
+
+#  include <config/stl_sco.h>
 
 # else
 

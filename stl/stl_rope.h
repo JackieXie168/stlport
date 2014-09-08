@@ -1486,7 +1486,7 @@ public:
                                           size_t __size, allocator_type __a)
         {
 #           ifdef __STL_USE_STD_ALLOCATORS
-              _RopeLeaf* __space = _LAllocator(__a).allocate(1);
+              _RopeLeaf* __space = _LAllocator(__a).allocate(1,(const void*)0);
 #           else
               _RopeLeaf* __space = _L_allocate(1);
 #           endif
@@ -1498,7 +1498,7 @@ public:
                         allocator_type __a)
         {
 #           ifdef __STL_USE_STD_ALLOCATORS
-              _RopeConcatenation* __space = _CAllocator(__a).allocate(1);
+              _RopeConcatenation* __space = _CAllocator(__a).allocate(1,(const void*)0);
 #           else
               _RopeConcatenation* __space = _C_allocate(1);
 #           endif
@@ -1509,7 +1509,7 @@ public:
                 size_t __size, bool __d, allocator_type __a)
         {
 #           ifdef __STL_USE_STD_ALLOCATORS
-              _RopeFunction* __space = _FAllocator(__a).allocate(1);
+              _RopeFunction* __space = _FAllocator(__a).allocate(1,(const void*)0);
 #           else
               _RopeFunction* __space = _F_allocate(1);
 #           endif
@@ -1521,7 +1521,7 @@ public:
                 size_t __l, allocator_type __a)
         {
 #           ifdef __STL_USE_STD_ALLOCATORS
-              _RopeSubstring* __space = _SAllocator(__a).allocate(1);
+              _RopeSubstring* __space = _SAllocator(__a).allocate(1,(const void*)0);
 #           else
               _RopeSubstring* __space = _S_allocate(1);
 #           endif
@@ -1544,7 +1544,7 @@ public:
         {
             if (0 == __size) return 0;
 #           ifdef __STL_USE_STD_ALLOCATORS
-              _CharT* __buf = __a.allocate(_S_rounded_up_size(__size));
+              _CharT* __buf = __a.allocate(_S_rounded_up_size(__size),(const void*)0);
 #           else
               _CharT* __buf = _Data_allocate(_S_rounded_up_size(__size));
               allocator_type __a = allocator_type();
@@ -2276,7 +2276,7 @@ protected:
         static const size_type npos;
 
         size_type find(_CharT __c, size_type __pos = 0) const;
-        size_type find(_CharT* __s, size_type __pos = 0) const {
+        size_type find(const _CharT* __s, size_type __pos = 0) const {
             size_type __result_pos;
             const_iterator __result = search(const_begin() + (ptrdiff_t)__pos, const_end(),
                                            __s, __s + _S_char_ptr_len(__s));

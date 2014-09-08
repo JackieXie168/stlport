@@ -21,7 +21,7 @@
 #   if (_COMPILER_VERSION < 721)
 #     define __STL_NO_EXCEPTION_HEADER
 #   endif
-#   if _COMPILER_VERSION < 730 || !defined(_STANDARD_C_PLUS_PLUS)
+#   if _COMPILER_VERSION < 730 || !defined(_STANDARD_C_PLUS_PLUS) || !defined(_NAMESPACES)
 #     define __STL_NO_BAD_ALLOC
 #   endif
 #   if defined(_LONGLONG) && defined(_SGIAPI) && _SGIAPI
@@ -30,9 +30,16 @@
 #   if _COMPILER_VERSION >= 730 && defined(_STANDARD_C_PLUS_PLUS)
 #     define __STL_USE_NEW_IOSTREAMS
 #   endif
+#   if _COMPILER_VERSION >= 730 && defined(_STANDARD_C_PLUS_PLUS)
+#     define __STL_CAN_THROW_RANGE_ERRORS
+#   endif
+#   if _COMPILER_VERSION >= 730 && defined(_STANDARD_C_PLUS_PLUS)
+#     define __SGI_STL_USE_AUTO_PTR_CONVERSIONS
+#   endif
 #   if (_COMPILER_VERSION >= 730) && defined(_MIPS_SIM) && _MIPS_SIM != _ABI32
 #     define __STL_FUNCTION_TMPL_PARTIAL_ORDER
 #   endif
+
 #  define __STL_ARROW_OPERATOR
 #  define __STL_METHOD_SPECIALIZATION
 #  define __STL_DEFAULT_TEMPLATE_PARAM 1

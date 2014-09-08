@@ -130,12 +130,18 @@
 #     define __STL_PTHREADS
 # endif
 
+# if defined(_UITHREADS) && !defined(_NOTHREADS)
+#     define __STL_UITHREADS
+# endif
+
 # ifdef _REENTRANT
 # if !defined(_NOTHREADS) && !defined(_PTHREADS)
 # if defined (__sgi)
 #  define __STL_SGI_THREADS
 # elif defined (__sun) && defined (__SVR4)
 #  define __STL_SOLARIS_THREADS
+# elif defined(_UITHREADS) && !defined(_NOTHREADS)
+#     define __STL_UITHREADS
 # elif defined (_WIN32) || defined (WIN32)
 #  define __STL_WIN32THREADS
 # else
@@ -146,7 +152,7 @@
 
 
 #if defined(__STL_WIN32THREADS) || defined(STL_SGI_THREADS) \
-    || defined(__STL_PTHREADS) || defined(__STL_SOLARIS_THREADS)
+    || defined(__STL_PTHREADS) || defined(__STL_SOLARIS_THREADS) || defined(__STL_UITHREADS)
 #   define __STL_THREADS
 #   define __STL_VOLATILE volatile
 // windows.h _MUST be included before bool definition ;(
@@ -300,12 +306,9 @@
 #   define __STL_LIMITED_DEFAULT_TEMPLATES
 #  endif
 
-// if we do not have necessary support for default
-// alloc param, we should use SGI style allocators
-// # if defined __STL_LIMITED_DEFAULT_TEMPLATES
-// #  define __STL_USE_SGI_ALLOCATORS
-// # endif
-
+#if !defined (__STL_NO_AT_MEMBER_FUNCTION)
+# define __STL_CAN_THROW_RANGE_ERRORS 1
+#endif
 
 // __STL_USE_SGI_ALLOCATORS is a hook so that users can 
 // disable new-style allocators, and continue to use the same kind of
@@ -430,18 +433,21 @@ namespace __STLPORT_NAMESPACE = __STD;
 #   define __STD_QUAL __STD::
 # endif
 
+// SGI term
+#  define __STD_QUALIFIER __STD_QUAL
+
 #  define __STL_BEGIN_NAMESPACE namespace __STD {
 #  define __STL_END_NAMESPACE }
+
+#   define  __STL_USE_NAMESPACE_FOR_RELOPS
 
 // decide whether or not we use separate namespace for rel ops
 #   if defined(__STL_FUNCTION_TMPL_PARTIAL_ORDER) && \
        !defined(__STL_NO_RELOPS_NAMESPACE)
-#   define  __STL_USE_NAMESPACE_FOR_RELOPS
-#   define __STD_RELOPS __STD::rel_ops
-#   define __STL_BEGIN_RELOPS_NAMESPACE namespace __STD { namespace rel_ops {
-#   define __STL_END_RELOPS_NAMESPACE } }
+#     define __STD_RELOPS __STD::rel_ops
+#     define __STL_BEGIN_RELOPS_NAMESPACE namespace __STD { namespace rel_ops {
+#     define __STL_END_RELOPS_NAMESPACE } }
 #   else /* Use std::rel_ops namespace */
-#     define __STL_USE_NAMESPACE_FOR_RELOPS
 #     define __STL_BEGIN_RELOPS_NAMESPACE namespace __STD { namespace rel_ops {}
 #     define __STL_END_RELOPS_NAMESPACE }
 #     define __STD_RELOPS __STD
@@ -573,7 +579,7 @@ private:
 #   define mutable
 #  endif
 
-# if defined (__STL_SIGNED)
+# if defined (__STL_NO_SIGNED_BUILTINS)
 // old HP-UX don't understand "signed" keyword
 #  define signed
 # endif
@@ -631,11 +637,14 @@ private:
 # endif
 
 #  define __IMPORT_CONTAINER_TYPEDEFS(_Super)                            \
-    typedef typename _Super::value_type value_type;                               \
-    typedef typename _Super::reference reference;                                 \
-    typedef typename _Super::size_type size_type;                                 \
-    typedef typename _Super::const_reference const_reference;                     \
-    typedef typename _Super::difference_type difference_type;
+    typedef typename _Super::value_type value_type;                      \
+    typedef typename _Super::size_type size_type;                        \
+    typedef typename _Super::difference_type difference_type;            \
+    typedef typename _Super::reference reference;                        \
+    typedef typename _Super::const_reference const_reference;            \
+    typedef typename _Super::pointer pointer;                            \
+    typedef typename _Super::const_pointer const_pointer;
+
 
 #  define __IMPORT_ITERATORS(_Super)                                     \
     typedef typename _Super::iterator iterator;                                   \
@@ -645,24 +654,19 @@ private:
     typedef typename _Super::const_reverse_iterator  const_reverse_iterator;      \
     typedef typename _Super::reverse_iterator reverse_iterator;
 
-#define  __IMPORT_SUPER_COPY_ASSIGNMENT(__derived_name, _Super)         \
-    __derived_name(const _Self& __x) : _Super(__x) {}           \
+#define  __IMPORT_SUPER_COPY_ASSIGNMENT(__derived_name, _Self, _Super)         \
     __derived_name(const _Super& __x) : _Super(__x) {}          \
-    _Self& operator=(const _Self& __x) {                        \
-        *(_Super*)this = (const _Super&)__x;                    \
-        return *this;                                           \
-    }                                                           \
     _Self& operator=(const _Super& __x) {                       \
         *(_Super*)this = __x;                                   \
         return *this;                                           \
     }
 
-# if defined (__STL_BASE_TYPEDEF_OUTSIDE_BUG) || defined (__STL_NESTED_TYPE_PARAM_BUG)
-#   define __CONTAINER_SUPER_TYPEDEFS \
- __IMPORT_CONTAINER_TYPEDEFS(_Super) __IMPORT_ITERATORS(_Super) __IMPORT_REVERSE_ITERATORS(_Super)
-# else
-#   define __CONTAINER_SUPER_TYPEDEFS
-# endif
+# define __IMPORT_WITH_ITERATORS(_Super) \
+__IMPORT_CONTAINER_TYPEDEFS(_Super) __IMPORT_ITERATORS(_Super)
+
+# define __IMPORT_WITH_REVERSE_ITERATORS(_Super) \
+__IMPORT_WITH_ITERATORS(_Super) __IMPORT_REVERSE_ITERATORS(_Super)
+
 
 # if defined (__STL_TRIVIAL_CONSTRUCTOR_BUG) 
 #  define __TRIVIAL_CONSTRUCTOR(__type) __type() {}  
@@ -695,9 +699,6 @@ private:
 #    define __STL_THROWS(x)
 #    define __STL_NOTHROW 
 #   endif
-#   if !defined (__STL_NO_AT_MEMBER_FUNCTION )
-#    define __STL_AT_MEMBER_FUNCTION 1
-#   endif
 # else
 #   define __STL_TRY 
 #   define __STL_CATCH_ALL if (false)
@@ -712,6 +713,9 @@ private:
 #  include <isynonym.hpp>
 # if defined (__OS400__) // rolandh
    typedef int bool;
+# else
+// if this fails, just remove the typedef
+   typedef Boolean bool;
 # endif
 # else
 #  if defined(__STL_YVALS_H)
@@ -759,12 +763,6 @@ private:
 #  define __STL_MAKE_HEADER(path, header) <path/header>
 # endif
 
-#ifdef __STL_USE_NEW_STYLE_HEADERS
-#define __STL_C_HEADER_AUX(header) <c##header>
-#else
-#define __STL_C_HEADER_AUX(header) <header##.h>
-#endif
-
 #ifndef __STL_C_HEADER
 # define __STL_C_HEADER(header) __STL_C_HEADER_AUX(header)
 #endif
@@ -774,7 +772,7 @@ private:
 #endif
 
 #ifndef __STL_NATIVE_C_HEADER
-# define __STL_NATIVE_C_HEADER(header) __STL_NATIVE_HEADER(header)
+# define __STL_NATIVE_C_HEADER(header)  __STL_MAKE_HEADER(__STL_NATIVE_C_INCLUDE_PATH,header)
 #endif
 
 # ifndef __STL_DEBUG_MESSAGE
@@ -787,9 +785,13 @@ struct __stl_debug_engine {
 __STL_END_NAMESPACE
 # endif
 
-#ifndef __STL_MPW_EXTRA_CONST
-# define __STL_MPW_EXTRA_CONST
-#endif
+# ifndef __STL_MPW_EXTRA_CONST
+#  define __STL_MPW_EXTRA_CONST
+# endif
+
+# ifndef __STL_DEFAULTCHAR
+#  define __STL_DEFAULTCHAR char
+# endif
 
 // some cleanup
 # undef __STL_RESERVED_BOOL_KEYWORD

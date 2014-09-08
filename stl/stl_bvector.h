@@ -764,12 +764,23 @@ public:
     return size_type(_Make_const_iterator(_M_end_of_storage, 0, false) - begin());
   }
   bool empty() const { return begin() == end(); }
-  reference operator[](size_type __n) {
-    return *(begin() + difference_type(__n));
+  reference operator[](size_type __n) 
+  { return *(begin() + difference_type(__n)); }
+  const_reference operator[](size_type __n) const 
+  { return *(begin() + difference_type(__n)); }
+
+#ifdef __STL_THROW_RANGE_ERRORS
+  void _M_range_check(size_type __n) const {
+    if (__n >= this->size())
+      __stl_throw_range_error("vector<bool>");
   }
-  const_reference operator[](size_type __n) const {
-    return *(begin() + difference_type(__n));
-  }
+
+  reference at(size_type __n)
+    { _M_range_check(__n); return (*this)[__n]; }
+  const_reference at(size_type __n) const
+    { _M_range_check(__n); return (*this)[__n]; }
+#endif /* __STL_THROW_RANGE_ERRORS */
+
 
   explicit __BVECTOR(const __BVECTOR_ALLOC_PARAM& __a = 
 		     __STL_ALLOC_INSTANCE(__BVECTOR_ALLOC_PARAM))
@@ -859,7 +870,7 @@ public:
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
 
-  void assign(size_t __n, bool __x) {
+  void _M_fill_assign(size_t __n, bool __x) {
     if (__n > size()) {
       fill(_M_start._M_p, _M_end_of_storage, __x ? ~0 : 0);
       insert(end(), __n - size(), __x);
@@ -869,6 +880,7 @@ public:
       fill(_M_start._M_p, _M_end_of_storage, __x ? ~0 : 0);
     }
   }
+  void assign(size_t __n, bool __x) { _M_fill_assign(__n, __x); }
 
 #ifdef __STL_MEMBER_TEMPLATES
 
@@ -880,7 +892,7 @@ public:
 
   template <class _Integer>
   void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
-    { assign((size_t) __n, (bool) __val); }
+    { _M_fill_assign((size_t) __n, (bool) __val); }
 
   template <class _InputIter>
   void _M_assign_dispatch(_InputIter __first, _InputIter __last, __false_type)
@@ -970,7 +982,7 @@ public:
   template <class _Integer>
   void _M_insert_dispatch(iterator __pos, _Integer __n, _Integer __x,
                           __true_type) {
-    insert(__pos, (size_type) __n, (bool) __x);
+    _M_fill_insert(__pos, (size_type) __n, (bool) __x);
   }
 
   template <class _InputIterator>
@@ -1044,7 +1056,7 @@ public:
   }
 #endif /* __STL_MEMBER_TEMPLATES */
   
-  void insert(iterator __position, size_type __n, bool __x) {
+  void _M_fill_insert(iterator __position, size_type __n, bool __x) {
     __stl_debug_check(__check_if_owner(&_M_iter_list,__position));
     if (__n == 0) return;
     __stl_debug_do(_M_finish._Set_overrun(true));
@@ -1067,6 +1079,10 @@ public:
       __stl_debug_do(_M_iter_list._Orphan(_M_start));
     }
     __stl_debug_do(_M_finish._Set_overrun(false));
+  }
+
+  void insert(iterator __position, size_type __n, bool __x) {
+    _M_fill_insert(__position, __n, __x);
   }
 
   void pop_back() { 

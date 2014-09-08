@@ -12,7 +12,9 @@
 
 
 #define __STL_PARTIAL_SPECIALIZATION_BUG 1
-#define __STL_USE_SGI_ALLOCATORS         1
+
+// #define __STL_USE_SGI_ALLOCATORS         1
+
 #define __STL_NO_QUALIFIED_FRIENDS       1
 
 // there were reports on problems with namespaces 
@@ -52,5 +54,6 @@
 
 #  else
 // it is HP's old cfront-based compiler.
+# define __STL_NO_SIGNED_BUILTINS
 #  endif /* cfront */
 

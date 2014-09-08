@@ -78,10 +78,6 @@
  * default value.
  */
 
-#if defined (__STL_AT_MEMBER_FUNCTION)
-#  include <stdexcept>
-#endif
-
 # undef __deque__
 # undef deque
 # if defined ( __STL_NO_DEFAULT_NON_TYPE_PARAM )
@@ -658,19 +654,19 @@ public:                         // Basic accessors
     { return _M_start[difference_type(__n)]; }
   const_reference operator[](size_type __n) const 
     { return _M_start[difference_type(__n)]; }
-# ifdef __STL_AT_MEMBER_FUNCTION
-  const_reference at(size_type __n) const {
-      if ( __n >= size() )
-	__STL_THROW(out_of_range (string("Out of range exception occurred")));
-      return (*this)[__n];
-    }
-  
-  reference at (size_type __n) {
-      if ( __n >= size() )
-	  __STL_THROW(out_of_range (string("Out of range exception occurred")));
-      return (*this)[__n];
-    }
-# endif
+
+#ifdef __STL_THROW_RANGE_ERRORS
+  void _M_range_check(size_type __n) const {
+    if (__n >= this->size())
+      __stl_throw_range_error("deque");
+  }
+
+  reference at(size_type __n)
+    { _M_range_check(__n); return (*this)[__n]; }
+  const_reference at(size_type __n) const
+    { _M_range_check(__n); return (*this)[__n]; }
+#endif /* __STL_THROW_RANGE_ERRORS */
+
   reference front() { return *_M_start; }
   reference back() {
     iterator __tmp = _M_finish;
@@ -684,7 +680,7 @@ public:                         // Basic accessors
     return *__tmp;
   }
 
-  size_type size() const { return _M_finish - _M_start;; }
+  size_type size() const { return _M_finish - _M_start; }
   size_type max_size() const { return size_type(-1); }
   bool empty() const { return _M_finish == _M_start; }
 
@@ -787,7 +783,7 @@ public:
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
 
-  void assign(size_type __n, const _Tp& __val) {
+  void _M_fill_assign(size_type __n, const _Tp& __val) {
     if (__n > size()) {
       fill(begin(), end(), __val);
       insert(end(), __n - size(), __val);
@@ -796,6 +792,10 @@ public:
       erase(begin() + __n, end());
       fill(begin(), end(), __val);
     }
+  }
+
+  void assign(size_type __n, const _Tp& __val) {
+    _M_fill_assign(__n, __val);
   }
 
 #ifdef __STL_MEMBER_TEMPLATES
@@ -810,7 +810,7 @@ private:                        // helper functions for assign()
 
   template <class _Integer>
   void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
-    { assign((size_type) __n, (_Tp) __val); }
+    { _M_fill_assign((size_type) __n, (_Tp) __val); }
 
   template <class _InputIterator>
   void _M_assign_dispatch(_InputIterator __first, _InputIterator __last,
@@ -931,7 +931,11 @@ public:                         // Insert
   iterator insert(iterator __position)
     { return insert(__position, value_type()); }
 
-  void insert(iterator __pos, size_type __n, const value_type& __x); 
+  void insert(iterator __pos, size_type __n, const value_type& __x) {
+    _M_fill_insert(__pos, __n, __x);
+  }
+
+  void _M_fill_insert(iterator __pos, size_type __n, const value_type& __x);
 
 #ifdef __STL_MEMBER_TEMPLATES  
 
@@ -945,7 +949,7 @@ public:                         // Insert
   template <class _Integer>
   void _M_insert_dispatch(iterator __pos, _Integer __n, _Integer __x,
                           __true_type) {
-    insert(__pos, (size_type) __n, (value_type) __x);
+    _M_fill_insert(__pos, (size_type) __n, (value_type) __x);
   }
 
   template <class _InputIterator>
@@ -1272,8 +1276,8 @@ public:
 
 template <class _Tp, class _Alloc, size_t __bufsiz>
 void 
-deque<_Tp, _Alloc, __bufsiz>::insert(iterator __pos,
-                                      size_type __n, const value_type& __x)
+deque<_Tp, _Alloc, __bufsiz>::_M_fill_insert(iterator __pos,
+					     size_type __n, const value_type& __x)
 {
   __stl_debug_check(__check_if_owner(&_M_iter_list, __pos));
   if (__pos._M_cur == _M_start._M_cur) {
@@ -1943,17 +1947,17 @@ inline bool operator<=(const deque<_Tp, _Alloc, __bufsiz>& __x,
 template <class _Tp, __STL_DEFAULT_ALLOCATOR_SELECT(_Tp) >
 class deque : public __deque__<_Tp,_Alloc,0> {
 #   define _DEQUE_SUPER __deque__<_Tp,_Alloc,0>
-    typedef deque<_Tp,_Alloc> _Self;
+  typedef deque<_Tp, _Alloc> _Self;
 # else
 template <class _Tp>
 class deque : public __deque__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp), 0> {
 #   define _DEQUE_SUPER __deque__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp), 0>
-    typedef deque<_Tp> _Self;
+  typedef deque<_Tp> _Self;
 # endif
-    typedef _DEQUE_SUPER _Super;
+  typedef _DEQUE_SUPER _Super;
 public:
-    __CONTAINER_SUPER_TYPEDEFS
-    __IMPORT_SUPER_COPY_ASSIGNMENT(deque,_DEQUE_SUPER)
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(deque, _Self, _DEQUE_SUPER)
     deque() : _DEQUE_SUPER() { }
     deque(size_type __n, const _Tp& __value) : _DEQUE_SUPER(__n, __value) { }
     explicit deque(size_type __n) : _DEQUE_SUPER(__n) { }

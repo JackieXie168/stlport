@@ -6,7 +6,7 @@ srcdir = .
 VPATH = .
 
 # point this to proper location
-STL_INCL=-I../../STLport/SC5 -I../../stl
+STL_INCL=-I../../stl/SC5 -I../../stl
 
 LIST  = stl_test.cpp accum1.cpp accum2.cpp \
 	adjdiff0.cpp adjdiff1.cpp adjdiff2.cpp \

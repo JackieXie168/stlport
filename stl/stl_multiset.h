@@ -255,9 +255,9 @@ class multiset : public __multiset__<_Key, _Compare, __STL_DEFAULT_ALLOCATOR(_Ke
 public:
 # define __MS_SUPER __multiset__<_Key, _Compare, __STL_DEFAULT_ALLOCATOR(_Key) >
     typedef __MS_SUPER _Super;
-    __CONTAINER_SUPER_TYPEDEFS
+    __IMPORT_WITH_REVERSE_ITERATORS(_Super)
     // copy & assignment from super
-    __IMPORT_SUPER_COPY_ASSIGNMENT(multiset,__MS_SUPER)
+    __IMPORT_SUPER_COPY_ASSIGNMENT(multiset, _Self, __MS_SUPER)
     explicit multiset() : __MS_SUPER(_Compare()) {}
     explicit multiset(const _Compare& __comp) : __MS_SUPER(__comp) {}
     multiset(const value_type* __first, const value_type* __last) : 
