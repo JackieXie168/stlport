@@ -4,7 +4,11 @@
 INCLUDES :=
 
 CXX := c++
+ifeq ($(OSNAME), hp-ux)
+CC := gcc -std=gnu99
+else
 CC := gcc -ansi
+endif
 
 ifdef TARGET_OS
 CXX := ${TARGET_OS}-${CXX}
@@ -113,11 +117,6 @@ CCFLAGS = $(PTHREAD) $(OPT)
 CFLAGS = $(PTHREAD) $(OPT)
 # CXXFLAGS = $(PTHREAD) -nostdinc++ -fexceptions -fident $(OPT)
 CXXFLAGS = $(PTHREAD) -fexceptions -fident $(OPT)
-# This is here due to bug in GNU make 3.79.1 from Solaris build:
-stldbg-static:	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-shared:	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-static-dep:	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-shared-dep:	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
 endif
 
 ifeq ($(OSNAME),linux)
@@ -154,11 +153,6 @@ ifndef STLP_BUILD_NO_THREAD
 DEFS += -D_REENTRANT
 endif
 CXXFLAGS = -fexceptions $(OPT)
-# This is here due to bug in GNU make 3.79 from MacOS build:
-stldbg-static :	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-shared :	CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-static-dep : CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
-stldbg-shared-dep : CPPFLAGS = -D_STLP_DEBUG ${CPPFLAGS}
 endif
 
 ifeq ($(OSNAME),hp-ux)
@@ -166,6 +160,10 @@ CCFLAGS = $(PTHREAD) $(OPT)
 CFLAGS = $(PTHREAD) $(OPT)
 # CXXFLAGS = $(PTHREAD) -nostdinc++ -fexceptions -fident $(OPT)
 CXXFLAGS = $(PTHREAD) -fexceptions -fident $(OPT)
+ifneq ($(M_ARCH),ia64)
+release-static : OPT += -fno-reorder-blocks
+release-shared : OPT += -fno-reorder-blocks
+endif
 endif
 
 #ifeq ($(CXX_VERSION_MAJOR),3)

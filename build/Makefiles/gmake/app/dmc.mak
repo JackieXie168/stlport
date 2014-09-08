@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <05/12/07 00:57:13 ptr>
-# $Id: dmc.mak 2484 2006-06-24 20:30:59Z dums $
+# $Id$
 
 CXXFLAGS += -w6 -w7 -w18
 

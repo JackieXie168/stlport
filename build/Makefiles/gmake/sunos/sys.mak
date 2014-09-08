@@ -1,5 +1,5 @@
 # Time-stamp: <05/09/09 21:10:32 ptr>
-# $Id: sys.mak 1802 2005-11-01 08:25:57Z complement $
+# $Id$
 
 INSTALL := /usr/ucb/install
 

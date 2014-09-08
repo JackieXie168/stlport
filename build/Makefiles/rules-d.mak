@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/27 17:20:22 ptr>
-# $Id: rules-d.mak 1459 2005-04-18 21:25:32Z ptr $
+# $Id$
 
 # Rules for release output:
 

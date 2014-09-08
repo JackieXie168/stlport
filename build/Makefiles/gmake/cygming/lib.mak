@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/07/15 18:23:04 ptr>
-# $Id: lib.mak 2384 2006-05-30 20:25:17Z dums $
+# $Id$
 
 ifeq (gcc, $(COMPILER_NAME))
 LIB_PREFIX := lib

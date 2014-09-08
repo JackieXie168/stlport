@@ -1,7 +1,10 @@
 # Time-stamp: <05/09/09 21:05:18 ptr>
-# $Id: targetsys.mak 1802 2005-11-01 08:25:57Z complement $
 
+ifeq ($(M_ARCH),ia64)
+SO := so
+else
 SO := sl
+endif
 
 ARCH := a
 AR := ar

@@ -1,5 +1,5 @@
 # Time-stamp: <05/09/09 21:03:45 ptr>
-# $Id: targetsys.mak 2109 2006-01-22 14:15:51Z dums $
+# $Id$
 
 CC ?= gcc
 CXX ?= g++

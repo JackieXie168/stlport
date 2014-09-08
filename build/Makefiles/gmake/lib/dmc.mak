@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/11/30 11:41:22 ptr>
-# $Id: dmc.mak 2384 2006-05-30 20:25:17Z dums $
+# $Id$
 
 release-shared: OPT += -WD
 dbg-shared: OPT += -WD

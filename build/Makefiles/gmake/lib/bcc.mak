@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <03/11/30 11:41:22 ptr>
-# $Id: bcc.mak 2632 2006-10-05 19:34:16Z dums $
+# $Id$
 
 
 release-shared : OPT += -tWD

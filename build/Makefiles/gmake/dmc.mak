@@ -1,5 +1,5 @@
 # Time-stamp: <03/11/30 11:46:14 ptr>
-# $Id: dmc.mak 2484 2006-06-24 20:30:59Z dums $
+# $Id$
 
 #INCLUDES :=
 

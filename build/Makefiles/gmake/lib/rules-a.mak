@@ -1,5 +1,5 @@
 # -*- makefile -*- Time-stamp: <04/07/25 16:54:59 ptr>
-# $Id: rules-a.mak 2632 2006-10-05 19:34:16Z dums $
+# $Id$
 
 # Static libraries tags
 

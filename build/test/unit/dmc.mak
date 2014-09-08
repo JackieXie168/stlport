@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <03/10/12 20:35:49 ptr>
-# $Id: dmc.mak 1871 2005-11-26 20:55:00Z dums $
+# $Id$
 
 SRCROOT := ../..
 COMPILER_NAME := dmc

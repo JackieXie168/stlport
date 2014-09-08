@@ -13,7 +13,7 @@
  *
  */
 
-/* $Id: cppunit_mini.h 2490 2006-06-27 19:49:26Z dums $ */
+/* $Id$ */
 
 #ifndef _CPPUNITMPFR_H_
 #define _CPPUNITMPFR_H_
