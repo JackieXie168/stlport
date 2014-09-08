@@ -38,15 +38,9 @@
 
 _STLP_BEGIN_NAMESPACE
 
-//Specific iterator traits creation
-_STLP_CREATE_ITERATOR_TRAITS(SetTraitsT, Const_traits)
-
 template <class _Key, _STLP_DFL_TMPL_PARAM(_Compare, less<_Key>),
                       _STLP_DFL_TMPL_PARAM(_Alloc, allocator<_Key>) >
 class set
-#if defined (_STLP_USE_PARTIAL_SPEC_WORKAROUND)
-          : public __stlport_class<set<_Key, _Compare, _Alloc> >
-#endif
 {
   typedef set<_Key, _Compare, _Alloc> _Self;
 public:
@@ -56,15 +50,10 @@ public:
   typedef _Compare key_compare;
   typedef _Compare value_compare;
 
-private:
-  //Specific iterator traits creation
-  typedef _STLP_PRIV _SetTraitsT<value_type> _SetTraits;
-
-public:
   //Following typedef have to be public for __move_traits specialization.
   typedef _STLP_PRIV _Rb_tree<key_type, key_compare,
                               value_type, _STLP_PRIV _Identity<value_type>,
-                              _SetTraits, _Alloc> _Rep_type;
+                              _Alloc> _Rep_type;
 
   typedef typename _Rep_type::pointer pointer;
   typedef typename _Rep_type::const_pointer const_pointer;
@@ -85,57 +74,26 @@ private:
 public:
 
   // allocation/deallocation
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   explicit set(const _Compare& __comp = _Compare(),
                const allocator_type& __a = allocator_type())
-#else
-  set()
-    : _M_t(_Compare(), allocator_type()) {}
-  explicit set(const _Compare& __comp)
-    : _M_t(__comp, allocator_type()) {}
-  set(const _Compare& __comp, const allocator_type& __a)
-#endif
     : _M_t(__comp, __a) {}
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   set(_InputIterator __first, _InputIterator __last)
     : _M_t(_Compare(), allocator_type())
     { _M_t.insert_unique(__first, __last); }
 
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  set(_InputIterator __first, _InputIterator __last, const _Compare& __comp)
-    : _M_t(__comp, allocator_type()) { _M_t.insert_unique(__first, __last); }
-#  endif
   template <class _InputIterator>
   set(_InputIterator __first, _InputIterator __last, const _Compare& __comp,
-      const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
-    : _M_t(__comp, __a) { _M_t.insert_unique(__first, __last); }
-#else
-  set(const value_type* __first, const value_type* __last)
-    : _M_t(_Compare(), allocator_type())
-    { _M_t.insert_unique(__first, __last); }
-
-  set(const value_type* __first,
-      const value_type* __last, const _Compare& __comp,
       const allocator_type& __a = allocator_type())
     : _M_t(__comp, __a) { _M_t.insert_unique(__first, __last); }
-
-  set(const_iterator __first, const_iterator __last)
-    : _M_t(_Compare(), allocator_type())
-    { _M_t.insert_unique(__first, __last); }
-
-  set(const_iterator __first, const_iterator __last, const _Compare& __comp,
-      const allocator_type& __a = allocator_type())
-    : _M_t(__comp, __a) { _M_t.insert_unique(__first, __last); }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   set(const _Self& __x) : _M_t(__x._M_t) {}
 
 #if !defined (_STLP_NO_MOVE_SEMANTIC)
-  set(__move_source<_Self> src)
-    : _M_t(__move_source<_Rep_type>(src.get()._M_t)) {}
+  set(__move_source<_Self> src) :
+      _M_t(__move_source<_Rep_type>(src.get()._M_t))
+    { }
 #endif
 
   _Self& operator=(const _Self& __x) {
@@ -169,16 +127,9 @@ public:
   { return _M_t.insert_unique(__x); }
   iterator insert(iterator __pos, const value_type& __x)
   { return _M_t.insert_unique( __pos , __x); }
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   void insert(_InputIterator __first, _InputIterator __last)
   { _M_t.insert_unique(__first, __last); }
-#else
-  void insert(const_iterator __first, const_iterator __last)
-  { _M_t.insert_unique(__first, __last); }
-  void insert(const value_type* __first, const value_type* __last)
-  { _M_t.insert_unique(__first, __last); }
-#endif /* _STLP_MEMBER_TEMPLATES */
   void erase(iterator __pos) { _M_t.erase( __pos ); }
   size_type erase(const key_type& __x) { return _M_t.erase_unique(__x); }
   void erase(iterator __first, iterator __last) { _M_t.erase(__first, __last ); }
@@ -208,15 +159,9 @@ public:
   { return _M_t.equal_range_unique(__x); }
 };
 
-//Specific iterator traits creation
-_STLP_CREATE_ITERATOR_TRAITS(MultisetTraitsT, Const_traits)
-
 template <class _Key, _STLP_DFL_TMPL_PARAM(_Compare, less<_Key>),
                       _STLP_DFL_TMPL_PARAM(_Alloc, allocator<_Key>) >
 class multiset
-#if defined (_STLP_USE_PARTIAL_SPEC_WORKAROUND)
-               : public __stlport_class<multiset<_Key, _Compare, _Alloc> >
-#endif
 {
   typedef multiset<_Key, _Compare, _Alloc> _Self;
 public:
@@ -227,15 +172,10 @@ public:
   typedef _Compare key_compare;
   typedef _Compare value_compare;
 
-private:
-  //Specific iterator traits creation
-  typedef _STLP_PRIV _MultisetTraitsT<value_type> _MultisetTraits;
-
-public:
   //Following typedef have to be public for __move_traits specialization.
   typedef _STLP_PRIV _Rb_tree<key_type, key_compare,
                               value_type, _STLP_PRIV _Identity<value_type>,
-                              _MultisetTraits, _Alloc> _Rep_type;
+                              _Alloc> _Rep_type;
 
   typedef typename _Rep_type::pointer pointer;
   typedef typename _Rep_type::const_pointer const_pointer;
@@ -254,19 +194,10 @@ private:
   _STLP_KEY_TYPE_FOR_CONT_EXT(key_type)
 
 public:
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   explicit multiset(const _Compare& __comp = _Compare(),
                     const allocator_type& __a = allocator_type())
-#else
-  multiset()
-    : _M_t(_Compare(), allocator_type()) {}
-  explicit multiset(const _Compare& __comp)
-    : _M_t(__comp, allocator_type()) {}
-  multiset(const _Compare& __comp, const allocator_type& __a)
-#endif
     : _M_t(__comp, __a) {}
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   multiset(_InputIterator __first, _InputIterator __last)
     : _M_t(_Compare(), allocator_type())
@@ -275,33 +206,8 @@ public:
   template <class _InputIterator>
   multiset(_InputIterator __first, _InputIterator __last,
            const _Compare& __comp,
-           const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
-    : _M_t(__comp, __a) { _M_t.insert_equal(__first, __last); }
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  multiset(_InputIterator __first, _InputIterator __last,
-           const _Compare& __comp)
-    : _M_t(__comp, allocator_type()) { _M_t.insert_equal(__first, __last); }
-#  endif
-#else
-  multiset(const value_type* __first, const value_type* __last)
-    : _M_t(_Compare(), allocator_type())
-    { _M_t.insert_equal(__first, __last); }
-
-  multiset(const value_type* __first, const value_type* __last,
-           const _Compare& __comp,
            const allocator_type& __a = allocator_type())
     : _M_t(__comp, __a) { _M_t.insert_equal(__first, __last); }
-
-  multiset(const_iterator __first, const_iterator __last)
-    : _M_t(_Compare(), allocator_type())
-    { _M_t.insert_equal(__first, __last); }
-
-  multiset(const_iterator __first, const_iterator __last,
-           const _Compare& __comp,
-           const allocator_type& __a = allocator_type())
-    : _M_t(__comp, __a) { _M_t.insert_equal(__first, __last); }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   multiset(const _Self& __x) : _M_t(__x._M_t) {}
   _Self& operator=(const _Self& __x) {
@@ -310,8 +216,9 @@ public:
   }
 
 #if !defined (_STLP_NO_MOVE_SEMANTIC)
-  multiset(__move_source<_Self> src)
-    : _M_t(__move_source<_Rep_type>(src.get()._M_t)) {}
+  multiset(__move_source<_Self> src) :
+      _M_t(__move_source<_Rep_type>(src.get()._M_t))
+    { }
 #endif
 
   // accessors:
@@ -341,16 +248,9 @@ public:
   iterator insert(iterator __pos, const value_type& __x)
   { return _M_t.insert_equal(__pos, __x); }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   void insert(_InputIterator __first, _InputIterator __last)
   { _M_t.insert_equal(__first, __last); }
-#else
-  void insert(const value_type* __first, const value_type* __last)
-  { _M_t.insert_equal(__first, __last); }
-  void insert(const_iterator __first, const_iterator __last)
-  { _M_t.insert_equal(__first, __last); }
-#endif /* _STLP_MEMBER_TEMPLATES */
   void erase(iterator __pos) { _M_t.erase( __pos ); }
   size_type erase(const key_type& __x) { return _M_t.erase(__x); }
   void erase(iterator __first, iterator __last) { _M_t.erase( __first, __last ); }
@@ -391,17 +291,30 @@ _STLP_BEGIN_NAMESPACE
 #undef  _STLP_TEMPLATE_CONTAINER
 #undef  _STLP_TEMPLATE_HEADER
 
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION) && !defined (_STLP_NO_MOVE_SEMANTIC)
-template <class _Key, class _Compare, class _Alloc>
-struct __move_traits<set<_Key,_Compare,_Alloc> > :
-  _STLP_PRIV __move_traits_aux<typename set<_Key,_Compare,_Alloc>::_Rep_type>
-{};
+#if !defined (_STLP_NO_MOVE_SEMANTIC)
 
 template <class _Key, class _Compare, class _Alloc>
-struct __move_traits<multiset<_Key,_Compare,_Alloc> > :
-  _STLP_PRIV __move_traits_aux<typename multiset<_Key,_Compare,_Alloc>::_Rep_type>
-{};
-#endif
+struct __has_trivial_move<set<_Key,_Compare,_Alloc> > :
+  public integral_constant<bool, __has_trivial_move<typename set<_Key,_Compare,_Alloc>::_Rep_type>::value> /* true_type */
+{ };
+
+template <class _Key, class _Compare, class _Alloc>
+struct __has_move_constructor<set<_Key,_Compare,_Alloc> > :
+    public true_type
+{ };
+
+template <class _Key, class _Compare, class _Alloc>
+struct __has_trivial_move<multiset<_Key,_Compare,_Alloc> > :
+  public integral_constant<bool, __has_trivial_move<typename multiset<_Key,_Compare,_Alloc>::_Rep_type>::value> /* true_type */
+{ };
+
+template <class _Key, class _Compare, class _Alloc>
+struct __has_move_constructor<multiset<_Key,_Compare,_Alloc> > :
+    public true_type
+{ };
+
+#endif /* */
+
 
 _STLP_END_NAMESPACE
 

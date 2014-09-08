@@ -76,19 +76,19 @@ stlp_in_range_aux(const _Iterator1& __it, const _Iterator& __first,
 
 template <class _Iterator>
 bool _STLP_CALL __check_range_aux(const _Iterator& __first, const _Iterator& __last,
-                                  const __false_type& /*_IsIntegral*/) {
+                                  const false_type& /*_IsIntegral*/) {
   _STLP_VERBOSE_RETURN(__valid_range(__first,__last), _StlMsg_INVALID_RANGE )
   return true;
 }
 
 template <class _Integral>
 bool _STLP_CALL __check_range_aux(_Integral /*__first*/, _Integral /*__last*/,
-                                  const __true_type& /*_IsIntegral*/)
+                                  const true_type& /*_IsIntegral*/)
 { return true; }
 
 template <class _Iterator>
 bool _STLP_CALL  __check_range(const _Iterator& __first, const _Iterator& __last) {
-  typedef typename _IsIntegral<_Iterator>::_Ret _Integral;
+  typedef typename is_integral<_Iterator>::type _Integral;
   return __check_range_aux(__first, __last, _Integral());
 }
 
@@ -130,7 +130,7 @@ void _STLP_CALL __invalidate_range(const __owned_list* __base,
     if (!(&__first == __STATIC_CAST(_Iterator*, __pos) || &__last == __STATIC_CAST(_Iterator*, __pos)) &&
         stlp_in_range_aux(__STATIC_CAST(_Iterator*, __pos)->_M_iterator,
                           __first._M_iterator, __last._M_iterator,
-                          _STLP_ITERATOR_CATEGORY(__first, _Iterator))) {
+                          typename iterator_traits<_Iterator>::iterator_category())) {
       __pos->_M_owner = 0;
       __prev->_M_next = __pos->_M_next;
     }
@@ -183,7 +183,7 @@ void _STLP_CALL  __change_range_owner(const _Iterator& __first,
     if (!(&__first == __STATIC_CAST(_Iterator*, __pos) || &__last == __STATIC_CAST(_Iterator*, __pos)) &&
         stlp_in_range_aux(__STATIC_CAST(_Iterator*, __pos)->_M_iterator,
                           __first._M_iterator, __last._M_iterator,
-                          _STLP_ITERATOR_CATEGORY(__first, _Iterator))) {
+                          typename iterator_traits<_Iterator>::iterator_category())) {
       __pos->_M_owner = __CONST_CAST(__owned_list*, __dst);
       //remove __pos from __base:
       __src_prev->_M_next = __pos->_M_next;

@@ -9,7 +9,7 @@
 #  define _STLP_RAND48 1
 #endif
 /* #  define _STLP_RAND48 1 */
-/* #define _STLP_NO_NATIVE_MBSTATE_T      1 */
+#define _STLP_NO_NATIVE_MBSTATE_T      1
 #define _STLP_HPACC_BROKEN_BUFEND       1
 #define _STLP_WCHAR_HPACC_EXCLUDE      1
 
@@ -40,10 +40,6 @@
 #if (__HP_aCC >= 32500 )
 #  define _STLP_USE_NEW_C_HEADERS
 
-#  define _STLP_FORCE_ALLOCATORS(t,a) \
-  typedef typename _Alloc_traits<t,a>::_Orig _STLP_dummy_type1;\
-  typedef typename _STLP_dummy_type1:: _STLP_TEMPLATE rebind<t>::other _STLP_dummy_type2;
-
 #  if defined (_HP_NAMESPACE_STD) // option -AA
 /* from now, we have a full standard lib in namespace std
  *
@@ -60,9 +56,6 @@
 #endif
 
 #if (__HP_aCC >= 31400 && __HP_aCC < 32500)
-#  define _STLP_FORCE_ALLOCATORS(t,a) \
-typedef typename _Alloc_traits<t,a>::_Orig _STLP_dummy_type1;\
-typedef typename _STLP_dummy_type1:: _STLP_TEMPLATE rebind<t>::other _STLP_dummy_type2;
 #  define _STLP_NO_CWCHAR
 #  if defined (_NAMESPACE_STD) // option -AA
 /* from now, we have a full standard lib in namespace std */
@@ -87,7 +80,7 @@ typedef typename _STLP_dummy_type1:: _STLP_TEMPLATE rebind<t>::other _STLP_dummy
  */
 #  define _STLP_PARTIAL_SPEC_NEEDS_TEMPLATE_ARGS 1
 /* ?? fbp : maybe present in some versions ? */
-#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
+#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1 /* support removed */
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
 /* <exception> and stuff is in global namespace */
 #  define _STLP_VENDOR_GLOBAL_EXCEPT_STD
@@ -116,9 +109,6 @@ static void _STLP_dummy_literal_3() { const char *p = "123456700000000000000089"
 #    define _STLP_NO_CWCHAR
 #  endif
 
-#  define _STLP_FORCE_ALLOCATORS(t,a) \
-  typedef typename _Alloc_traits<t,a>::_Orig _STLP_dummy_type1;\
-  typedef typename _STLP_dummy_type1:: _STLP_TEMPLATE rebind<t>::other _STLP_dummy_type2;
 #endif
 
 #if __HP_aCC == 1

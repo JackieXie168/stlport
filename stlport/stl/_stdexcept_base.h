@@ -28,8 +28,8 @@
 #  if defined(_STLP_USE_EXCEPTIONS) || \
     !(defined(_MIPS_SIM) && defined(_ABIO32) && (_MIPS_SIM == _ABIO32))
 
-#    ifndef _STLP_INTERNAL_CSTRING
-#      include <stl/_cstring.h>
+#    ifndef _STLP_CSTRING
+#      include <cstring>
 #    endif
 
 #    ifndef _STLP_STRING_FWD_H
@@ -58,8 +58,8 @@ _STLP_BEGIN_NAMESPACE
 #    endif
 
 #    if !defined (_STLP_NO_EXCEPTION_HEADER)
-#      if !defined (_STLP_EXCEPTION_BASE) && !defined (_STLP_BROKEN_EXCEPTION_CLASS) && \
-           defined (_STLP_USE_NAMESPACES) &&  defined (_STLP_USE_OWN_NAMESPACE)
+#      if !defined (_STLP_EXCEPTION_BASE) && \
+           defined (_STLP_USE_NAMESPACES) && defined (_STLP_USE_OWN_NAMESPACE)
 using _STLP_VENDOR_EXCEPT_STD::exception;
 #      endif
 #    endif

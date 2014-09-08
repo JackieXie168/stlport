@@ -67,7 +67,8 @@ inline int _FILE_fd(const FILE *__f) { return (int) __f->__pad[2]; }
 
 #elif defined (__hpux) /* && defined(__hppa) && defined(__HP_aCC)) */ || \
       defined (__MVS__) || \
-      defined (_STLP_USE_UCLIBC) /* should be before _STLP_USE_GLIBC */
+      defined (_STLP_USE_UCLIBC) || /* should be before _STLP_USE_GLIBC */ \
+      defined (__ANDROID__)         /* should be before _STLP_USE_GLIBC */
 
 inline int _FILE_fd(const FILE *__f) { return fileno(__CONST_CAST(FILE*, __f)); }
 
@@ -78,20 +79,6 @@ inline int _FILE_fd(const FILE *__f) { return __f->_fileno; }
 #elif defined (__BORLANDC__)
 
 inline int _FILE_fd(const FILE *__f) { return __f->fd; }
-
-#elif defined (__MWERKS__)
-
-/* using MWERKS-specific defines here to detect other OS targets
- * dwa: I'm not sure they provide fileno for all OS's, but this should
- * work for Win32 and WinCE
-
- * Hmm, at least for Novell NetWare __dest_os == __mac_os true too..
- * May be both __dest_os and __mac_os defined and empty?   - ptr */
-#  if __dest_os == __mac_os
-inline int _FILE_fd(const FILE *__f) { return ::fileno(__CONST_CAST(FILE*, __f)); }
-#  else
-inline int _FILE_fd(const FILE *__f) { return ::_fileno(__CONST_CAST(FILE*, __f)); }
-#  endif
 
 #elif defined (__QNXNTO__) || defined (__WATCOMC__) || defined (__EMX__)
 
@@ -113,5 +100,6 @@ _STLP_END_NAMESPACE
 #endif /* _STLP_STDIO_FILE_H */
 
 /* Local Variables:
- * mode:C++
- * End: */
+ * mode: C++
+ * End:
+ */

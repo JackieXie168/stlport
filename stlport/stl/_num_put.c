@@ -22,9 +22,7 @@
 #  include <stl/_num_put.h>
 #endif
 
-#ifndef _STLP_INTERNAL_LIMITS
-#  include <stl/_limits.h>
-#endif
+#include <limits>
 
 _STLP_BEGIN_NAMESPACE
 
@@ -273,7 +271,7 @@ _STLP_DECLSPEC const char* _STLP_CALL __hex_char_table_hi();
 
 template <class _Integer>
 inline char* _STLP_CALL
-__write_decimal_backward(char* __ptr, _Integer __x, ios_base::fmtflags __flags, const __true_type& /* is_signed */) {
+__write_decimal_backward(char* __ptr, _Integer __x, ios_base::fmtflags __flags, const true_type& /* is_signed */) {
   const bool __negative = __x < 0 ;
   __max_int_t __temp = __x;
   __umax_int_t __utemp = __negative?-__temp:__temp;
@@ -290,7 +288,7 @@ __write_decimal_backward(char* __ptr, _Integer __x, ios_base::fmtflags __flags, 
 
 template <class _Integer>
 inline char* _STLP_CALL
-__write_decimal_backward(char* __ptr, _Integer __x, ios_base::fmtflags __flags, const __false_type& /* is_signed */) {
+__write_decimal_backward(char* __ptr, _Integer __x, ios_base::fmtflags __flags, const false_type& /* is_signed */) {
   for (; __x != 0; __x /= 10)
     *--__ptr = (char)((int)(__x % 10) + '0');
   // put sign if requested
@@ -355,7 +353,7 @@ __write_integer_backward(char* __buf, ios_base::fmtflags __flags, _Integer __x) 
           else
             __ptr = __write_decimal_backward(__ptr, __x, __flags, __false_type() );
 #else
-          typedef typename __bool2type<numeric_limits<_Integer>::is_signed>::_Ret _IsSigned;
+          typedef typename is_signed<_Integer>::type _IsSigned;
           __ptr = __write_decimal_backward(__ptr, __x, __flags, _IsSigned());
 #endif
         }

@@ -17,57 +17,43 @@
  */
 
 #ifndef _STLP_MEMORY
+#define _STLP_MEMORY
+
+#include <type_traits>
 
 #ifndef _STLP_OUTERMOST_HEADER_ID
 #  define _STLP_OUTERMOST_HEADER_ID 0x46
 #  include <stl/_prolog.h>
-#  define _STLP_MEMORY
 #endif
 
-#if (_STLP_OUTERMOST_HEADER_ID == 0x46)
-#  ifndef _STLP_INTERNAL_ALLOC_H
-#    include <stl/_alloc.h>
-#  endif
-
-#  ifndef _STLP_INTERNAL_TEMPBUF_H
-#    include <stl/_tempbuf.h>
-#  endif
-
-#  ifndef _STLP_INTERNAL_RAW_STORAGE_ITER_H
-#    include <stl/_raw_storage_iter.h>
-#  endif
-
-#  include <stl/_auto_ptr.h>
+#ifndef _STLP_INTERNAL_ALGOBASE_H
+#  include <stl/_algobase.h>
 #endif
 
-#if (_STLP_OUTERMOST_HEADER_ID != 0x46) || defined (_STLP_IMPORT_VENDOR_STD)
-#  if defined (__MSL__)
-#    include _STLP_NATIVE_HEADER(limits)
-#  endif
-
-#  if !defined(_STLP_NO_EXTENSIONS) && defined(_STLP_USE_BOOST_SUPPORT)
-#    define BOOST_TR1_MEMORY_INCLUDED
-#    define BOOST_TR1_FULL_MEMORY_INCLUDED
-#  endif
-
-#  if defined (_STLP_HAS_INCLUDE_NEXT)
-#    include_next <memory>
-#  else
-#    include _STLP_NATIVE_HEADER(memory)
-#  endif
-
-#  if defined (__MSL__) && (__MSL__ >= 0x2405   && __MSL__ < 0x5201) 
-/*  980401 vss  MSL 2.4  Pro 3 Release  */  
-#    include <new_mem.h>
-#  endif
+#ifndef _STLP_INTERNAL_ALLOC_H
+#  include <stl/_alloc.h>
 #endif
+
+#ifndef _STLP_INTERNAL_TEMPBUF_H
+#  include <stl/_tempbuf.h>
+#endif
+
+#ifndef _STLP_INTERNAL_RAW_STORAGE_ITER_H
+#  include <stl/_raw_storage_iter.h>
+#endif
+
+#include <stl/_stdexcept_base.h>
+
+#include <stl/_auto_ptr.h>
+
+#include <stl/_shared_ptr.h>
 
 #if (_STLP_OUTERMOST_HEADER_ID == 0x46)
 #  include <stl/_epilog.h>
 #  undef _STLP_OUTERMOST_HEADER_ID
 #endif
 
-#if !defined(_STLP_NO_EXTENSIONS) && defined(_STLP_USE_BOOST_SUPPORT)
+#if defined(_STLP_USE_BOOST_SUPPORT)
 
 namespace boost {
 

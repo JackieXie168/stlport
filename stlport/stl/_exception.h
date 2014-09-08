@@ -34,50 +34,59 @@
 #    undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
 #  endif
 
-#  if defined (_STLP_BROKEN_EXCEPTION_CLASS)
-#    define exception     _STLP_NULLIFIED_BROKEN_EXCEPTION_CLASS
-#    define bad_exception _STLP_NULLIFIED_BROKEN_BAD_EXCEPTION_CLASS
-#    if defined (_STLP_NO_NEW_NEW_HEADER)
-#      include _STLP_NATIVE_CPP_RUNTIME_HEADER(Exception.h)
-#    else
-#      include _STLP_NATIVE_CPP_RUNTIME_HEADER(Exception)
-#    endif
-#    undef exception
-#    undef bad_exception
-#  else
-#    if defined (_STLP_NO_NEW_NEW_HEADER)
-#      if defined (_STLP_HAS_INCLUDE_NEXT)
-#        include_next <exception.h>
-#      else
-#        include _STLP_NATIVE_CPP_RUNTIME_HEADER(exception.h)
-#      endif
-#    else
-#      if defined (_STLP_HAS_INCLUDE_NEXT)
-#        include_next <exception>
-#      else
-#        include _STLP_NATIVE_CPP_RUNTIME_HEADER(exception)
-#      endif
-#    endif
-#  endif
+#  ifdef _STLP_VENDOR_EXCEPTION
 
-#  if defined (_STLP_HAS_SPECIFIC_PROLOG_EPILOG) && defined (_STLP_MSVC_LIB) && (_STLP_MSVC_LIB < 1300)
-// dwa 02/04/00
-// The header <yvals.h> which ships with vc6 and is included by its native <exception>
-// actually turns on warnings, so we have to turn them back off.
-#    include <stl/config/_warnings_off.h>
-#  endif
+namespace _STLP_VENDOR_STD {
+
+class exception
+{
+  public:
+    exception() throw() { }
+    virtual ~exception() throw();
+    virtual const char* what() const throw();
+};
+
+class bad_exception :
+        public exception
+{
+  public:
+    bad_exception() throw() { }
+    virtual ~bad_exception() throw();
+    virtual const char* what() const throw();
+};
+
+typedef void (*terminate_handler)();
+typedef void (*unexpected_handler)();
+
+terminate_handler set_terminate( terminate_handler ) throw();
+void terminate() throw() __attribute__ ((__noreturn__));
+
+unexpected_handler set_unexpected( unexpected_handler ) throw();
+void unexpected() __attribute__ ((__noreturn__));
+
+bool uncaught_exception() throw() __attribute__ ((__pure__));
+
+} // namespace _STLP_VENDOR_STD
+
+#  else /* _STLP_VENDOR_EXCEPTION */
+
+#    if defined (_STLP_HAS_INCLUDE_NEXT)
+#      include_next <exception>
+#    else
+#      include _STLP_NATIVE_CPP_RUNTIME_HEADER(exception)
+#    endif
+
+#  endif /* _STLP_VENDOR_EXCEPTION */
 
 #  if defined (_STLP_USE_OWN_NAMESPACE)
 
 _STLP_BEGIN_NAMESPACE
-#    if !defined (_STLP_BROKEN_EXCEPTION_CLASS)
-#      if !defined (_STLP_USING_PLATFORM_SDK_COMPILER) || !defined (_WIN64)
+#    if !defined (_STLP_USING_PLATFORM_SDK_COMPILER) || !defined (_WIN64)
 using _STLP_VENDOR_EXCEPT_STD::exception;
-#      else
+#    else
 using ::exception;
-#      endif
-using _STLP_VENDOR_EXCEPT_STD::bad_exception;
 #    endif
+using _STLP_VENDOR_EXCEPT_STD::bad_exception;
 
 #    if !defined (_STLP_NO_USING_FOR_GLOBAL_FUNCTIONS)
 // fbp : many platforms present strange mix of
@@ -154,7 +163,7 @@ bool uncaught_exception(); // not implemented under mpw as of Jan/1999
 
 #endif /* _STLP_NO_EXCEPTION_HEADER */
 
-#if defined (_STLP_NO_EXCEPTION_HEADER) || defined (_STLP_BROKEN_EXCEPTION_CLASS)
+#if defined (_STLP_NO_EXCEPTION_HEADER)
 _STLP_BEGIN_NAMESPACE
 
 // section 18.6.1

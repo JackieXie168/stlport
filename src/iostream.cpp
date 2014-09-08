@@ -20,7 +20,7 @@
 #include <memory>
 #include <istream>
 #include <fstream>
-#if defined (_STLP_MSVC) || defined (__MWERKS__) || defined (__ICL) || defined (__ISCPP__)
+#if defined (_STLP_MSVC) || defined (__ICL) || defined (__ISCPP__)
 #  define _STLP_USE_NOT_INIT_SEGMENT
 #  include <iostream>
 #endif
@@ -61,11 +61,7 @@ _STLP_BEGIN_NAMESPACE
 // be executed. We then explicitly invoke the constructors
 // with placement new in ios_base::_S_initialize()
 
-#  if defined (__MWERKS__)
-#    pragma suppress_init_code on
-#  else
-#    pragma init_seg("STLPORT_NO_INIT")
-#  endif
+#  pragma init_seg("STLPORT_NO_INIT")
 
 _STLP_DECLSPEC istream cin(0);
 _STLP_DECLSPEC ostream cout(0);
@@ -77,10 +73,6 @@ _STLP_DECLSPEC wistream wcin(0);
 _STLP_DECLSPEC wostream wcout(0);
 _STLP_DECLSPEC wostream wcerr(0);
 _STLP_DECLSPEC wostream wclog(0);
-#  endif
-
-#  if defined (__MWERKS__)
-#    pragma suppress_init_code off
 #  endif
 
 #else
@@ -132,7 +124,7 @@ _Stl_aligned_buffer<wostream> wclog;
 #      pragma alias("?wclog@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wclog@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
 #    endif
 #  endif
-#endif /* STL_MSVC || __MWERKS__ */
+#endif /* STL_MSVC */
 
 // Member functions from class ios_base and ios_base::Init
 
@@ -155,13 +147,15 @@ ios_base::Init::~Init() {
   }
 }
 
-static int _Stl_extract_open_param(FILE* f)
+namespace {
+int _Stl_extract_open_param(FILE* f)
 { return _FILE_fd(f); }
 
 #ifdef _STLP_REDIRECT_STDSTREAMS
-static const char* _Stl_extract_open_param(const char* name)
+const char* _Stl_extract_open_param(const char* name)
 { return name; }
 #endif
+} // end anonymous namespace
 
 template <class _Tp>
 static filebuf*
@@ -263,10 +257,10 @@ void _STLP_CALL ios_base::_S_uninitialize() {
   delete ptr_cerr->rdbuf(0);
   delete ptr_clog->rdbuf(0);
 
-  _Destroy(ptr_cin);
-  _Destroy(ptr_cout);
-  _Destroy(ptr_cerr);
-  _Destroy(ptr_clog);
+  ptr_cin->~istream();
+  ptr_cout->~ostream();
+  ptr_cerr->~ostream();
+  ptr_clog->~ostream();
 
 #ifndef _STLP_NO_WCHAR_T
   wistream* ptr_wcin  = &wcin;
@@ -285,10 +279,10 @@ void _STLP_CALL ios_base::_S_uninitialize() {
   delete ptr_wcerr->rdbuf(0);
   delete ptr_wclog->rdbuf(0);
 
-  _Destroy(ptr_wcin);
-  _Destroy(ptr_wcout);
-  _Destroy(ptr_wcerr);
-  _Destroy(ptr_wclog);
+  ptr_wcin->~wistream();
+  ptr_wcout->~wostream();
+  ptr_wcerr->~wostream();
+  ptr_wclog->~wostream();
 #endif
 }
 

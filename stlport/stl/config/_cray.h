@@ -18,15 +18,11 @@
 
 #define _STLP_COMPILER "CC"
 
-// Mostly correct guess, change it for Alpha (and other environments
-// that has 64-bit "long")
-#  define _STLP_UINT32_T unsigned long
-
 // Uncomment if long long is available
 #  define _STLP_LONG_LONG long long
 
 // Uncomment this if your compiler can't inline while(), for()
-#  define _STLP_LOOP_INLINE_PROBLEMS 1
+#  define _STLP_LOOP_INLINE_PROBLEMS 1 /* unsupported */
 
 // Uncomment this if your compiler does not support exceptions
 // Cray C++ supports exceptions when '-h exceptions' option is user;
@@ -42,10 +38,10 @@
 #  define _STLP_RAND48 1
 
 // Uncomment if native new-style C library headers lile <cstddef>, etc are not available.
-#   define _STLP_HAS_NO_NEW_C_HEADERS 1
+#   define _STLP_HAS_NO_NEW_C_HEADERS 1 /* unsupported more */
 
 // uncomment if new-style headers <new> is available
-#   define _STLP_NO_NEW_NEW_HEADER 1
+#   define _STLP_NO_NEW_NEW_HEADER 1 /* unsupported more */
 
 // uncomment this if <iostream> and other STD headers put their stuff in ::namespace,
 // not std::

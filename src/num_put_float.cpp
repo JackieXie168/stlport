@@ -22,28 +22,27 @@
 #include <ios>
 #include <locale>
 
-#if defined (__DECCXX)
-#  define NDIG 400
-#else
-#  define NDIG 82
-#endif
+#define NDIG 82
 
 #define todigit(x) ((x)+'0')
 
 #if defined (_STLP_UNIX)
 
 #  if defined (__sun)
+#    // Bug in Solaris 9 headers: FILE used in <floatingpoint.h>, but no
+#    // definition included.
+#    include <stdio.h>
 #    include <floatingpoint.h>
 #  endif
 
-#  if defined (__sun) || defined (__digital__) || defined (__sgi) || defined (_STLP_SCO_OPENSERVER) || defined (__NCR_SVR)
+#  if defined (__sun) || defined (__digital__) || defined (_STLP_SCO_OPENSERVER) || defined (__NCR_SVR)
 // DEC, SGI & Solaris need this
 #    include <values.h>
 #    include <nan.h>
 #  endif
 
 #  if defined (__QNXNTO__) || ( defined(__GNUC__) && defined(__APPLE__) ) || defined(_STLP_USE_UCLIBC) /* 0.9.26 */ || \
-      defined(__FreeBSD__)
+      defined(__FreeBSD__) || defined(__ANDROID__)
 #    define USE_SPRINTF_INSTEAD
 #  endif
 
@@ -92,7 +91,7 @@ _STLP_BEGIN_NAMESPACE
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-#if defined (__MWERKS__) || defined(__BEOS__)
+#if defined(__BEOS__)
 #  define USE_SPRINTF_INSTEAD
 #endif
 
@@ -121,12 +120,11 @@ struct _Dig<0>
 // Tests for infinity and NaN differ on different OSs.  We encapsulate
 // these differences here.
 #if !defined (USE_SPRINTF_INSTEAD)
-#  if defined (__hpux) && defined (__GNUC__)
+#  if defined (__hpux)
 #    define _STLP_USE_SIGN_HELPER
 #  elif defined (__DJGPP) || (defined (_STLP_USE_GLIBC) && ! defined (__MSL__)) || \
       defined (__CYGWIN__) || \
-      defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__) || \
-      defined (__HP_aCC)
+      defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
 static inline bool _Stl_is_nan_or_inf(double x)
 #    if defined (isfinite)
 { return !isfinite(x); }
@@ -250,19 +248,6 @@ static inline char* _Stl_ecvtR(long double x, int n, int* pt, int* sign, char* b
 static inline char* _Stl_fcvtR(long double x, int n, int* pt, int* sign, char* buf)
 { return qfconvert(&x, n, pt, sign, buf); }
 #    endif
-#  elif defined (__DECCXX)
-static inline char* _Stl_ecvtR(double x, int n, int* pt, int* sign, char* buf, size_t bsize)
-{ return (ecvt_r(x, n, pt, sign, buf, bsize) == 0 ? buf : 0); }
-static inline char* _Stl_fcvtR(double x, int n, int* pt, int* sign, char* buf, size_t bsize)
-{ return (fcvt_r(x, n, pt, sign, buf, bsize) == 0 ? buf : 0); }
-#    ifndef _STLP_NO_LONG_DOUBLE
-// fbp : no "long double" conversions !
-static inline char* _Stl_ecvtR(long double x, int n, int* pt, int* sign, char* buf, size_t bsize)
-{ return (ecvt_r((double)x, n, pt, sign, buf, bsize) == 0 ? buf : 0) ; }
-static inline char* _Stl_fcvtR(long double x, int n, int* pt, int* sign, char* buf, size_t bsize)
-{ return (fcvt_r((double)x, n, pt, sign, buf, bsize) == 0 ? buf : 0); }
-#    endif
-#    define _STLP_NEED_CVT_BUFFER_SIZE
 #  elif defined (__hpux)
 static inline char* _Stl_ecvtR(double x, int n, int* pt, int* sign)
 { return ecvt(x, n, pt, sign); }

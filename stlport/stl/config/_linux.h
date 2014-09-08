@@ -47,6 +47,15 @@
 #  define _STLP_VENDOR_GLOBAL_CSTD 1
 #endif
 
+/* At least glibc has ?rand48 family; SVr4, POSIX.1-2001 */
+
+/* Note, that 'rand' (alternative to ?rand48) conforming to SVr4,
+   4.3BSD, C89, C99, POSIX.1-2001. */
+
+/* In Linux, under 'rand' R.N.G. not worse then under lrand48,
+   so prefer 'rand' for integer numbers */
+
+/* #define _STLP_RAND48 1 */
 
 #if defined(_PTHREADS)
 #  define _STLP_THREADS
@@ -57,7 +66,9 @@
 #  endif
 */
 /* This feature exist at least since glibc 2.2.4 */
-/* #  define __FIT_XSI_THR */ /* Unix 98 or X/Open System Interfaces Extention */
+#  define _STLP_XSI_THR /* Unix 98 or X/Open System Interfaces Extention */
+#  define _STLP_PSHARED_MUTEX /* enable mutex, shared between processes */
+#  define _STLP_RWLOCK /* enable rw-mutex interface */
 #  ifdef __USE_XOPEN2K
 /* The IEEE Std. 1003.1j-2000 introduces functions to implement spinlocks. */
 #   ifndef __UCLIBC__ /* There are no spinlocks in uClibc 0.9.27 */
@@ -74,6 +85,9 @@
 #     define _STLP_STATIC_MUTEX _STLP_mutex
 #   endif
 /* #   define __FIT_PSHARED_MUTEX */
+#   ifdef  _STLP_USE_PTHREAD_SPINLOCK
+#     define _STLP_PTHREAD_SPINLOCK /* enable spinlocks interface for mutex */
+#   endif
 #  endif
 #endif
 

@@ -21,29 +21,8 @@
 #    include <stl/_mbstate_t.h>
 #  endif
 #else
-#  if defined (__GNUC__)
-#    if defined (_STLP_HAS_INCLUDE_NEXT)
-#      include_next <cstddef>
-#    else
-#      include _STLP_NATIVE_CPP_C_HEADER(cstddef)
-#    endif
-#  endif
 
-#  if !defined (_STLP_NO_CWCHAR) && defined (_STLP_USE_NEW_C_HEADERS)
-#    if defined (_STLP_HAS_INCLUDE_NEXT)
-#      include_next <cwchar>
-#    else
-#      include _STLP_NATIVE_CPP_C_HEADER(cwchar)
-#    endif
-#    if defined (__OpenBSD__)
-typedef _BSD_WINT_T_ wint_t;
-#    endif /* __OpenBSD__ */
-
-#    if defined (__DMC__)
-#      define __STDC_LIMIT_MACROS
-#      include <stdint.h> // WCHAR_MIN, WCHAR_MAX
-#    endif
-#  elif defined (_STLP_NO_WCHAR_T) || \
+#  if defined (_STLP_NO_WCHAR_T) || \
        (defined (__BORLANDC__) && (__BORLANDC__ < 0x570)) || \
         defined (__OpenBSD__) || defined (__FreeBSD__) || \
        (defined (__GNUC__) && (defined (__APPLE__) || defined ( __Lynx__ )))
@@ -64,6 +43,8 @@ typedef _BSD_WINT_T_ wint_t;
 #  else
 #    if defined (_STLP_HAS_INCLUDE_NEXT)
 #      include_next <wchar.h>
+#    elif defined (_STLP_WCE_NET) && defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
+#      include <wchar.h>
 #    else
 #      include _STLP_NATIVE_C_HEADER(wchar.h)
 #    endif
@@ -172,8 +153,6 @@ _STLP_BEGIN_NAMESPACE
 typedef int wint_t;
 #    else
 // gcc 3.0 has a glitch : wint_t only sucked into the global namespace if _GLIBCPP_USE_WCHAR_T is defined
-// __MWERKS__ has definition in wchar_t.h (MSL C++), but ones differ from definition
-// in stdio.h; I prefer settings from last file.
 #      if (defined (__GNUC__) && ! defined (_GLIBCPP_USE_WCHAR_T))
 using ::wint_t;
 #      else
@@ -189,7 +168,7 @@ using _STLP_VENDOR_MB_NAMESPACE::mbstate_t;
 #      if !defined (_STLP_NO_CSTD_FUNCTION_IMPORTS) && !defined(_STLP_WCHAR_BORLAND_EXCLUDE) && \
          (!defined(__MSL__) || __MSL__ > 0x6001)
 #        if defined (__MINGW32__) && ((__MINGW32_MAJOR_VERSION > 3) || ((__MINGW32_MAJOR_VERSION == 3) && (__MINGW32_MINOR_VERSION >= 8))) || \
-          !(defined (__KCC) || defined (__GNUC__)) && !defined(_STLP_WCE_NET)
+          !defined (__GNUC__) && !defined(_STLP_WCE_NET)
 using _STLP_VENDOR_MB_NAMESPACE::btowc;
 #          if (!defined(__MSL__) || __MSL__ > 0x7001)
 using _STLP_VENDOR_MB_NAMESPACE::mbsinit;
@@ -218,9 +197,7 @@ using _STLP_VENDOR_CSTD::fputws;
 
 #      if !(defined (_STLP_WCHAR_SUNPRO_EXCLUDE) || defined (_STLP_WCHAR_BORLAND_EXCLUDE) || \
             defined(_STLP_WCHAR_HPACC_EXCLUDE) )
-#        if !defined (__DECCXX)
 using _STLP_VENDOR_CSTD::fwide;
-#        endif
 using _STLP_VENDOR_CSTD::fwprintf;
 using _STLP_VENDOR_CSTD::fwscanf;
 using _STLP_VENDOR_CSTD::getwchar;
@@ -266,6 +243,8 @@ using _STLP_VENDOR_CSTD::wcstok;
 
 #      if !defined (_STLP_WCE_NET)
 using _STLP_VENDOR_CSTD::wcscoll;
+#	   endif
+#      if !defined (_STLP_WCE_NET) || defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
 using _STLP_VENDOR_CSTD::wcsxfrm;
 #      endif
 using _STLP_VENDOR_CSTD::wcscat;

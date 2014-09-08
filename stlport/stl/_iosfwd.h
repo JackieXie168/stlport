@@ -1,10 +1,6 @@
 #ifndef _STLP_INTERNAL_IOSFWD
 #define _STLP_INTERNAL_IOSFWD
 
-#if defined (__sgi) && !defined (__GNUC__) && !defined (_STANDARD_C_PLUS_PLUS)
-#  error This header file requires the -LANG:std option
-#endif
-
 // This file provides forward declarations of the most important I/O
 // classes.  Note that almost all of those classes are class templates,
 // with default template arguments.  According to the C++ standard,
@@ -23,6 +19,11 @@
 #endif
 
 _STLP_BEGIN_NAMESPACE
+
+#ifdef __SUNPRO_CC
+// Suppress warning that a derived class' rdbuf() hides basic_ios::rdbuf
+#pragma disable_warn
+#endif
 
 class ios_base;
 
@@ -148,6 +149,10 @@ typedef basic_filebuf<wchar_t, char_traits<wchar_t> >  wfilebuf;
 typedef basic_ifstream<wchar_t, char_traits<wchar_t> > wifstream;
 typedef basic_ofstream<wchar_t, char_traits<wchar_t> > wofstream;
 typedef basic_fstream<wchar_t, char_traits<wchar_t> >  wfstream;
+#endif
+
+#ifdef __SUNPRO_CC
+#pragma enable_warn
 #endif
 
 _STLP_END_NAMESPACE

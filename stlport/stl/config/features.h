@@ -95,27 +95,31 @@
 
 /* ========================================================= */
 
+/* If, by any chance, C compiler gets there, try to help it to pass smoothly */
+
+#if ! defined (__cplusplus) && ! defined (_STLP_HAS_NO_NAMESPACES)
+#  define _STLP_HAS_NO_NAMESPACES
+#endif
+
 /* some fixes to configuration. This also includes modifications
  * of STLport switches depending on compiler flags,
  * or settings applicable to a group of compilers, such as
- * to all who use EDG front-end.
+ * to all who use EDG front-end. The last EDG front-end
+ * remains in HP aCC.
  */
-#include <stl/config/stl_confix.h>
 
-#if !defined (_STLP_NO_MEMBER_TEMPLATES) && !defined (_STLP_MEMBER_TEMPLATES)
-#  define _STLP_MEMBER_TEMPLATES 1
-#endif
-
-#if !defined (_STLP_NO_MEMBER_TEMPLATE_CLASSES) && !defined (_STLP_MEMBER_TEMPLATE_CLASSES)
-#  define _STLP_MEMBER_TEMPLATE_CLASSES 1
-#endif
-
-#if defined (_STLP_NO_MEMBER_TEMPLATE_CLASSES) && !defined (_STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE)
-#  define _STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE 1
-#endif
-
-#if !defined (_STLP_NO_CLASS_PARTIAL_SPECIALIZATION) && !defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-#  define _STLP_CLASS_PARTIAL_SPECIALIZATION 1
+/* __EDG_VERSION__ is an official EDG macro, compilers based
+ * on EDG have to define it. */
+#if defined (__EDG_VERSION__)
+#  if (__EDG_VERSION__ >= 244) && !defined (_STLP_HAS_INCLUDE_NEXT)
+#    define _STLP_HAS_INCLUDE_NEXT
+#  endif
+#  if !defined (__EXCEPTIONS) && !defined (_STLP_HAS_NO_EXCEPTIONS)
+#    define _STLP_HAS_NO_EXCEPTIONS
+#  endif
+#  if !defined (__NO_LONG_LONG) && !defined (_STLP_LONG_LONG)
+#    define _STLP_LONG_LONG long long
+#  endif
 #endif
 
 #if !defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER) && !defined (_STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER)
@@ -123,10 +127,10 @@
 #endif
 
 #if !defined (_STLP_DONT_USE_SHORT_STRING_OPTIM) && !defined (_STLP_USE_SHORT_STRING_OPTIM)
-#  define _STLP_USE_SHORT_STRING_OPTIM 1
+// #  define _STLP_USE_SHORT_STRING_OPTIM 1
 #endif
 
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_NO_EXTENSIONS) && \
+#if !defined (_STLP_NO_EXTENSIONS) && \
    !defined (_STLP_NO_CONTAINERS_EXTENSION) && !defined (_STLP_USE_CONTAINERS_EXTENSION)
 #  define _STLP_USE_CONTAINERS_EXTENSION
 #endif
@@ -138,7 +142,7 @@
 #endif
 
 #if defined (_STLP_USE_PTR_SPECIALIZATIONS) && \
-    (defined (_STLP_NO_CLASS_PARTIAL_SPECIALIZATION) && defined (_STLP_DONT_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS))
+    defined (_STLP_DONT_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS)
 #  error Sorry but according the STLport settings your compiler can not support the pointer specialization feature.
 #endif
 
@@ -180,9 +184,6 @@
  * final workaround tuning based on given flags
  * ========================================================== */
 
-#ifndef _STLP_UINT32_T
-#  define _STLP_UINT32_T unsigned long
-#endif
 #ifndef _STLP_ABORT
 #  define _STLP_ABORT() abort()
 #endif
@@ -202,7 +203,7 @@
 #endif
 
 /* Operating system recognition (basic) */
-#if (defined(__unix) || defined(__linux__) || defined(__QNX__) || defined(_AIX)  || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__Lynx__) || defined(__hpux) || defined(__sgi)) && \
+#if (defined(__unix) || defined(__linux__) || defined(__QNX__) || defined(_AIX)  || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__Lynx__) || defined(__hpux)) && \
      !defined (_STLP_UNIX)
 #  define _STLP_UNIX 1
 #endif /* __unix */
@@ -253,7 +254,7 @@
 #    define _STLP_UITHREADS
 #  else
 #    define _STLP_PTHREADS
-#  endif /* __sgi */
+#  endif
 #  define _STLP_THREADS_DEFINED
 #endif
 
@@ -382,7 +383,7 @@
 #endif
 
 /* this always mean the C library is in global namespace */
-#if defined (_STLP_HAS_NO_NEW_C_HEADERS) && !defined (_STLP_VENDOR_GLOBAL_CSTD)
+#if !defined (_STLP_USE_NEW_C_HEADERS) && !defined (_STLP_VENDOR_GLOBAL_CSTD)
 #  define _STLP_VENDOR_GLOBAL_CSTD 1
 #endif
 
@@ -497,7 +498,6 @@ namespace _STLP_STD_NAME { }
 #  endif /* _STLP_USE_OWN_NAMESPACE */
 
 #  define _STLP_BEGIN_NAMESPACE namespace _STLP_STD_NAME {
-#  define _STLP_BEGIN_TR1_NAMESPACE namespace tr1 {
 #  define _STLP_END_NAMESPACE }
 
 /* decide whether or not we use separate namespace for rel ops */
@@ -512,9 +512,6 @@ namespace _STLP_STD_NAME { }
 #  endif /* Use std::rel_ops namespace */
 
 #  define _STLP_STD ::_STLP_STD_NAME
-#  if !defined (_STLP_TR1)
-#    define _STLP_TR1 _STLP_STD::tr1::
-#  endif
 
 #  if !defined (_STLP_DONT_USE_PRIV_NAMESPACE)
 #    define _STLP_PRIV_NAME priv
@@ -545,9 +542,7 @@ namespace _STL = _STLP_STD_NAME;
 /* STLport is being put into global namespace */
 #  define _STLP_STD
 #  define _STLP_PRIV
-#  define _STLP_TR1
 #  define _STLP_BEGIN_NAMESPACE
-#  define _STLP_BEGIN_TR1_NAMESPACE
 #  define _STLP_END_NAMESPACE
 #  define _STLP_MOVE_TO_PRIV_NAMESPACE
 #  define _STLP_MOVE_TO_STD_NAMESPACE
@@ -570,10 +565,6 @@ namespace _STL = _STLP_STD_NAME;
 #  define _STLP_SIMPLE_TYPE(T) _stl_trivial_proxy<T>
 #else
 #  define _STLP_SIMPLE_TYPE(T) T
-#endif
-
-#ifndef _STLP_RAND48
-#  define _STLP_NO_DRAND48
 #endif
 
 /* advanced keywords usage */
@@ -640,12 +631,6 @@ namespace _STL = _STLP_STD_NAME;
 #  define signed
 #endif
 
-#if defined (_STLP_LOOP_INLINE_PROBLEMS)
-#  define _STLP_INLINE_LOOP
-#else
-#  define _STLP_INLINE_LOOP inline
-#endif
-
 #ifndef _STLP_NO_PARTIAL_SPECIALIZATION_SYNTAX
 #  define _STLP_TEMPLATE_NULL template<>
 #else
@@ -658,63 +643,17 @@ namespace _STL = _STLP_STD_NAME;
 #  define _STLP_OPERATOR_TEMPLATE _STLP_TEMPLATE_NULL
 #endif
 
-#ifndef _STLP_CLASS_PARTIAL_SPECIALIZATION
-/* unless we have other compiler problem, try simulating partial spec here */
-#  if !defined (_STLP_DONT_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS)
-#    define _STLP_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS
-#  endif
-/* For your own iterators, please use inheritance from iterator<> instead of these obsolete queries. */
-#  if  (defined (_STLP_NESTED_TYPE_PARAM_BUG) || !defined (_STLP_SIMULATE_PARTIAL_SPEC_FOR_TYPE_TRAITS))
-#    if ! defined ( _STLP_USE_OLD_HP_ITERATOR_QUERIES )
-#      define _STLP_USE_OLD_HP_ITERATOR_QUERIES
-#    endif
-#  elif defined ( _STLP_NO_ANACHRONISMS )
-#    undef _STLP_USE_OLD_HP_ITERATOR_QUERIES
-#  endif
-#endif
-
 #ifndef _STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS
 #  define _STLP_NULL_TMPL_ARGS <>
 # else
 #  define _STLP_NULL_TMPL_ARGS
 #endif
 
-#if !defined (_STLP_ALLOCATOR_TYPE_DFL)
-#  if defined (_STLP_DONT_SUP_DFLT_PARAM)
-#    define _STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS
-#  endif
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-#    define _STLP_ALLOCATOR_TYPE_DFL
-#  else
-#    define _STLP_ALLOCATOR_TYPE_DFL = allocator_type()
-#  endif
-#endif
-
-/* When the compiler do not correctly initialized the basic types value in default parameters we prefer
- * to avoid them to be able to correct this bug.
- */
-#if defined (_STLP_DEF_CONST_DEF_PARAM_BUG)
-#  define _STLP_DONT_SUP_DFLT_PARAM 1
-#endif
-
-#if defined (__SGI_STL_NO_ARROW_OPERATOR) && ! defined (_STLP_NO_ARROW_OPERATOR)
-#  define _STLP_NO_ARROW_OPERATOR
-#endif
-
-#if !defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-#  if !(defined (_STLP_NO_ARROW_OPERATOR)) && \
-       !defined (_STLP_NO_MSVC50_COMPATIBILITY) && !defined (_STLP_MSVC50_COMPATIBILITY)
-/* this one is needed for proper reverse_iterator<> operator ->() handling */
-#    define _STLP_MSVC50_COMPATIBILITY 1
-#  endif
-#endif
-
-#if defined ( _STLP_CLASS_PARTIAL_SPECIALIZATION )
-#  if (defined(__IBMCPP__) && (500 <= __IBMCPP__) && (__IBMCPP__ < 600) )
+#if (defined(__IBMCPP__) && (500 <= __IBMCPP__) && (__IBMCPP__ < 600) )
 #    define _STLP_DECLARE_REVERSE_ITERATORS(__reverse_iterator) \
    typedef typename _STLP_STD :: reverse_iterator<const_iterator> const_reverse_iterator; \
    typedef typename _STLP_STD :: reverse_iterator<iterator> reverse_iterator
-#  elif (defined (__sgi) && ! defined (__GNUC__)) || defined (__SUNPRO_CC) || defined (__xlC__)
+#  elif defined (__SUNPRO_CC) || defined (__xlC__)
 #    define _STLP_DECLARE_REVERSE_ITERATORS(__reverse_iterator) \
    typedef _STLP_STD:: _STLP_TEMPLATE reverse_iterator<const_iterator> const_reverse_iterator; \
    typedef _STLP_STD:: _STLP_TEMPLATE reverse_iterator<iterator> reverse_iterator
@@ -722,23 +661,7 @@ namespace _STL = _STLP_STD_NAME;
 #    define _STLP_DECLARE_REVERSE_ITERATORS(__reverse_iterator) \
    typedef _STLP_STD::reverse_iterator<const_iterator> const_reverse_iterator; \
    typedef _STLP_STD::reverse_iterator<iterator> reverse_iterator
-#  endif
-#else /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
-#  if defined (_STLP_MSVC50_COMPATIBILITY)
-#    define _STLP_DECLARE_REVERSE_ITERATORS(__reverse_iterator) \
-  typedef _STLP_STD::__reverse_iterator<const_iterator, value_type, const_reference, \
-    const_pointer, difference_type>  const_reverse_iterator; \
-  typedef _STLP_STD::__reverse_iterator<iterator, value_type, reference, pointer, difference_type> \
-    reverse_iterator
-#  else
-#    define _STLP_DECLARE_REVERSE_ITERATORS(__reverse_iterator) \
-  typedef _STLP_STD::__reverse_iterator<const_iterator, value_type, const_reference, \
-    difference_type>  const_reverse_iterator; \
-  typedef _STLP_STD::__reverse_iterator<iterator, value_type, \
-    reference, difference_type> \
-    reverse_iterator
-#  endif
-#endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
+#endif
 
 #define _STLP_DECLARE_BIDIRECTIONAL_REVERSE_ITERATORS \
         _STLP_DECLARE_REVERSE_ITERATORS(reverse_bidirectional_iterator)
@@ -845,6 +768,18 @@ namespace _STL = _STLP_STD_NAME;
 #  define _STLP_NOTHROW
 #  define _STLP_RET_AFTER_THROW(data)
 #endif
+
+#ifndef _STLP_NOEXCEPT
+#  define _STLP_NOEXCEPT
+#endif
+
+#if defined (_STLP_NO_BAD_ALLOC) && !defined (_STLP_NEW_DONT_THROW_BAD_ALLOC) && !defined(_STLP_OPERATORS_NEW_DELETE)
+#  define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
+#endif
+
+// #if defined(_STLP_OPERATORS_NEW_DELETE) && !defined(_STLP_NO_BAD_ALLOC)
+// #  define _STLP_NO_BAD_ALLOC /* own bad_alloc implementation */
+// #endif
 
 /*
  * Here we check _STLP_NO_EXCEPTIONS which means that the compiler has no
@@ -996,10 +931,6 @@ typedef int bool;
 
 #ifndef _STLP_USE_NO_IOSTREAMS
 
-#  if defined (__DECCXX) && ! defined (__USE_STD_IOSTREAM)
-#    define __USE_STD_IOSTREAM
-#  endif
-
 /* We only need to expose details of streams implementation
    if we use non-standard i/o or are building STLport*/
 #  if defined (__BUILDING_STLPORT) || defined (_STLP_NO_FORCE_INSTANTIATE) || !defined(_STLP_NO_CUSTOM_IO)
@@ -1029,7 +960,7 @@ typedef int bool;
 /* Activation of the partial template workaround:
  */
 #if !defined(_STLP_DONT_USE_PARTIAL_SPEC_WRKD) &&\
-   (!defined(_STLP_CLASS_PARTIAL_SPECIALIZATION) || !defined(_STLP_FUNCTION_TMPL_PARTIAL_ORDER))
+    !defined(_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
 #  define _STLP_USE_PARTIAL_SPEC_WORKAROUND
 #endif
 
@@ -1075,5 +1006,13 @@ void _STLP_DECLSPEC _STLP_CALL _STLP_CHECK_RUNTIME_COMPATIBILITY();
 #undef _STLP_NEED_TYPENAME
 #undef _STLP_NO_NEW_STYLE_CASTS
 #undef __AUTO_CONFIGURED
+
+
+/* This should always be at the end of features.h.  In order to avoid circular dependencies on
+    Windows CE with the CRT extensions, we delay including windows.h until here.
+ */
+#if defined(_STLP_WCE)
+#  include <stl/config/_wince_windows_suffix.h>
+#endif
 
 #endif /* _STLP_FEATURES_H */

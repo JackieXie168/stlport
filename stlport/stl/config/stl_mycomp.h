@@ -37,10 +37,6 @@
 // the values choosen here as defaults try to give
 // maximum functionality on the most conservative settings
 
-// Mostly correct guess, change it for Alpha (and other environments
-// that has 64-bit "long")
-// #  define _STLP_UINT32_T unsigned long
-
 // Disables wchar_t functionality
 // #  define _STLP_NO_WCHAR_T  1
 
@@ -81,9 +77,6 @@
 // types as default parameters for class templates
 // #  define _STLP_DEFAULT_TYPE_PARAM 1
 
-// Uncomment this if your compiler do not support default parameters in template class methods
-// #  define _STLP_DONT_SUP_DFLT_PARAM 1
-
 // Uncomment this if your compiler has problem with not-type
 // default template parameters
 // #  define _STLP_NO_DEFAULT_NON_TYPE_PARAM 1
@@ -111,9 +104,6 @@
 // Define this if your compiler requires return statement after throw()
 // # define _STLP_THROW_RETURN_BUG 1
 
-// Define this if your compiler do not support return of void
-// # define _STLP_DONT_RETURN_VOID 1
-
 // Header <new> that comes with the compiler
 // does not define bad_alloc exception
 // #  define _STLP_NO_BAD_ALLOC  1
@@ -127,25 +117,11 @@
 // Define this if there is no native type_info definition
 // #  define _STLP_NO_TYPEINFO 1
 
-// Uncomment if member template methods are not available
-// #  define _STLP_NO_MEMBER_TEMPLATES   1
-
-// Uncomment if member template classes are not available
-// #  define _STLP_NO_MEMBER_TEMPLATE_CLASSES   1
-
-// Uncomment if your compiler do not support the std::allocator rebind technique
-// This is a special case of bad member template classes support, it is automatically
-// defined if _STLP_NO_MEMBER_TEMPLATE_CLASSES is defined.
-// # define _STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE 1
-
 // Uncomment if no "template" keyword should be used with member template classes
 // #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD   1
 
 // Compiler does not accept friend declaration qualified with namespace name.
 // #  define _STLP_NO_QUALIFIED_FRIENDS 1
-
-// Uncomment if partial specialization is not available
-// #  define _STLP_NO_CLASS_PARTIAL_SPECIALIZATION 1
 
 // Define if class being partially specialized require full name (template parameters)
 // of itself for method declarations
@@ -169,9 +145,6 @@
 
 // Uncomment if compiler does not support explicit template arguments for functions
 // # define _STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS
-
-// Uncomment this if your compiler can't inline while(), for()
-// #  define _STLP_LOOP_INLINE_PROBLEMS 1
 
 // Define if the compiler fails to match a template function argument of base
 // #  define _STLP_BASE_MATCH_BUG          1
@@ -213,10 +186,6 @@
 // In default function parameter like _M_method(_Tp __x = _Tp())
 //# define _STLP_DEF_CONST_DEF_PARAM_BUG 1
 
-// Defined if constructor
-// required to explicitly call member's default constructors for const objects
-// #  define _STLP_CONST_CONSTRUCTOR_BUG    1
-
 // Defined if the compiler has trouble calling POD-types constructors/destructors
 // #  define _STLP_TRIVIAL_CONSTRUCTOR_BUG    1
 // #  define _STLP_TRIVIAL_DESTRUCTOR_BUG    1
@@ -224,9 +193,6 @@
 // Define if having problems specializing maps/sets with
 // key type being const
 // #  define _STLP_MULTI_CONST_TEMPLATE_ARG_BUG
-
-// Uncomment this to disable -> operators on all iterators
-// #  define   _STLP_NO_ARROW_OPERATOR 1
 
 // Uncomment this to disble at() member functions for containers
 // #  define   _STLP_NO_AT_MEMBER_FUNCTION 1

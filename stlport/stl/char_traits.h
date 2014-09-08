@@ -21,12 +21,12 @@
 
 // Define char_traits
 
-#ifndef _STLP_INTERNAL_CSTDDEF
-#  include <stl/_cstddef.h>
+#ifndef _STLP_CSTDDEF
+#  include <cstddef>
 #endif
 
-#ifndef _STLP_INTERNAL_CSTRING
-#  include <stl/_cstring.h>
+#ifndef _STLP_CSTRING
+#  include <cstring>
 #endif
 
 #if defined (__unix)
@@ -40,8 +40,12 @@
 #  include <sys/types.h>
 #endif
 
-#ifndef _STLP_INTERNAL_CONSTRUCT_H
-#  include <stl/_construct.h>
+#ifndef _STLP_INTERNAL_ALGOBASE_H
+#  include <stl/_algobase.h>
+#endif
+
+#ifndef _STLP_INTERNAL_ALLOC_H
+#  include <stl/_alloc.h>
 #endif
 
 #ifndef _STLP_INTERNAL_CWCHAR
@@ -67,9 +71,10 @@ typedef ptrdiff_t streamoff;
 #else // __unix
 #  ifdef _STLP_USE_DEFAULT_FILE_OFFSET
 typedef off_t streamoff;
-#  elif defined(_LARGEFILE_SOURCE) || defined(_LARGEFILE64_SOURCE) /* || defined(__USE_FILE_OFFSET64) */ \
-       /* || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS == 64)) */ /* || defined (__sgi) && defined (_STLP_HAS_NO_NEW_C_HEADERS) */
+#  elif defined(_LARGEFILE_SOURCE) || defined(_LARGEFILE64_SOURCE)
 typedef off64_t streamoff;
+#  elif defined(__ANDROID__)
+typedef long streamoff;
 #  else
 typedef off_t streamoff;
 #  endif
@@ -207,8 +212,8 @@ class char_traits
 
 _STLP_TEMPLATE_NULL
 class _STLP_CLASS_DECLSPEC char_traits<char>
-  : public __char_traits_base<char, int>,
-    public __stlport_class<char_traits<char> > {
+  : public __char_traits_base<char, int>
+{
 public:
   typedef char char_type;
   typedef int int_type;

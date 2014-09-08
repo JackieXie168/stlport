@@ -54,7 +54,7 @@ protected:
   typedef _STLP_NON_DBG_STRING _Base;
   typedef basic_string<_CharT, _Traits, _Alloc> _Self;
   typedef _STLP_PRIV __construct_checker<_STLP_NON_DBG_STRING > _ConstructCheck;
-  typedef typename _IsPOD<_CharT>::_Type _Char_Is_POD;
+  typedef typename is_pod<_CharT>::type _Char_Is_POD;
 
 public:
   __IMPORT_CONTAINER_TYPEDEFS(_Base)
@@ -129,32 +129,12 @@ public:
   }
 #endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES)
-  basic_string(const _CharT* __f, const _CharT* __l,
-               const allocator_type& __a = allocator_type())
-    : _ConstructCheck(__f, __l),
-      _M_non_dbg_impl(__f, __l, __a), _M_iter_list(&_M_non_dbg_impl) {
-  }
-  basic_string(const_iterator __f, const_iterator __l,
-               const allocator_type & __a = allocator_type())
-    : _ConstructCheck(__f, __l),
-      _M_non_dbg_impl(__f._M_iterator, __l._M_iterator, __a), _M_iter_list(&_M_non_dbg_impl) {
-  }
-#else
   template <class _InputIterator>
   basic_string(_InputIterator __f, _InputIterator __l,
-               const allocator_type & __a _STLP_ALLOCATOR_TYPE_DFL)
+               const allocator_type & __a = allocator_type())
     : _ConstructCheck(__f, __l),
       _M_non_dbg_impl(_STLP_PRIV _Non_Dbg_iter(__f), _STLP_PRIV _Non_Dbg_iter(__l), __a),
       _M_iter_list(&_M_non_dbg_impl) {}
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  basic_string(_InputIterator __f, _InputIterator __l)
-    : _ConstructCheck(__f, __l),
-      _M_non_dbg_impl(_STLP_PRIV _Non_Dbg_iter(__f), _STLP_PRIV _Non_Dbg_iter(__l)),
-      _M_iter_list(&_M_non_dbg_impl) {}
-#  endif
-#endif
 
 private:
   // constructor from non-debug version for substr
@@ -239,7 +219,6 @@ public:
   }
   _Self& operator+=(_CharT __c) { return append(1, __c); }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIter>
   _Self& append(_InputIter __first, _InputIter __last) {
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
@@ -248,10 +227,8 @@ public:
     _Compare_Capacity(__old_capacity);
     return *this;
   }
-#endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES) || \
-    !defined (_STLP_NO_METHOD_SPECIALIZATION) && !defined (_STLP_NO_EXTENSIONS)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION) && !defined (_STLP_NO_EXTENSIONS)
   _Self& append(const _CharT* __f, const _CharT* __l) {
     _STLP_FIX_LITERAL_BUG(__f) _STLP_FIX_LITERAL_BUG(__l)
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_ptr_range(__f, __l))
@@ -357,7 +334,6 @@ public:
     return *this;
   }
 
-#if defined(_STLP_MEMBER_TEMPLATES)
   template <class _InputIter>
   inline _Self& assign(_InputIter __first, _InputIter __last) {
     _STLP_FIX_LITERAL_BUG(__first) _STLP_FIX_LITERAL_BUG(__last)
@@ -366,10 +342,8 @@ public:
     _M_non_dbg_impl.assign(_STLP_PRIV _Non_Dbg_iter(__first), _STLP_PRIV _Non_Dbg_iter(__last));
     return *this;
   }
-#endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES) || \
-    !defined (_STLP_NO_METHOD_SPECIALIZATION) && !defined (_STLP_NO_EXTENSIONS)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION) && !defined (_STLP_NO_EXTENSIONS)
   _Self& assign(const _CharT* __f, const _CharT* __l) {
     _STLP_FIX_LITERAL_BUG(__f) _STLP_FIX_LITERAL_BUG(__l)
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_ptr_range(__f, __l))
@@ -438,7 +412,6 @@ public:
     _Compare_Capacity(__old_capacity);
   }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIter>
   void insert(iterator __p, _InputIter __first, _InputIter __last) {
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_if_owner(&_M_iter_list,__p))
@@ -449,20 +422,8 @@ public:
                            _STLP_PRIV _Non_Dbg_iter(__first), _STLP_PRIV _Non_Dbg_iter(__last));
     _Compare_Capacity(__old_capacity);
   }
-#endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES)
-  void insert(iterator __p, const _CharT* __f, const _CharT* __l) {
-    _STLP_FIX_LITERAL_BUG(__f)_STLP_FIX_LITERAL_BUG(__l)
-    _STLP_DEBUG_CHECK(_STLP_PRIV __check_if_owner(&_M_iter_list,__p))
-    _STLP_DEBUG_CHECK(_STLP_PRIV __check_ptr_range(__f,__l))
-    size_type __old_capacity = capacity();
-    _M_non_dbg_impl.insert(__p._M_iterator, __f, __l);
-    _Compare_Capacity(__old_capacity);
-  }
-#endif
-
-#if !defined (_STLP_MEMBER_TEMPLATES) || !defined (_STLP_NO_METHOD_SPECIALIZATION)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION)
   // Those overloads are necessary to check self referencing correctly in non debug
   // basic_string implementation
   void insert(iterator __p, const_iterator __f, const_iterator __l) {
@@ -588,7 +549,6 @@ public:
     return *this;
   }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIter>
   _Self& replace(iterator __first, iterator __last,
                  _InputIter __f, _InputIter __l) {
@@ -601,22 +561,8 @@ public:
     _Compare_Capacity(__old_capacity);
     return *this;
   }
-#endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES)
-  _Self& replace(iterator __first, iterator __last,
-                 const _CharT* __f, const _CharT* __l) {
-    _STLP_FIX_LITERAL_BUG(__f)_STLP_FIX_LITERAL_BUG(__l)
-    _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last, begin(), end()))
-    _STLP_DEBUG_CHECK(_STLP_PRIV __check_ptr_range(__f, __l))
-    size_type __old_capacity = capacity();
-    _M_non_dbg_impl.replace(__first._M_iterator, __last._M_iterator, __f, __l);
-    _Compare_Capacity(__old_capacity);
-    return *this;
-  }
-#endif
-
-#if !defined (_STLP_MEMBER_TEMPLATES) || !defined (_STLP_NO_METHOD_SPECIALIZATION)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION)
   _Self& replace(iterator __first, iterator __last,
                  const_iterator __f, const_iterator __l) {
     _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last, begin(), end()))
@@ -809,10 +755,15 @@ _STLP_EXPORT_TEMPLATE_CLASS basic_string<wchar_t, char_traits<wchar_t>, allocato
 #undef _STLP_NON_DBG_STRING
 #undef _STLP_NON_DBG_STRING_NAME
 
-#if defined (__GNUC__) && (__GNUC__ == 2) && (__GNUC_MINOR__ == 96)
+
+#  if !defined (_STLP_NO_MOVE_SEMANTIC)
+
 template <class _CharT, class _Traits, class _Alloc>
-const size_t basic_string<_CharT, _Traits, _Alloc>::npos = ~(size_t) 0;
-#endif
+struct __has_move_constructor<basic_string<_CharT, _Traits, _Alloc> > :
+    public true_type
+{ };
+
+#  endif
 
 #if defined (basic_string)
 _STLP_MOVE_TO_STD_NAMESPACE

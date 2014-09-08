@@ -30,11 +30,515 @@
 #ifndef _STLP_INTERNAL_FUNCTION_BASE_H
 #define _STLP_INTERNAL_FUNCTION_BASE_H
 
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION) && !defined (_STLP_TYPE_TRAITS_H)
-#  include <stl/type_traits.h>
+#include <type_traits>
+#include <utility>
+
+#ifndef _STLP_INTERNAL_HAS_TYPE_H
+#  include <stl/_has_type.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
+
+_STLP_MOVE_TO_PRIV_NAMESPACE
+
+template <class _Se, class _Tp>
+struct __result_type_aux
+{
+};
+
+template <class _Tp>
+struct __result_type_aux<true_type,_Tp>
+{
+    typedef typename _Tp::result_type result_type;
+};
+
+template <class _Se, class _Tp>
+struct __argument_type_aux
+{
+};
+
+template <class _Tp>
+struct __argument_type_aux<true_type,_Tp>
+{
+    typedef typename _Tp::argument_type argument_type;
+};
+
+template <class _Se, class _Tp>
+struct __first_argument_type_aux
+{
+};
+
+template <class _Tp>
+struct __first_argument_type_aux<true_type,_Tp>
+{
+    typedef typename _Tp::first_argument_type first_argument_type;
+};
+
+template <class _Se, class _Tp>
+struct __second_argument_type_aux
+{
+};
+
+template <class _Tp>
+struct __second_argument_type_aux<true_type,_Tp>
+{
+    typedef typename _Tp::second_argument_type second_argument_type;
+};
+
+template <bool _Se, class Fn, class ...ArgTypes>
+struct __functor_aux
+{
+    typedef decltype(declval<Fn>()(declval<ArgTypes>()...)) result_type;
+};
+
+template <class Fn, class ...ArgTypes>
+struct __functor_aux<true,Fn,ArgTypes...>
+{
+    typedef decltype(Fn(declval<ArgTypes>()...)) result_type;
+};
+
+template <class _Tp, class ...ArgTypes>
+struct __arg1_aux
+{
+    typedef _Tp argument_type;
+};
+
+template <class _Tp1, class _Tp2, class ...ArgTypes>
+struct __arg2_aux
+{
+    typedef _Tp1 argument_type;
+    typedef _Tp1 first_argument_type;
+    typedef _Tp2 second_argument_type;
+};
+
+template <int N, class ...ArgTypes>
+struct __arg1 :
+    public __arg1_aux<ArgTypes...>
+{
+};
+
+template <>
+struct __arg1<0>
+{
+};
+
+template <class ...ArgTypes>
+struct __arg1<1,ArgTypes...> :
+    public __arg1_aux<ArgTypes...>
+{
+};
+
+template <class ...ArgTypes>
+struct __arg1<2,ArgTypes...> :
+    public __arg2_aux<ArgTypes...>
+{
+};
+
+_STLP_MOVE_TO_STD_NAMESPACE
+
+template <class _Tp, class ...Args>
+class reference_wrapper :
+        public _STLP_PRIV __result_type_aux<decltype(detail::__has_type_selector::__test_result_type<_Tp>(0)),_Tp>,
+        public _STLP_PRIV __argument_type_aux<decltype(detail::__has_type_selector::__test_argument_type<_Tp>(0)),_Tp>,
+        public _STLP_PRIV __first_argument_type_aux<decltype(detail::__has_type_selector::__test_first_argument_type<_Tp>(0)),_Tp>,
+        public _STLP_PRIV __second_argument_type_aux<decltype(detail::__has_type_selector::__test_second_argument_type<_Tp>(0)),_Tp>
+{
+  public:
+    typedef _Tp type;
+    // typedef ... result_type;
+    // typedef ... argument_type;
+    // typedef ... first_argument_type;
+    // typedef ... second_argument_type;
+
+    reference_wrapper( _Tp& __x ) noexcept :
+        _ref( addressof(__x) )
+      { }
+    reference_wrapper( _Tp&& ) = delete; // do not bind to temporary objects
+    reference_wrapper( const reference_wrapper<_Tp>& __x ) noexcept :
+        _ref( __x._ref )
+      { }
+
+    reference_wrapper& operator =( const reference_wrapper<_Tp>& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator _Tp&() const noexcept
+      { return *_ref; }
+    _Tp& get() const noexcept
+      { return *_ref; }
+
+    template <class ...ArgTypes>
+    typename result_of<_Tp&(ArgTypes&&...)>::type
+      operator ()(ArgTypes&&... args) const
+      { return (*_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    typename remove_reference<type>::type* _ref;
+};
+
+namespace detail {
+
+template <bool, class Fn, class ... ArgTypes> struct __r_member_selector;
+
+template <class R, class T, class A, class ... ArgTypes>
+class __r_member_selector<false,R T::*,A,ArgTypes...> // member function
+{
+  private:
+    typedef R T::* _Fn;
+
+    template <class U>
+    static U __test( const T& );
+
+    template <class U>
+    static decltype(*declval<U>()) __test( ... );
+
+  public:
+    typedef decltype( (__test<A>(declval<A>()).*declval<_Fn>())(declval<ArgTypes>()...) ) result_type;
+
+  protected:
+    static result_type __invoke( _Fn f, A a, ArgTypes&&... args )
+      { return ((a).*f)( _STLP_STD::forward<ArgTypes>(args)... ); }
+};
+
+template <class R, class T, class A /* , class ... ArgTypes */>
+class __r_member_selector<true,R T::*,A /* ,ArgTypes... */ > // member data
+{
+  private:
+    typedef R T::* _Fn;
+
+    static R&& __test( const T& );
+
+    static const R& __test( const T* );
+
+  public:
+    typedef decltype(__test(declval<A>())) result_type;
+
+  protected:
+    static result_type __invoke( _Fn f, A a /* , ArgTypes&&... */ )
+      { return a.*f; }
+};
+
+template <bool, class Fn, class ...ArgTypes>
+struct __r_is_function : // member data or member function
+        public __r_member_selector<is_member_object_pointer<Fn>::value,Fn,ArgTypes...>
+{ };
+
+template <class Fn, class ...ArgTypes>
+class __r_is_function<true,Fn,ArgTypes...> // function
+{
+  public:
+    typedef decltype(Fn(declval<ArgTypes>()...)) result_type;
+
+  protected:
+    static result_type __invoke( ArgTypes&&... args )
+      { return Fn( forward<ArgTypes>(args)... ); }
+};
+
+template <bool, class Fn, class ... ArgTypes>
+struct __r_is_functor : // function or member data or member function
+        public __r_is_function<!is_member_pointer<Fn>::value,Fn,ArgTypes...>
+{ };
+
+template <class Fn, class ... ArgTypes>
+class __r_is_functor<true,Fn,ArgTypes...> // functor
+{
+  public:
+    typedef decltype( declval<Fn>()(declval<ArgTypes>()...) ) result_type;
+
+  protected:
+    static result_type __invoke( Fn& f, ArgTypes&&... args )
+      { return f( _STLP_STD::forward<ArgTypes>(args)... ); }
+};
+
+} // namespace detail
+
+template <class Fn, class ...ArgTypes>
+class reference_wrapper<Fn(ArgTypes...)> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes),ArgTypes...>,
+    public detail::__r_is_functor<!is_function<Fn(ArgTypes...)>::value,Fn,ArgTypes...>
+{
+  private:
+    typedef typename detail::__r_is_functor<!is_function<Fn(ArgTypes...)>::value,Fn,ArgTypes...> Base;
+
+  public:
+    typedef typename remove_reference<Fn>::type /* Fn */ type;
+    // typedef decltype( declval<type>()( declval<ArgTypes>()... ) ) result_type;
+    // typedef ... argument_type;
+    // typedef ... first_argument_type;
+    // typedef ... second_argument_type;
+
+    reference_wrapper( type& __x ) noexcept :
+        _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) = delete; // do not bind to temporary objects
+    reference_wrapper( const reference_wrapper<Fn,ArgTypes...>& __x ) noexcept :
+        _ref( __x._ref )
+      { }
+
+    reference_wrapper& operator =( const reference_wrapper<Fn,ArgTypes...>& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    // template <class ...ArgTypes>
+    // typename result_of<Fn&(ArgTypes&&...)>::type
+    typename Base::result_type operator ()(ArgTypes&&... args) const
+      { return Base::__invoke(*_ref, _STLP_STD::forward<ArgTypes>(args)...); }
+    // template <class ...Args>
+    // typename result_of<Fn&(Args&&...)>::type
+    // operator ()( Args&&... args ) const
+    //  { } 
+
+//    typename Base::result_type invoke(ArgTypes&&... args) const
+//      { return Base::__invoke(*_ref, _STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    /* typename remove_reference<type>:: */ type* _ref;
+};
+
+template <class R, class ...ArgTypes>
+class reference_wrapper<R (*)(ArgTypes...)> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes),ArgTypes...>
+{
+  public:
+    typedef R (*type)(ArgTypes...);
+    typedef R result_type;
+
+    reference_wrapper( type& __x ) noexcept :
+        _ref( __x )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :
+        _ref( __x._ref )
+      { }
+
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator type&() const noexcept
+      { return _ref; }
+    type& get() const noexcept
+      { return _ref; }
+
+    result_type operator ()(ArgTypes&&... args) const
+      { return (*_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    typename remove_reference<type>::type _ref;
+};
+
+template <class R, class T0, class ...ArgTypes>
+class reference_wrapper<R (T0::*)(ArgTypes...)> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes)+1,T0*,ArgTypes...> 
+{
+  public:
+    typedef R (T0::*type)(ArgTypes...);
+    typedef R result_type;
+
+    reference_wrapper( type& __x ) noexcept :
+      _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :
+      _ref( __x._ref )
+      { }
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    result_type operator ()(T0&& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    type* _ref;
+};
+
+template <class R, class T0, class ...ArgTypes>
+class reference_wrapper<R (T0::*)(ArgTypes...) const> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes)+1,const T0*,ArgTypes...>
+{
+  public:
+    typedef R (T0::*type)(ArgTypes...) const;
+    typedef R result_type;
+
+    reference_wrapper( type& __x ) noexcept :
+      _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :
+        _ref( __x._ref )
+      { }
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    result_type operator ()(T0&& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    type* _ref;
+};
+
+template <class R, class T0, class ...ArgTypes>
+class reference_wrapper<R (T0::*)(ArgTypes...) volatile> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes)+1,volatile T0*,ArgTypes...>
+{ 
+  public:
+    typedef R (T0::*type)(ArgTypes...) volatile;
+    typedef R result_type;
+    
+    reference_wrapper( type& __x ) noexcept :
+      _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :     
+        _ref( __x._ref )
+      { }
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+    
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    result_type operator ()(T0&& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    type* _ref;
+};
+
+template <class R, class T0, class ...ArgTypes>
+class reference_wrapper<R (T0::*)(ArgTypes...) const volatile> :
+    public _STLP_PRIV __arg1<sizeof...(ArgTypes)+1,const volatile T0*,ArgTypes...>
+{ 
+  public:
+    typedef R (T0::*type)(ArgTypes...) const volatile;
+    typedef R result_type;
+    
+    reference_wrapper( type& __x ) noexcept :
+      _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :     
+        _ref( __x._ref )
+      { }
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+    
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    result_type operator ()(T0&& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0& a, ArgTypes&&... args) const
+    { return (a.**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(const T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+    result_type operator ()(T0* a, ArgTypes&&... args) const
+    { return (a->**_ref)(_STLP_STD::forward<ArgTypes>(args)...); }
+
+  private:
+    type* _ref;
+};
+
+template <class R, class T0>
+class reference_wrapper<R T0::*>
+{
+  public:
+    typedef R T0::*type;
+
+    reference_wrapper( type& __x ) noexcept :
+        _ref( addressof(__x) )
+      { }
+    reference_wrapper( type&& ) noexcept = delete;
+    reference_wrapper( const reference_wrapper& __x ) noexcept :
+        _ref( __x._ref )
+      { }
+
+    reference_wrapper& operator =( const reference_wrapper& __x ) noexcept
+      { _ref = __x._ref; return *this; }
+
+    operator type&() const noexcept
+      { return *_ref; }
+    type& get() const noexcept
+      { return *_ref; }
+
+    R operator ()(T0&& a) const
+      { return a.**_ref; }
+    R operator ()(T0& a) const
+      { return a.**_ref; }
+    R operator ()(const T0& a) const
+      { return a.**_ref; }
+    R operator ()(T0* a) const
+      { return a->**_ref; }
+    R operator ()(const T0* a) const
+      { return a->**_ref; }
+
+  private:
+    /* typename remove_reference<type>:: */ type* _ref;
+};
+
+template <class _Tp>
+reference_wrapper<_Tp> ref( _Tp& __x ) noexcept
+{ return reference_wrapper<_Tp>( __x ); }
+
+template <class _Tp>
+reference_wrapper<_Tp> ref( reference_wrapper<_Tp>& __x ) noexcept
+{ return ref( __x.get() ); }
+
+template <class _Tp>
+reference_wrapper<const _Tp> cref( const _Tp& __x ) noexcept
+{ return reference_wrapper<const _Tp>( __x ); }
+
+template <class _Tp>
+reference_wrapper<const _Tp> cref( reference_wrapper<const _Tp>& __x ) noexcept
+{ return cref( __x.get() ); }
+
+template <class _Tp>
+void ref( const _Tp&& ) = delete;
+
+template <class _Tp>
+void cref( const _Tp&& ) = delete;
 
 template <class _Arg, class _Result>
 struct unary_function {
@@ -61,44 +565,35 @@ protected:
 #endif
 };
 
-template <class _Tp>
-struct equal_to : public binary_function<_Tp, _Tp, bool> {
-  bool operator()(const _Tp& __x, const _Tp& __y) const { return __x == __y; }
-};
-
-template <class _Tp>
-struct less : public binary_function<_Tp,_Tp,bool>
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-/* less is the default template parameter for many STL containers, to fully use
- * the move constructor feature we need to know that the default less is just a
- * functor.
- */
-              , public __stlport_class<less<_Tp> >
-#endif
+template <class _Tp = void>
+struct equal_to /* : public binary_function<_Tp, _Tp, bool> */
 {
-  bool operator()(const _Tp& __x, const _Tp& __y) const { return __x < __y; }
+    bool operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x == __y; }
 
-#if defined (_STLP_USE_PARTIAL_SPEC_WORKAROUND) && !defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
-  void _M_swap_workaround(less<_Tp>& __x) {}
-#endif
+    typedef _Tp first_argument_type;
+    typedef _Tp second_argument_type;
+    typedef bool result_type;
 };
 
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-template <class _Tp>
-struct __type_traits<less<_Tp> > {
-#if !defined (__BORLANDC__)
-  typedef typename _IsSTLportClass<less<_Tp> >::_Ret _STLportLess;
-#else
-  enum { _Is = _IsSTLportClass<less<_Tp> >::_Is };
-  typedef typename __bool2type<_Is>::_Ret _STLportLess;
-#endif
-  typedef _STLportLess has_trivial_default_constructor;
-  typedef _STLportLess has_trivial_copy_constructor;
-  typedef _STLportLess has_trivial_assignment_operator;
-  typedef _STLportLess has_trivial_destructor;
-  typedef _STLportLess is_POD_type;
+template <class _Tp = void>
+struct less /* : public binary_function<_Tp,_Tp,bool> */
+{
+    bool operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x < __y; }
+
+    typedef _Tp first_argument_type;
+    typedef _Tp second_argument_type;
+    typedef bool result_type;
 };
-#endif
+
+template <>
+struct less<void>
+{
+    template <class T, class U>
+    auto operator ()(T&& t, U&& u) const -> decltype(_STLP_STD::forward<T>(t) < _STLP_STD::forward<U>(u))
+      { return _STLP_STD::forward<T>(t) < _STLP_STD::forward<U>(u);}
+};
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
@@ -110,29 +605,71 @@ equal_to<_Tp> __equal_to(_Tp* ) { return equal_to<_Tp>(); }
 
 _STLP_MOVE_TO_STD_NAMESPACE
 
-template <class _Tp>
-struct plus : public binary_function<_Tp, _Tp, _Tp> {
-  _Tp operator()(const _Tp& __x, const _Tp& __y) const { return __x + __y; }
+template <class _Tp = void>
+struct plus /* : public binary_function<_Tp, _Tp, _Tp> */
+{
+    _Tp operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x + __y; }
+
+    typedef _Tp first_argument_type;
+    typedef _Tp second_argument_type;
+    typedef _Tp result_type;
 };
 
-template <class _Tp>
-struct minus : public binary_function<_Tp, _Tp, _Tp> {
-  _Tp operator()(const _Tp& __x, const _Tp& __y) const { return __x - __y; }
+template <class _Tp = void>
+struct minus /* : public binary_function<_Tp, _Tp, _Tp> */
+{
+    _Tp operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x - __y; }
+
+    typedef _Tp first_argument_type;
+    typedef _Tp second_argument_type;
+    typedef _Tp result_type;
 };
 
-_STLP_MOVE_TO_PRIV_NAMESPACE
+template <>
+struct plus<void>
+{
+    template <class T, class U>
+    auto operator ()(T&& t, U&& u) const -> decltype(_STLP_STD::forward<T>(t) + _STLP_STD::forward<U>(u))
+      { return _STLP_STD::forward<T>(t) + _STLP_STD::forward<U>(u);}
+};
+
+template <>
+struct minus<void>
+{
+    template <class T, class U>
+    auto operator ()(T&& t, U&& u) const -> decltype(_STLP_STD::forward<T>(t) - _STLP_STD::forward<U>(u))
+      { return _STLP_STD::forward<T>(t) - _STLP_STD::forward<U>(u);}
+};
+
+//_STLP_MOVE_TO_PRIV_NAMESPACE
+//
+//template <class _Tp>
+//plus<_Tp> __plus(_Tp* ) { return plus<_Tp>(); }
+//
+//template <class _Tp>
+//minus<_Tp> __minus(_Tp* ) { return minus<_Tp>(); }
+//
+//_STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _Tp>
-plus<_Tp> __plus(_Tp* ) { return plus<_Tp>(); }
+struct multiplies /* : public binary_function<_Tp, _Tp, _Tp> */
+{
+    _Tp operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x * __y; }
 
-template <class _Tp>
-minus<_Tp> __minus(_Tp* ) { return minus<_Tp>(); }
+    typedef _Tp first_argument_type;
+    typedef _Tp second_argument_type;
+    typedef _Tp result_type;
+};
 
-_STLP_MOVE_TO_STD_NAMESPACE
-
-template <class _Tp>
-struct multiplies : public binary_function<_Tp, _Tp, _Tp> {
-  _Tp operator()(const _Tp& __x, const _Tp& __y) const { return __x * __y; }
+template <>
+struct multiplies<void>
+{
+    template <class T, class U>
+    auto operator ()(T&& t, U&& u) const -> decltype(_STLP_STD::forward<T>(t) * _STLP_STD::forward<U>(u))
+      { return _STLP_STD::forward<T>(t) * _STLP_STD::forward<U>(u);}
 };
 
 _STLP_MOVE_TO_PRIV_NAMESPACE

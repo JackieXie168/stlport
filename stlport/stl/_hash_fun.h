@@ -31,9 +31,11 @@
 #ifndef _STLP_HASH_FUN_H
 #define _STLP_HASH_FUN_H
 
-#ifndef _STLP_INTERNAL_CSTDDEF
-#  include <stl/_cstddef.h>
+#ifndef _STLP_CSTDDEF
+#  include <cstddef>
 #endif
+
+#include <stdint.h>
 
 _STLP_BEGIN_NAMESPACE
 
@@ -41,11 +43,13 @@ template <class _Key> struct hash { };
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-inline size_t __stl_hash_string(const char* __s) {
-  _STLP_FIX_LITERAL_BUG(__s)
-  unsigned long __h = 0;
-  for ( ; *__s; ++__s)
-    __h = 5*__h + *__s;
+inline size_t __stl_hash_string(const char* __s)
+{
+  // _STLP_FIX_LITERAL_BUG(__s)
+  uint32_t __h = 0;
+  while ( *__s ) {
+    __h += (__h << 5) + *(__s++); // __h = 33 * __h + __s[i]
+  }
 
   return size_t(__h);
 }
@@ -121,20 +125,52 @@ _STLP_TEMPLATE_NULL struct hash<unsigned _STLP_LONG_LONG> {
 };
 #endif
 
+template <int L>
+inline size_t __stl_pointer_hash(const void* __s)
+{
+  size_t __h = 0;
+  size_t __len = L;
+  const unsigned char* __data = reinterpret_cast<const unsigned char*>(&__s);
+  while ( __len-- > 0 ) {
+    __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  }
+
+  return __h;
+}
+
+template <>
+inline size_t __stl_pointer_hash<4>(const void* __s)
+{
+  const unsigned char* __data = reinterpret_cast<const unsigned char*>(&__s);
+  size_t __h = *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *__data; // __h = 33 * __h + __s[i]
+
+  return __h;
+}
+
+template <>
+inline size_t __stl_pointer_hash<8>(const void* __s)
+{
+  const unsigned char* __data = reinterpret_cast<const unsigned char*>(&__s);
+  size_t __h = *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *(__data++); // __h = 33 * __h + __s[i]
+  __h += (__h << 5) + *__data; // __h = 33 * __h + __s[i]
+
+  return __h;
+}
+
 _STLP_TEMPLATE_NULL
 struct hash<void *>
 {
-    union __vp {
-        size_t s;
-        void  *p;
-    };
-
-    size_t operator()(void *__x) const
-      {
-        __vp vp;
-        vp.p = __x;
-        return vp.s;
-      }
+    size_t operator()(const void* __x) const
+      { return __stl_pointer_hash<sizeof(const void*)>(__x); }
 };
 
 _STLP_END_NAMESPACE

@@ -75,18 +75,18 @@
 #  define _STLP_HAS_NO_NAMESPACES 1
 #  define _STLP_NEED_TYPENAME 1
 #  define _STLP_NEED_EXPLICIT 1
-#  define _STLP_NO_ARROW_OPERATOR 1
+#  define _STLP_NO_ARROW_OPERATOR 1 // Unsupported
 #  define _STLP_NO_NEW_STYLE_CASTS 1
 #  define _STLP_NO_WCHAR_T 1
 #  define _STLP_NEED_MUTABLE 1
 #  define _STLP_NO_PARTIAL_SPECIALIZATION_SYNTAX 1
 #  define _STLP_NO_BAD_ALLOC 1
 
-#  define _STLP_NO_MEMBER_TEMPLATES 1
-#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
+#  define _STLP_NO_MEMBER_TEMPLATES 1 /* support removed */
+#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1 /* support removed */
+
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
 #  define _STLP_NO_QUALIFIED_FRIENDS 1
-#  define _STLP_NO_CLASS_PARTIAL_SPECIALIZATION 1
 #  define _STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER 1
 
 #  define _STLP_NO_DEFAULT_NON_TYPE_PARAM 1
@@ -94,18 +94,17 @@
 #  define _STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS 1
 #  define _STLP_NO_EXCEPTION_HEADER 1
 
-#  define _STLP_NO_NEW_NEW_HEADER 1
+#  define _STLP_NO_NEW_NEW_HEADER 1 /* unsupported more */
 
 #  if defined (__OS2__) && (__IBMCPP__ <= 350)
 #   define _STLP_NO_TYPEINFO 1
 #  endif
-#  define _STLP_NO_NEW_NEW_HEADER 1
 
 #  define _STLP_STATIC_CONST_INIT_BUG 1
 /* #  define _STLP_THROW_RETURN_BUG 1 */
 
 
-#  define _STLP_NO_TEMPLATE_CONVERSIONS 1
+#  define _STLP_NO_TEMPLATE_CONVERSIONS 1 /* support removed */
 #  define _STLP_BASE_TYPEDEF_OUTSIDE_BUG 1
 
 /* AIX xlC, Visual Age 3.0 for OS/2 and MS */
@@ -134,9 +133,7 @@
 #  define _STLP_USE_EXCEPTIONS 1
 #  define _STLP_STATIC_CONST_INIT_BUG 1
 /* #pragma report(disable,CPPC1500029)
- * unsigned 32-bit integer type
  */
-#  define _STLP_UINT32_T unsigned int
 #  if defined(_XOPEN_SOURCE) && (_XOPEN_VERSION - 0 >= 4)
 #    define _STLP_RAND48 1
 #  endif

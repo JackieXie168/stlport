@@ -208,20 +208,20 @@ public:                         // Public members for writing characters.
   streamsize _M_sputnc(char_type __c, streamsize __n)
   { return this->_M_xsputnc(__c, __n); }
 
-private:                        // Helper functions.
-  int_type _M_snextc_aux();
-
 public:                         // Public members for reading characters.
   streamsize in_avail() {
     return (_M_gnext < _M_gend) ? (_M_gend - _M_gnext) : this->showmanyc();
   }
 
   // Advance to the next character and return it.
-  int_type snextc() {
-  return ( _M_gend - _M_gnext > 1 ?
-             _Traits::to_int_type(*++_M_gnext) :
-             this->_M_snextc_aux());
-  }
+    int_type snextc()
+      {
+        if ( (_M_gend - _M_gnext) > 1 ) {
+          return _Traits::to_int_type(*++_M_gnext);
+        }
+        _M_gnext = _M_gend;
+        return this->underflow();
+      }
 
   // Return the current character and advance to the next.
   int_type sbumpc() {
@@ -276,7 +276,7 @@ _STLP_EXPORT_TEMPLATE_CLASS basic_streambuf<wchar_t, char_traits<wchar_t> >;
 
 _STLP_END_NAMESPACE
 
-#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
+#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 #  include <stl/_streambuf.c>
 #endif
 

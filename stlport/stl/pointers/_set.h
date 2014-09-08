@@ -38,7 +38,7 @@ _STLP_EXPORT template struct _STLP_CLASS_DECLSPEC less<void*>;
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
 typedef _Rb_tree_node<void*> _Node;
-_STLP_EXPORT_TEMPLATE_CLASS _STLP_alloc_proxy<_Rb_tree_node_base, _Node,  allocator<_Node> >;
+_STLP_EXPORT_TEMPLATE_CLASS _STLP_alloc_proxy<_Rb_tree_node_base, allocator<_Node> >;
 _STLP_EXPORT_TEMPLATE_CLASS _Rb_tree_base<void*, allocator<void*> >;
 #  if defined (_STLP_DEBUG)
 _STLP_EXPORT_TEMPLATE_CLASS _DbgCompare<void*, less<void*> >;
@@ -129,9 +129,8 @@ public:
   set() : _M_t(_CompareStorageType(), _StorageTypeAlloc()) {}
   explicit set(const _Compare& __comp,
                const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {}
+    : _M_t(__comp, __a) {}
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   set(_InputIterator __first, _InputIterator __last)
     : _M_t(_Compare(), _StorageTypeAlloc()) {
@@ -143,22 +142,10 @@ public:
 #  endif
   }
 
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  set(_InputIterator __first, _InputIterator __last, const _Compare& __comp)
-    : _M_t(__comp, _StorageTypeAlloc()) {
-#    if defined (_STLP_USE_ITERATOR_WRAPPER)
-    _M_t.insert_unique(_STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__first),
-                       _STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__last));
-#    else
-    _M_t.insert_unique(__first, __last);
-#    endif
-  }
-#  endif
   template <class _InputIterator>
   set(_InputIterator __first, _InputIterator __last, const _Compare& __comp,
-      const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {
+      const allocator_type& __a = allocator_type())
+    : _M_t(__comp, __a) {
 #  if defined (_STLP_USE_ITERATOR_WRAPPER)
     _M_t.insert_unique(_STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__first),
                        _STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__last));
@@ -166,29 +153,6 @@ public:
     _M_t.insert_unique(__first, __last);
 #  endif
   }
-#else
-  set(const value_type* __first, const value_type* __last)
-    : _M_t(_Compare(), _StorageTypeAlloc()) {
-    _M_t.insert_unique(cast_traits::to_storage_type_cptr(__first),
-                       cast_traits::to_storage_type_cptr(__last));
-  }
-
-  set(const value_type* __first, const value_type* __last,
-      const _Compare& __comp, const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {
-    _M_t.insert_unique(cast_traits::to_storage_type_cptr(__first),
-                       cast_traits::to_storage_type_cptr(__last));
-  }
-
-  set(const_iterator __first, const_iterator __last)
-    : _M_t(_Compare(), _StorageTypeAlloc())
-  { _M_t.insert_unique(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-
-  set(const_iterator __first, const_iterator __last,
-      const _Compare& __comp, const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType))
-  { _M_t.insert_unique(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   set(const _Self& __x) : _M_t(__x._M_t) {}
 
@@ -206,7 +170,7 @@ public:
   key_compare key_comp() const { return _M_t.key_comp(); }
   value_compare value_comp() const { return _M_t.key_comp(); }
   allocator_type get_allocator() const
-  { return _STLP_CONVERT_ALLOCATOR(_M_t.get_allocator(), value_type); }
+  { return _M_t.get_allocator(); }
 
   iterator begin() { return _S_to_value_ite(_M_t.begin()); }
   iterator end() { return _S_to_value_ite(_M_t.end()); }
@@ -232,7 +196,6 @@ public:
   iterator insert(iterator __pos, const value_type& __x)
   { return _S_to_value_ite(_M_t.insert_unique(_S_to_storage_ite(__pos), cast_traits::to_storage_type_cref(__x))); }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   void insert(_InputIterator __first, _InputIterator __last) {
 #  if defined (_STLP_USE_ITERATOR_WRAPPER)
@@ -242,14 +205,6 @@ public:
     _M_t.insert_unique(__first, __last);
 #  endif
   }
-#else
-  void insert(const_iterator __first, const_iterator __last)
-  { _M_t.insert_unique(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-  void insert(const value_type* __first, const value_type* __last) {
-    _M_t.insert_unique(cast_traits::to_storage_type_cptr(__first),
-                       cast_traits::to_storage_type_cptr(__last));
-  }
-#endif
   void erase(iterator __pos)
   { _M_t.erase(_S_to_storage_ite(__pos)); }
   size_type erase(const key_type& __x)
@@ -376,9 +331,8 @@ public:
   multiset() : _M_t(_Compare(), _StorageTypeAlloc()) {}
   explicit multiset(const _Compare& __comp,
                     const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {}
+    : _M_t(__comp, __a) {}
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   multiset(_InputIterator __first, _InputIterator __last)
     : _M_t(_Compare(), _StorageTypeAlloc()) {
@@ -390,24 +344,11 @@ public:
 #  endif
   }
 
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  multiset(_InputIterator __first, _InputIterator __last,
-           const _Compare& __comp)
-    : _M_t(__comp, _StorageTypeAlloc()) {
-#    if defined (_STLP_USE_ITERATOR_WRAPPER)
-    _M_t.insert_equal(_STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__first),
-                      _STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__last));
-#    else
-    _M_t.insert_equal(__first, __last);
-#    endif
-  }
-#  endif
   template <class _InputIterator>
   multiset(_InputIterator __first, _InputIterator __last,
            const _Compare& __comp,
-           const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {
+           const allocator_type& __a = allocator_type())
+    : _M_t(__comp, __a) {
 #  if defined (_STLP_USE_ITERATOR_WRAPPER)
     _M_t.insert_equal(_STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__first),
                       _STLP_TYPENAME _STLP_PRIV _IteWrapper<_KeyStorageType, _Key, _InputIterator>::_Ite(__last));
@@ -415,32 +356,6 @@ public:
     _M_t.insert_equal(__first, __last);
 #  endif
   }
-
-#else
-  multiset(const value_type* __first, const value_type* __last)
-    : _M_t(_Compare(), _StorageTypeAlloc()) {
-    _M_t.insert_equal(cast_traits::to_storage_type_cptr(__first),
-                      cast_traits::to_storage_type_cptr(__last));
-  }
-
-  multiset(const value_type* __first, const value_type* __last,
-           const _Compare& __comp,
-           const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType)) {
-    _M_t.insert_equal(cast_traits::to_storage_type_cptr(__first),
-                      cast_traits::to_storage_type_cptr(__last));
-  }
-
-  multiset(const_iterator __first, const_iterator __last)
-    : _M_t(_Compare(), _StorageTypeAlloc())
-  { _M_t.insert_equal(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-
-  multiset(const_iterator __first, const_iterator __last,
-           const _Compare& __comp,
-           const allocator_type& __a = allocator_type())
-    : _M_t(__comp, _STLP_CONVERT_ALLOCATOR(__a, _KeyStorageType))
-  { _M_t.insert_equal(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   multiset(const _Self& __x)
     : _M_t(__x._M_t) {}
@@ -459,7 +374,7 @@ public:
   key_compare key_comp() const { return _M_t.key_comp(); }
   value_compare value_comp() const { return _M_t.key_comp(); }
   allocator_type get_allocator() const
-  { return _STLP_CONVERT_ALLOCATOR(_M_t.get_allocator(), value_type); }
+  { return _M_t.get_allocator(); }
 
   iterator begin() { return _S_to_value_ite(_M_t.begin()); }
   iterator end() { return _S_to_value_ite(_M_t.end()); }
@@ -485,7 +400,6 @@ public:
                                              cast_traits::to_storage_type_cref(__x)));
   }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _InputIterator>
   void insert(_InputIterator __first, _InputIterator __last) {
 #  if defined (_STLP_USE_ITERATOR_WRAPPER)
@@ -495,14 +409,6 @@ public:
     _M_t.insert_equal(__first, __last);
 #  endif
   }
-#else
-  void insert(const value_type* __first, const value_type* __last) {
-    _M_t.insert_equal(cast_traits::to_storage_type_cptr(__first),
-                      cast_traits::to_storage_type_cptr(__last));
-  }
-  void insert(const_iterator __first, const_iterator __last)
-  { _M_t.insert_equal(_S_to_storage_ite(__first), _S_to_storage_ite(__last)); }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   void erase(iterator __pos)
   { _M_t.erase(_S_to_storage_ite(__pos)); }

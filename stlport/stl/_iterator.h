@@ -36,7 +36,6 @@
 
 _STLP_BEGIN_NAMESPACE
 
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
 // This is the new version of reverse_iterator, as defined in the
 //  draft C++ standard.  It relies on the iterator_traits template,
 //  which in turn relies on partial specialization.  The class
@@ -64,12 +63,10 @@ public:
   explicit reverse_iterator(iterator_type __x) : current(__x) {}
   reverse_iterator(const _Self& __x) : current(__x.current) {}
   _Self& operator = (const _Self& __x) { current = __x.base(); return *this; }
-#  if defined (_STLP_MEMBER_TEMPLATES)
   template <class _Iter>
   reverse_iterator(const reverse_iterator<_Iter>& __x) : current(__x.base()) {}
   template <class _Iter>
   _Self& operator = (const reverse_iterator<_Iter>& __x) { current = __x.base(); return *this; }
-#  endif /* _STLP_MEMBER_TEMPLATES */
 
   iterator_type base() const { return current; }
   reference operator*() const {
@@ -155,7 +152,6 @@ template <class _Iterator, class _DifferenceType>
 inline reverse_iterator<_Iterator>  _STLP_CALL
 operator+(_DifferenceType n,const reverse_iterator<_Iterator>& x)
 { return x.operator+(n); }
-#endif
 
 template <class _Container>
 class back_insert_iterator
@@ -253,10 +249,6 @@ inserter(_Container& __x, _Iterator __i) {
 }
 
 _STLP_END_NAMESPACE
-
-#if ! defined (_STLP_CLASS_PARTIAL_SPECIALIZATION) || defined (_STLP_USE_OLD_HP_ITERATOR_QUERIES)
-#  include <stl/_iterator_old.h>
-#endif
 
 #endif /* _STLP_INTERNAL_ITERATOR_H */
 

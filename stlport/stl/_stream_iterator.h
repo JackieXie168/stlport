@@ -107,6 +107,8 @@ public:
 
   istream_iterator() : _M_stream(0), _M_ok(false), _M_read_done(true) {}
   istream_iterator(istream_type& __s) : _M_stream(&__s), _M_ok(false), _M_read_done(false) {}
+  istream_iterator(const istream_iterator&) = default;
+  ~istream_iterator() = default;
 
   reference operator*() const {
     if (!_M_read_done) {
@@ -177,11 +179,16 @@ public:
   ostream_iterator(ostream_type& __s) : _M_stream(&__s), _M_string(0) {}
   ostream_iterator(ostream_type& __s, const _CharT* __c)
     : _M_stream(&__s), _M_string(__c)  {}
+  ostream_iterator( const ostream_iterator& x ) :
+      _M_stream(x._M_stream),
+      _M_string(x._M_string)
+    { }
   _Self& operator=(const _TpP& __val) {
     *_M_stream << __val;
     if (_M_string) *_M_stream << _M_string;
     return *this;
   }
+
   _Self& operator*() { return *this; }
   _Self& operator++() { return *this; }
   _Self& operator++(int) { return *this; }
@@ -189,18 +196,6 @@ private:
   ostream_type* _M_stream;
   const _CharT* _M_string;
 };
-
-#if defined (_STLP_USE_OLD_HP_ITERATOR_QUERIES)
-#  if defined (_STLP_LIMITED_DEFAULT_TEMPLATES)
-template <class _TpP>
-inline output_iterator_tag _STLP_CALL
-iterator_category(const ostream_iterator<_TpP>&) { return output_iterator_tag(); }
-#  else
-template <class _TpP, class _CharT, class _Traits>
-inline output_iterator_tag _STLP_CALL
-iterator_category(const ostream_iterator<_TpP, _CharT, _Traits>&) { return output_iterator_tag(); }
-#  endif
-#endif
 
 _STLP_END_NAMESPACE
 
@@ -219,26 +214,6 @@ inline bool _STLP_CALL
 operator!=(const istream_iterator< __ISI_TMPL_ARGUMENTS >& __x,
            const istream_iterator< __ISI_TMPL_ARGUMENTS >& __y)
 { return !__x._M_equal(__y); }
-#endif
-
-#if defined (_STLP_USE_OLD_HP_ITERATOR_QUERIES)
-template < __ISI_TMPL_HEADER_ARGUMENTS >
-inline input_iterator_tag _STLP_CALL
-iterator_category(const istream_iterator< __ISI_TMPL_ARGUMENTS >&)
-{ return input_iterator_tag(); }
-template < __ISI_TMPL_HEADER_ARGUMENTS >
-inline _Tp* _STLP_CALL
-value_type(const istream_iterator< __ISI_TMPL_ARGUMENTS >&) { return (_Tp*) 0; }
-
-#  if defined (_STLP_MINIMUM_DEFAULT_TEMPLATE_PARAMS) && !defined (_STLP_DEFAULT_TYPE_PARAM)
-template < __ISI_TMPL_HEADER_ARGUMENTS >
-inline ptrdiff_t* _STLP_CALL
-distance_type(const istream_iterator< __ISI_TMPL_ARGUMENTS >&) { return (ptrdiff_t*)0; }
-#  else
-template < __ISI_TMPL_HEADER_ARGUMENTS >
-inline _Dist* _STLP_CALL
-distance_type(const istream_iterator< __ISI_TMPL_ARGUMENTS >&) { return (_Dist*)0; }
-#  endif /* _STLP_MINIMUM_DEFAULT_TEMPLATE_PARAMS */
 #endif
 
 _STLP_END_NAMESPACE

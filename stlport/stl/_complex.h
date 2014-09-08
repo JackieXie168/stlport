@@ -30,6 +30,12 @@
 #  include <stl/_cmath.h>
 #endif
 
+#ifdef _STLP_WCE
+//  The Windows CE CRT headers define a macro to transform complex to _complex.  This
+//  interferes with use of std::complex.
+#  undef complex
+#endif
+
 _STLP_BEGIN_NAMESPACE
 
 template <class _Tp>
@@ -52,7 +58,7 @@ struct complex {
     return *this;
   }
 
-#if defined (_STLP_MEMBER_TEMPLATES) && defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
+#if defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
   template <class _Tp2>
   explicit complex(const complex<_Tp2>& __z)
     : _M_re(__z._M_re), _M_im(__z._M_im) {}
@@ -63,7 +69,7 @@ struct complex {
     _M_im = __z._M_im;
     return *this;
   }
-#endif /* _STLP_MEMBER_TEMPLATES */
+#endif /* _STLP_FUNCTION_TMPL_PARTIAL_ORDER */
 
   // Element access.
   value_type real() const { return _M_re; }
@@ -105,8 +111,6 @@ struct complex {
                               const value_type& __z2_r, const value_type& __z2_i,
                               value_type& __res_r, value_type& __res_i);
 
-#if defined (_STLP_MEMBER_TEMPLATES) // && defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
-
   template <class _Tp2> _Self& operator+= (const complex<_Tp2>& __z) {
     _M_re += __z._M_re;
     _M_im += __z._M_im;
@@ -135,7 +139,6 @@ struct complex {
     _M_im = __i;
     return *this;
   }
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   _Self& operator+= (const _Self& __z) {
     _M_re += __z._M_re;
@@ -231,7 +234,6 @@ struct _STLP_CLASS_DECLSPEC complex<float> {
                               const float& __z2_r, const float& __z2_i,
                               float& __res_r, float& __res_i);
 
-#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _Tp2>
   complex<float>& operator=(const complex<_Tp2>& __z) {
     _M_re = __z._M_re;
@@ -271,8 +273,6 @@ struct _STLP_CLASS_DECLSPEC complex<float> {
     _M_im = __i;
     return *this;
   }
-
-#endif /* _STLP_MEMBER_TEMPLATES */
 
   _Self& operator=(const _Self& __z) {
     _M_re = __z._M_re;
@@ -369,7 +369,7 @@ struct _STLP_CLASS_DECLSPEC complex<double> {
                               const double& __z2_r, const double& __z2_i,
                               double& __res_r, double& __res_i);
 
-#if defined (_STLP_MEMBER_TEMPLATES) && defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
+#if defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
   template <class _Tp2>
   complex<double>& operator=(const complex<_Tp2>& __z) {
     _M_re = __z._M_re;
@@ -410,7 +410,7 @@ struct _STLP_CLASS_DECLSPEC complex<double> {
     return *this;
   }
 
-#endif /* _STLP_MEMBER_TEMPLATES */
+#endif /* _STLP_FUNCTION_TMPL_PARTIAL_ORDER */
 
   _Self& operator=(const _Self& __z) {
     _M_re = __z._M_re;
@@ -508,7 +508,7 @@ struct _STLP_CLASS_DECLSPEC complex<long double> {
                               const long double& __z2_r, const long double& __z2_i,
                               long double& __res_r, long double& __res_i);
 
-#  if defined (_STLP_MEMBER_TEMPLATES) && defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
+#  if defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER)
 
   template <class _Tp2>
   complex<long double>& operator=(const complex<_Tp2>& __z) {
@@ -550,7 +550,7 @@ struct _STLP_CLASS_DECLSPEC complex<long double> {
     return *this;
   }
 
-#  endif /* _STLP_MEMBER_TEMPLATES */
+#  endif /* _STLP_FUNCTION_TMPL_PARTIAL_ORDER */
 
   _Self& operator=(const _Self& __z) {
     _M_re = __z._M_re;
@@ -924,9 +924,7 @@ _STLP_DECLSPEC complex<long double> _STLP_CALL tanh(const complex<long double>&)
 
 _STLP_END_NAMESPACE
 
-#ifndef _STLP_LINK_TIME_INSTANTIATION
-#  include <stl/_complex.c>
-#endif
+#include <stl/_complex.c>
 
 #endif
 

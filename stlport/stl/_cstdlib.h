@@ -16,15 +16,7 @@
 #ifndef _STLP_INTERNAL_CSTDLIB
 #define _STLP_INTERNAL_CSTDLIB
 
-#if defined (_STLP_USE_NEW_C_HEADERS)
-#  if defined (_STLP_HAS_INCLUDE_NEXT)
-#    include_next <cstdlib>
-#  else
-#    include _STLP_NATIVE_CPP_C_HEADER(cstdlib)
-#  endif
-#else
-#  include <stdlib.h>
-#endif
+#include <stdlib.h>
 
 #if defined (__BORLANDC__) && !defined (__linux__)
 /* Borland process.h header do not bring anything here and is just included
@@ -91,7 +83,7 @@ using _STLP_VENDOR_CSTD::qsort;
 using _STLP_VENDOR_CSTD::labs;
 using _STLP_VENDOR_CSTD::ldiv;
 #    if defined (_STLP_LONG_LONG) && !defined (_STLP_NO_VENDOR_STDLIB_L)
-#      if !defined(__sun)
+#      if !defined(__sun) && !defined(__arm__)
 using _STLP_VENDOR_CSTD::llabs;
 using _STLP_VENDOR_CSTD::lldiv_t;
 using _STLP_VENDOR_CSTD::lldiv;
@@ -147,14 +139,14 @@ inline _STLP_VENDOR_CSTD::ldiv_t div(long __x, long __y) { return _STLP_VENDOR_C
 
 #if defined (_STLP_LONG_LONG)
 #  if !defined (_STLP_NO_VENDOR_STDLIB_L)
-#    if !defined (__sun)
+#    if !defined (__sun) && !defined(__arm__)
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return _STLP_VENDOR_CSTD::llabs(__x); }
 inline lldiv_t div(_STLP_LONG_LONG __x, _STLP_LONG_LONG __y) { return _STLP_VENDOR_CSTD::lldiv(__x, __y); }
 #    else
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return ::llabs(__x); }
 inline lldiv_t div(_STLP_LONG_LONG __x, _STLP_LONG_LONG __y) { return ::lldiv(__x, __y); }
 #    endif
-#  else
+#  elif  !defined (__ARMCC_VERSION) && (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1600))
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return __x < 0 ? -__x : __x; }
 #  endif
 #endif

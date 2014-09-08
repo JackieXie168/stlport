@@ -97,35 +97,26 @@ private:
     }
   }
 
-  void _M_initialize_buffer(const _Tp&, const __true_type&) {}
-  void _M_initialize_buffer(const _Tp& val, const __false_type&) {
-    uninitialized_fill_n(_M_buffer, _M_len, val);
-  }
-
 public:
   ptrdiff_t size() const { return _M_len; }
   ptrdiff_t requested_size() const { return _M_original_len; }
   _Tp* begin() { return _M_buffer; }
   _Tp* end() { return _M_buffer + _M_len; }
 
-  _Temporary_buffer(_ForwardIterator __first, _ForwardIterator __last) {
-    // Workaround for a __type_traits bug in the pre-7.3 compiler.
-#   if defined(__sgi) && !defined(__GNUC__) && _COMPILER_VERSION < 730
-    typedef typename __type_traits<_Tp>::is_POD_type _Trivial;
-#   else
-    typedef typename __type_traits<_Tp>::has_trivial_default_constructor  _Trivial;
-#   endif
-    _STLP_TRY {
-      _M_len = _STLP_STD::distance(__first, __last);
-      _M_allocate_buffer();
-      if (_M_len > 0)
-        _M_initialize_buffer(*__first, _Trivial());
-    }
-    _STLP_UNWIND(free(_M_buffer); _M_buffer = 0; _M_len = 0)
-  }
+  _Temporary_buffer(_ForwardIterator __first, _ForwardIterator __last)
+      {
+        _STLP_TRY {
+          _M_len = _STLP_STD::distance(__first, __last);
+          _M_allocate_buffer();
+          if (_M_len > 0) {
+            uninitialized_fill_n(_M_buffer, _M_len, *__first );
+          }
+        }
+        _STLP_UNWIND(free(_M_buffer); _M_buffer = 0; _M_len = 0)
+      }
 
   ~_Temporary_buffer() {
-    _STLP_STD::_Destroy_Range(_M_buffer, _M_buffer + _M_len);
+    _STLP_STD::detail::_Destroy_Range(_M_buffer, _M_buffer + _M_len);
     free(_M_buffer);
   }
 
@@ -140,11 +131,7 @@ private:
 // Class temporary_buffer is not part of the standard.  It is an extension.
 
 template <class _ForwardIterator,
-          class _Tp
-#ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
-                    = typename iterator_traits<_ForwardIterator>::value_type
-#endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
-         >
+          class _Tp = typename iterator_traits<_ForwardIterator>::value_type>
 struct temporary_buffer : public _Temporary_buffer<_ForwardIterator, _Tp>
 {
   temporary_buffer(_ForwardIterator __first, _ForwardIterator __last)
@@ -156,9 +143,7 @@ struct temporary_buffer : public _Temporary_buffer<_ForwardIterator, _Tp>
 
 _STLP_END_NAMESPACE
 
-# ifndef _STLP_LINK_TIME_INSTANTIATION
-#  include <stl/_tempbuf.c>
-# endif
+#include <stl/_tempbuf.c>
 
 #endif /* _STLP_INTERNAL_TEMPBUF_H */
 

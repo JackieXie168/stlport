@@ -200,12 +200,22 @@ _STLP_END_NAMESPACE
 #    include <stl/_threads.h>
 #  endif
 
+#  ifndef _STLP_STDDEF_H
+#    include <stddef.h>
+#  endif
+
+_STLP_BEGIN_NAMESPACE
+using ::ptrdiff_t;
+using ::size_t;
+_STLP_END_NAMESPACE
+
+
 #  ifndef _STLP_INTERNAL_ITERATOR_BASE_H
 #    include <stl/_iterator_base.h>
 #  endif
 
-#  ifndef _STLP_TYPE_TRAITS_H
-#    include <stl/type_traits.h>
+#  ifndef _STLP_TYPE_TRAITS
+#    include <type_traits>
 #  endif
 
 _STLP_BEGIN_NAMESPACE
@@ -214,7 +224,7 @@ _STLP_MOVE_TO_PRIV_NAMESPACE
 
 /*
  * Special debug iterator traits having an additionnal static member
- * method _Check. It is used by the slist debug implementation to check
+ * method _Check. It is used by the forward_list debug implementation to check
  * the special before_begin iterator.
  */
 template <class _Traits>
@@ -260,7 +270,7 @@ inline bool  _STLP_CALL __valid_range(const _Iterator&,const _Iterator&,
 
 template <class _Iterator>
 inline bool _STLP_CALL __valid_range(const _Iterator& __i1, const _Iterator& __i2)
-{ return __valid_range(__i1,__i2,_STLP_ITERATOR_CATEGORY(__i1, _Iterator)); }
+{ return __valid_range(__i1,__i2,typename iterator_traits<_Iterator>::iterator_category()); }
 
 // Note : that means in range [i1, i2].
 template <class _Iterator>
@@ -462,7 +472,7 @@ extern  void __stl_debug_terminate();
 
 #endif
 
-#if defined (_STLP_ASSERTIONS) && !defined (_STLP_LINK_TIME_INSTANTIATION)
+#if defined (_STLP_ASSERTIONS)
 #  include <stl/debug/_debug.c>
 #endif
 

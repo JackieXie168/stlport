@@ -44,7 +44,7 @@
 #  endif
 #endif /* _STLP_BIG_ENDIAN */
 
-#if !defined (_STLP_WINDOWS_H_INCLUDED)
+#if !defined (_STLP_WINDOWS_H_INCLUDED) && !defined(_STLP_WCE)
 #  define _STLP_WINDOWS_H_INCLUDED
 #  if defined (__BUILDING_STLPORT)
 #    include <stl/config/_native_headers.h>
@@ -228,7 +228,7 @@ void* _STLP_CALL STLPInterlockedExchangePointer(void* volatile* __a, void* __b) 
 #    define STLPInterlockedExchangePointer _InterlockedExchangePointer
 #  endif
 
-#endif /* _STLP_WINDOWS_H_INCLUDED */
+#endif /* _STLP_WINDOWS_H_INCLUDED  && !_STLP_WCE */
 
 /* _STLP_WIN95_LIKE signal the Windows 95 OS or assimilated Windows OS version that
  * has Interlockeded[Increment, Decrement] Win32 API functions not returning modified

@@ -16,33 +16,7 @@
 #ifndef _STLP_INTERNAL_CMATH
 #define _STLP_INTERNAL_CMATH
 
-/* gcc do not like when a using directive appear after a function
- * declaration. cmath have abs overloads and cstdlib a using directive
- * so cstdlib has to be included first.
- */
-#if defined (__GNUC__) && defined (_STLP_USE_NEW_C_HEADERS)
-#  if defined (_STLP_HAS_INCLUDE_NEXT)
-#    include_next <cstdlib>
-#  else
-#    include _STLP_NATIVE_CPP_C_HEADER(cstdlib)
-#  endif
-#endif
-
-#if defined (_STLP_USE_NEW_C_HEADERS)
-#  if defined (_STLP_HAS_NO_NAMESPACES) && !defined (exception)
-#    define exception __math_exception
-#  endif
-#  if defined (_STLP_HAS_INCLUDE_NEXT)
-#    include_next <cmath>
-#  else
-#    include _STLP_NATIVE_CPP_C_HEADER(cmath)
-#  endif
-#  if defined (_STLP_HAS_NO_NAMESPACES)
-#    undef exception
-#  endif
-#else
-#  include <math.h>
-#endif
+#include <math.h>
 
 #if (defined (__SUNPRO_CC) && (__SUNPRO_CC > 0x500)) || \
      !(defined (__IBMCPP__) && (__IBMCPP__ >= 500) || !(defined(__HP_aCC) && (__HP_aCC >= 30000) ))
@@ -545,16 +519,7 @@ using ::fabs;
 using ::floor;
 using ::fmod;
 using ::frexp;
-/*
-   Because of some weird interaction between STLport headers
-   and native HP-UX headers, when compiled with _STLP_DEBUG
-   macro defined with aC++, hypot() is not declared.
-   At some point we'll need to get to the bottom line of
-   this problem.
-*/
-#if !(defined(__HP_aCC) && defined(_STLP_DEBUG))
 using ::hypot;
-#endif
 using ::ldexp;
 using ::log;
 using ::log10;

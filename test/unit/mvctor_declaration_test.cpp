@@ -4,9 +4,7 @@
 #if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
 #  include <rope>
 #endif
-#if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
-#  include <slist>
-#endif
+#include <forward_list>
 #include <list>
 #include <deque>
 #include <set>
@@ -33,34 +31,34 @@ using namespace std::tr1;
 
 #if defined (STLPORT) && !defined (_STLP_NO_MOVE_SEMANTIC)
 
-#  if defined (__GNUC__) && defined (_STLP_USE_NAMESPACES)
+//#  if defined (__GNUC__) && defined (_STLP_USE_NAMESPACES)
 // libstdc++ sometimes exposed its own __true_type in
 // global namespace resulting in an ambiguity.
-#    define __true_type std::__true_type
-#    define __false_type std::__false_type
-#  endif
+//#    define __true_type std::__true_type
+//#    define __false_type std::__false_type
+//#  endif
 
-static bool type_to_bool(__true_type)
-{ return true; }
-static bool type_to_bool(__false_type)
-{ return false; }
+//static bool type_to_bool(__true_type)
+//{ return true; }
+//static bool type_to_bool(__false_type)
+//{ return false; }
 
 template <class _Tp>
 static bool is_movable(const _Tp&) {
   typedef typename __move_traits<_Tp>::implemented _MovableTp;
-  return type_to_bool(_MovableTp());
+  return /* type_to_bool(_MovableTp()) */ _MovableTp::value;
 }
 
 template <class _Tp>
 static bool is_move_complete(const _Tp&) {
   typedef __move_traits<_Tp> _TpMoveTraits;
   typedef typename _TpMoveTraits::complete _TpMoveComplete;
-  return type_to_bool(_TpMoveComplete());
+  return /* type_to_bool(_TpMoveComplete()) */ _TpMoveComplete::value;
 }
 
 struct specially_allocated_struct {
   bool operator < (const specially_allocated_struct&) const;
-#  if defined (__DMC__) // slist<_Tp,_Alloc>::remove error
+#  if defined (__DMC__) // forward_list<_Tp,_Alloc>::remove error
   bool operator==(const specially_allocated_struct&) const;
 #  endif
 };
@@ -89,15 +87,11 @@ namespace std {
     typedef const value_type& const_reference;
     typedef size_t     size_type;
     typedef ptrdiff_t  difference_type;
-#  if defined (_STLP_MEMBER_TEMPLATE_CLASSES)
     template <class _Tp1> struct rebind {
       typedef allocator<_Tp1> other;
     };
-#  endif
     allocator() _STLP_NOTHROW {}
-#  if defined (_STLP_MEMBER_TEMPLATES)
     template <class _Tp1> allocator(const allocator<_Tp1>&) _STLP_NOTHROW {}
-#  endif
     allocator(const allocator&) _STLP_NOTHROW {}
     ~allocator() _STLP_NOTHROW {}
     pointer address(reference __x) const { return &__x; }
@@ -115,47 +109,45 @@ namespace std {
                      struct_with_specialized_less const&) const;
   };
 
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
 #    if !defined (_STLP_NO_MOVE_SEMANTIC)
 #      if defined (__BORLANDC__) && (__BORLANDC__ >= 0x564)
   _STLP_TEMPLATE_NULL
   struct __move_traits<vector<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
   struct __move_traits<deque<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
   struct __move_traits<list<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
-  struct __move_traits<slist<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+  struct __move_traits<forward_list<specially_allocated_struct> > {
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
   struct __move_traits<less<struct_with_specialized_less> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
   struct __move_traits<set<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
   _STLP_TEMPLATE_NULL
   struct __move_traits<multiset<specially_allocated_struct> > {
-    typedef __true_type implemented;
-    typedef __false_type complete;
+    typedef true_type implemented;
+    typedef false_type complete;
   };
 #      endif
 #    endif
-#  endif
 
 #  if defined (_STLP_USE_NAMESPACES)
 }
@@ -171,18 +163,10 @@ void MoveConstructorTest::movable_declaration()
   {
     //string, wstring:
     CPPUNIT_ASSERT( is_movable(string()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(string()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(string()) );
-#  endif
 #  if defined (_STLP_HAS_WCHAR_T)
     CPPUNIT_ASSERT( is_movable(wstring()) );
-#    if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(wstring()) );
-#    else
-    CPPUNIT_ASSERT( !is_move_complete(wstring()) );
-#    endif
 #  endif
   }
 
@@ -190,18 +174,10 @@ void MoveConstructorTest::movable_declaration()
   {
     //crope, wrope:
     CPPUNIT_ASSERT( is_movable(crope()) );
-#    if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(crope()) );
-#    else
-    CPPUNIT_ASSERT( !is_move_complete(crope()) );
-#    endif
 #    if defined (_STLP_HAS_WCHAR_T)
     CPPUNIT_ASSERT( is_movable(wrope()) );
-#      if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(wrope()) );
-#      else
-    CPPUNIT_ASSERT( !is_move_complete(wrope()) );
-#      endif
 #    endif
   }
 #  endif
@@ -210,74 +186,48 @@ void MoveConstructorTest::movable_declaration()
     //vector:
     CPPUNIT_ASSERT( is_movable(vector<char>()) );
     CPPUNIT_ASSERT( is_movable(vector<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(vector<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(vector<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(vector<char>()) );
-#  endif
   }
 
   {
     //deque:
     CPPUNIT_ASSERT( is_movable(deque<char>()) );
     CPPUNIT_ASSERT( is_movable(deque<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(deque<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(deque<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(deque<char>()) );
-#  endif
   }
 
   {
     //list:
     CPPUNIT_ASSERT( is_movable(list<char>()) );
     CPPUNIT_ASSERT( is_movable(list<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(list<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(list<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(list<char>()) );
-#  endif
   }
 
-#  if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
   {
-    //slist:
-    CPPUNIT_ASSERT( is_movable(slist<char>()) );
-    CPPUNIT_ASSERT( is_movable(slist<specially_allocated_struct>()) );
-#    if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-    CPPUNIT_ASSERT( is_move_complete(slist<char>()) );
-    CPPUNIT_ASSERT( !is_move_complete(slist<specially_allocated_struct>()) );
-#    else
-    CPPUNIT_ASSERT( !is_move_complete(slist<char>()) );
-#    endif
+    //forward_list:
+    CPPUNIT_ASSERT( is_movable(forward_list<char>()) );
+    CPPUNIT_ASSERT( is_movable(forward_list<specially_allocated_struct>()) );
+    CPPUNIT_ASSERT( is_move_complete(forward_list<char>()) );
+    CPPUNIT_ASSERT( !is_move_complete(forward_list<specially_allocated_struct>()) );
   }
-#  endif
 
   {
     //queue:
     CPPUNIT_ASSERT( is_movable(queue<char>()) );
     CPPUNIT_ASSERT( is_movable(queue<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(queue<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(queue<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(queue<char>()) );
-#  endif
   }
 
   {
     //stack:
     CPPUNIT_ASSERT( is_movable(stack<char>()) );
     CPPUNIT_ASSERT( is_movable(stack<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(stack<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(stack<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(stack<char>()) );
-#  endif
   }
 
 #endif
@@ -292,54 +242,36 @@ void MoveConstructorTest::movable_declaration_assoc()
 
     //For associative containers it is important that less is correctly recognize as
     //the STLport less or a user specialized less:
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(less<char>()) );
-#  endif
     CPPUNIT_ASSERT( !is_move_complete(less<struct_with_specialized_less>()) );
 
     //set
     CPPUNIT_ASSERT( is_movable(set<char>()) );
     CPPUNIT_ASSERT( is_movable(set<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(set<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(set<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(set<char>()) );
-#  endif
 
     //multiset
     CPPUNIT_ASSERT( is_movable(multiset<char>()) );
     CPPUNIT_ASSERT( is_movable(multiset<specially_allocated_struct>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(multiset<char>()) );
     CPPUNIT_ASSERT( !is_move_complete(multiset<specially_allocated_struct>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(multiset<char>()) );
-#  endif
 
     //map
     CPPUNIT_ASSERT( is_movable(map<char, char>()) );
     CPPUNIT_ASSERT( is_movable(map<specially_allocated_struct, char>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(map<char, char>()) );
     //Here even if allocator has been specialized for specially_allocated_struct
     //this pecialization won't be used in default map instanciation as the default
     //allocator is allocator<pair<specially_allocated_struct, char> >
     CPPUNIT_ASSERT( is_move_complete(map<specially_allocated_struct, char>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(map<char, char>()) );
-#  endif
 
     //multimap
     CPPUNIT_ASSERT( is_movable(multimap<char, char>()) );
     CPPUNIT_ASSERT( is_movable(multimap<specially_allocated_struct, char>()) );
-#  if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
     CPPUNIT_ASSERT( is_move_complete(multimap<char, char>()) );
     //Idem map remark
     CPPUNIT_ASSERT( is_move_complete(multimap<specially_allocated_struct, char>()) );
-#  else
-    CPPUNIT_ASSERT( !is_move_complete(multimap<char, char>()) );
-#  endif
   }
 #endif
 }

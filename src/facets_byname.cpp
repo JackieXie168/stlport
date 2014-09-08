@@ -17,7 +17,6 @@
  */
 #include "stlport_prefix.h"
 
-#include <hash_map>
 #include <vector>
 
 #include <locale>
@@ -278,9 +277,16 @@ codecvt_byname<char, char, mbstate_t>
     : codecvt<char, char, mbstate_t>(refs) {
   if (!name)
     locale::_M_throw_on_null_name();
+
+  int __err_code;
+  char buf[_Locale_MAX_SIMPLE_NAME];
+  _M_codecvt = _STLP_PRIV __acquire_codecvt(name, buf, 0, &__err_code);
+  if (!_M_codecvt)
+    locale::_M_throw_on_creation_failure(__err_code, name, "codecvt");
 }
 
-codecvt_byname<char, char, mbstate_t>::~codecvt_byname() {}
+codecvt_byname<char, char, mbstate_t>::~codecvt_byname()
+{ _STLP_PRIV __release_codecvt(_M_codecvt); }
 
 
 #if !defined (_STLP_NO_WCHAR_T)
@@ -296,7 +302,7 @@ codecvt_byname<wchar_t, char, mbstate_t>::codecvt_byname(const char* name, size_
   char buf[_Locale_MAX_SIMPLE_NAME];
   _M_codecvt = _STLP_PRIV __acquire_codecvt(name, buf, 0, &__err_code);
   if (!_M_codecvt)
-    locale::_M_throw_on_creation_failure(__err_code, name, "ctype");
+    locale::_M_throw_on_creation_failure(__err_code, name, "codecvt");
 }
 
 codecvt_byname<wchar_t, char, mbstate_t>::~codecvt_byname()
@@ -304,12 +310,12 @@ codecvt_byname<wchar_t, char, mbstate_t>::~codecvt_byname()
 
 codecvt<wchar_t, char, mbstate_t>::result
 codecvt_byname<wchar_t, char, mbstate_t>::do_out(state_type&         state,
-                                                 const intern_type*  from,
-                                                 const intern_type*  from_end,
-                                                 const intern_type*& from_next,
-                                                 extern_type*        to,
-                                                 extern_type*        to_limit,
-                                                 extern_type*&       to_next) const {
+                                                 const wchar_t*  from,
+                                                 const wchar_t*  from_end,
+                                                 const wchar_t*& from_next,
+                                                 char*        to,
+                                                 char*        to_limit,
+                                                 char*&       to_next) const {
   while (from != from_end && to != to_limit) {
     size_t chars_stored = _WLocale_wctomb(_M_codecvt,
                                           to, to_limit - to, *from,
@@ -336,12 +342,12 @@ codecvt_byname<wchar_t, char, mbstate_t>::do_out(state_type&         state,
 
 codecvt<wchar_t, char, mbstate_t>::result
 codecvt_byname<wchar_t, char, mbstate_t>::do_in(state_type&         state,
-                                                const extern_type*  from,
-                                                const extern_type*  from_end,
-                                                const extern_type*& from_next,
-                                                intern_type*        to,
-                                                intern_type*        to_end,
-                                                intern_type*&       to_next) const {
+                                                const char*  from,
+                                                const char*  from_end,
+                                                const char*& from_next,
+                                                wchar_t*        to,
+                                                wchar_t*        to_end,
+                                                wchar_t*&       to_next) const {
   while (from != from_end && to != to_end) {
     size_t chars_read = _WLocale_mbtowc(_M_codecvt,
                                         to, from, from_end - from,
@@ -369,9 +375,9 @@ codecvt_byname<wchar_t, char, mbstate_t>::do_in(state_type&         state,
 
 codecvt<wchar_t, char, mbstate_t>::result
 codecvt_byname<wchar_t, char, mbstate_t>::do_unshift(state_type&   state,
-                                                     extern_type*  to,
-                                                     extern_type*  to_limit,
-                                                     extern_type*& to_next) const {
+                                                     char*  to,
+                                                     char*  to_limit,
+                                                     char*& to_next) const {
   to_next = to;
   size_t result = _WLocale_unshift(_M_codecvt, &state,
                                    to, to_limit - to, &to_next);
@@ -404,8 +410,8 @@ codecvt_byname<wchar_t, char, mbstate_t>::do_always_noconv() const _STLP_NOTHROW
 
 int
 codecvt_byname<wchar_t, char, mbstate_t>::do_length(state_type&         state,
-                                                    const  extern_type* from,
-                                                    const  extern_type* end,
+                                                    const  char* from,
+                                                    const  char* end,
                                                     size_t              mx) const {
   size_t __count = 0;
   while (from != end && mx--) {
@@ -984,7 +990,7 @@ string moneypunct_byname<wchar_t, true>::do_grouping() const
 { return _Locale_mon_grouping(_M_monetary); }
 
 inline wstring __do_widen (string const& str) {
-#if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC)
+#if defined (_STLP_MSVC)
   wstring::_Reserve_t __Reserve;
   size_t __size = str.size();
   wstring result(__Reserve, __size);

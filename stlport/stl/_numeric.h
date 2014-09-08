@@ -38,7 +38,7 @@
 _STLP_BEGIN_NAMESPACE
 
 template <class _InputIterator, class _Tp>
-_STLP_INLINE_LOOP
+inline
 _Tp accumulate(_InputIterator __first, _InputIterator __last, _Tp _Init) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
   for ( ; __first != __last; ++__first)
@@ -47,7 +47,7 @@ _Tp accumulate(_InputIterator __first, _InputIterator __last, _Tp _Init) {
 }
 
 template <class _InputIterator, class _Tp, class _BinaryOperation>
-_STLP_INLINE_LOOP
+inline
 _Tp accumulate(_InputIterator __first, _InputIterator __last, _Tp _Init,
                _BinaryOperation __binary_op) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
@@ -57,7 +57,7 @@ _Tp accumulate(_InputIterator __first, _InputIterator __last, _Tp _Init,
 }
 
 template <class _InputIterator1, class _InputIterator2, class _Tp>
-_STLP_INLINE_LOOP
+inline
 _Tp inner_product(_InputIterator1 __first1, _InputIterator1 __last1,
                   _InputIterator2 __first2, _Tp _Init) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
@@ -68,7 +68,7 @@ _Tp inner_product(_InputIterator1 __first1, _InputIterator1 __last1,
 
 template <class _InputIterator1, class _InputIterator2, class _Tp,
           class _BinaryOperation1, class _BinaryOperation2>
-_STLP_INLINE_LOOP
+inline
 _Tp inner_product(_InputIterator1 __first1, _InputIterator1 __last1,
                   _InputIterator2 __first2, _Tp _Init,
                   _BinaryOperation1 __binary_op1,
@@ -81,58 +81,47 @@ _Tp inner_product(_InputIterator1 __first1, _InputIterator1 __last1,
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-template <class _InputIterator, class _OutputIterator, class _Tp,
-          class _BinaryOperation>
-_OutputIterator
-__partial_sum(_InputIterator __first, _InputIterator __last,
-              _OutputIterator __result, _Tp*, _BinaryOperation __binary_op);
+template <class _InputIterator, class _OutputIterator, class _BinaryOperation>
+_OutputIterator __partial_sum(_InputIterator __first, _InputIterator __last,
+                              _OutputIterator __result, _BinaryOperation __binary_op);
 
 _STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _InputIterator, class _OutputIterator>
-inline _OutputIterator
-partial_sum(_InputIterator __first, _InputIterator __last,
-            _OutputIterator __result) {
-  return _STLP_PRIV __partial_sum(__first, __last, __result, _STLP_VALUE_TYPE(__first, _InputIterator),
-                                  _STLP_PRIV __plus(_STLP_VALUE_TYPE(__first, _InputIterator)));
+inline _OutputIterator partial_sum(_InputIterator __first, _InputIterator __last, _OutputIterator __result)
+{
+  return _STLP_PRIV __partial_sum(__first, __last, __result,
+                                  plus<typename iterator_traits<_InputIterator>::value_type>());
 }
 
 template <class _InputIterator, class _OutputIterator, class _BinaryOperation>
 inline _OutputIterator
 partial_sum(_InputIterator __first, _InputIterator __last,
-            _OutputIterator __result, _BinaryOperation __binary_op) {
-  return _STLP_PRIV __partial_sum(__first, __last, __result, _STLP_VALUE_TYPE(__first, _InputIterator),
-                                  __binary_op);
-}
+            _OutputIterator __result, _BinaryOperation __binary_op)
+{ return _STLP_PRIV __partial_sum(__first, __last, __result, __binary_op); }
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-template <class _InputIterator, class _OutputIterator, class _Tp,
-          class _BinaryOperation>
-_OutputIterator
-__adjacent_difference(_InputIterator __first, _InputIterator __last,
-                      _OutputIterator __result, _Tp*,
-                      _BinaryOperation __binary_op);
+template <class _InputIterator, class _OutputIterator, class _BinaryOperation>
+_OutputIterator __adjacent_difference(_InputIterator __first, _InputIterator __last,
+                                      _OutputIterator __result,
+                                      _BinaryOperation __binary_op);
 
 _STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _InputIterator, class _OutputIterator>
 inline _OutputIterator
-adjacent_difference(_InputIterator __first,
-                    _InputIterator __last, _OutputIterator __result) {
+adjacent_difference(_InputIterator __first, _InputIterator __last, _OutputIterator __result)
+{
   return _STLP_PRIV __adjacent_difference(__first, __last, __result,
-                                          _STLP_VALUE_TYPE(__first, _InputIterator),
-                                          _STLP_PRIV __minus(_STLP_VALUE_TYPE(__first, _InputIterator)));
+                                          minus<typename iterator_traits<_InputIterator>::value_type>());
 }
 
 template <class _InputIterator, class _OutputIterator, class _BinaryOperation>
 _OutputIterator
 adjacent_difference(_InputIterator __first, _InputIterator __last,
-                    _OutputIterator __result, _BinaryOperation __binary_op) {
-  return _STLP_PRIV __adjacent_difference(__first, __last, __result,
-                                          _STLP_VALUE_TYPE(__first, _InputIterator),
-                                          __binary_op);
-}
+                    _OutputIterator __result, _BinaryOperation __binary_op)
+{ return _STLP_PRIV __adjacent_difference(__first, __last, __result, __binary_op); }
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
@@ -166,23 +155,19 @@ template <class _Tp, class _Integer>
 inline _Tp power(_Tp __x, _Integer __n) {
   return _STLP_PRIV __power(__x, __n, multiplies<_Tp>());
 }
-
-// iota is not part of the C++ standard.  It is an extension.
+#endif
 
 template <class _ForwardIterator, class _Tp>
-_STLP_INLINE_LOOP
+inline
 void iota(_ForwardIterator __first, _ForwardIterator __last, _Tp __val) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
   while (__first != __last)
     *__first++ = __val++;
 }
-#endif
 
 _STLP_END_NAMESPACE
 
-#if !defined (_STLP_LINK_TIME_INSTANTIATION)
-#  include <stl/_numeric.c>
-#endif
+#include <stl/_numeric.c>
 
 #endif /* _STLP_INTERNAL_NUMERIC_H */
 

@@ -80,19 +80,11 @@ public:                         // Constructor, destructor, assignment.
   // it can't be an iterator.
   template <class _InputIterator>
   basic_string(_InputIterator __f, _InputIterator __l,
-               const allocator_type & __a _STLP_ALLOCATOR_TYPE_DFL)
+               const allocator_type & __a = allocator_type())
     : _STLP_NO_MEM_T_STRING_BASE(_CalledFromWorkaround_t(), __a) {
     typedef typename _IsIntegral<_InputIterator>::_Ret _Integral;
     _M_initialize_dispatch(__f, __l, _Integral());
   }
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  basic_string(_InputIterator __f, _InputIterator __l)
-    : _STLP_NO_MEM_T_STRING_BASE(_CalledFromWorkaround_t(), allocator_type()) {
-    typedef typename _IsIntegral<_InputIterator>::_Ret _Integral;
-    _M_initialize_dispatch(__f, __l, _Integral());
-  }
-#  endif
 
   _Self& operator=(const _Self& __s) {
     _Base::operator=(__s);
@@ -129,7 +121,7 @@ private:
 
   template <class _InputIter>
   void _M_range_initializeT(_InputIter __f, _InputIter __l) {
-    _M_range_initialize(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter));
+    _M_range_initialize(__f, __l, typename iterator_traits<_InputIterator>::iterator_category());
   }
 
   template <class _Integer>
@@ -242,7 +234,7 @@ private:                        // Helper functions for append.
 
   template <class _InputIter>
   _Self& _M_append_dispatch(_InputIter __f, _InputIter __l, const __false_type& /*Integral*/)
-  { return _M_appendT(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter)); }
+  { return _M_appendT(__f, __l, typename iterator_traits<_InputIterator>::iterator_category()); }
 
 public:                         // Assign
   _Self& assign(const _Self& __s) {
@@ -290,7 +282,7 @@ private:                        // Helper functions for assign.
     if (__f == __l)
       _Base::erase(__cur, this->_M_Finish());
     else
-      _M_appendT(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter));
+      _M_appendT(__f, __l, typename iterator_traits<_InputIterator>::iterator_category());
     return *this;
   }
 
@@ -434,7 +426,7 @@ private:  // Helper functions for insert.
     _STLP_FIX_LITERAL_BUG(__p)
     /* We are forced to do a temporary string to avoid the self referencing issue. */
     const _Self __self(__first, __last, this->get_allocator());
-    _M_insertT(__p, __self.begin(), __self.end(), _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+    _M_insertT(__p, __self.begin(), __self.end(), typename iterator_traits<_InputIterator>::iterator_category());
   }
 
   template <class _InputIterator>

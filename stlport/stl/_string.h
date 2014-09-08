@@ -19,20 +19,18 @@
 #ifndef _STLP_INTERNAL_STRING_H
 #define _STLP_INTERNAL_STRING_H
 
+#include <functional>
+
+#ifndef _STLP_INTERNAL_ALGOBASE_H
+#  include <stl/_algobase.h>
+#endif
+
 #ifndef _STLP_INTERNAL_ALLOC_H
 #  include <stl/_alloc.h>
 #endif
 
 #ifndef _STLP_STRING_FWD_H
 #  include <stl/_string_fwd.h>
-#endif
-
-#ifndef _STLP_INTERNAL_FUNCTION_BASE_H
-#  include <stl/_function_base.h>
-#endif
-
-#ifndef _STLP_INTERNAL_ALGOBASE_H
-#  include <stl/_algobase.h>
 #endif
 
 #ifndef _STLP_INTERNAL_ITERATOR_H
@@ -46,16 +44,6 @@
 #if defined (_STLP_USE_TEMPLATE_EXPRESSION)
 #  include <stl/_string_sum.h>
 #endif /* _STLP_USE_TEMPLATE_EXPRESSION */
-
-#if defined (__MWERKS__) && ! defined (_STLP_USE_OWN_NAMESPACE)
-
-// MSL implementation classes expect to see the definition of streampos
-// when this header is included. We expect this to be fixed in later MSL
-// implementations
-#  if !defined( __MSL_CPP__ ) || __MSL_CPP__ < 0x4105
-#    include <stl/msl_string.h>
-#  endif
-#endif // __MWERKS__
 
 /*
  * Standard C++ string class.  This class has performance
@@ -119,9 +107,6 @@ _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _CharT, class _Traits, class _Alloc>
 class basic_string : _STLP_PRIVATE _STLP_PRIV _String_base<_CharT,_Alloc>
-#if defined (_STLP_USE_PARTIAL_SPEC_WORKAROUND) && !defined (basic_string)
-                   , public __stlport_class<basic_string<_CharT, _Traits, _Alloc> >
-#endif
 {
 _STLP_PRIVATE:                        // Private members inherited from base.
   typedef _STLP_PRIV _String_base<_CharT,_Alloc> _Base;
@@ -152,55 +137,21 @@ public:                         // Constructor, destructor, assignment.
   typedef typename _Base::allocator_type allocator_type;
 
   allocator_type get_allocator() const
-  { return _STLP_CONVERT_ALLOCATOR((const allocator_type&)this->_M_start_of_storage, _CharT); }
+  { return (const allocator_type&)this->_M_start_of_storage; }
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   explicit basic_string(const allocator_type& __a = allocator_type())
-#else
-  basic_string()
-      : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type(), _Base::_DEFAULT_SIZE)
-  { _M_terminate_string(); }
-  explicit basic_string(const allocator_type& __a)
-#endif
       : _STLP_PRIV _String_base<_CharT,_Alloc>(__a, _Base::_DEFAULT_SIZE)
   { _M_terminate_string(); }
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   basic_string(_Reserve_t, size_t __n,
                const allocator_type& __a = allocator_type())
-#else
-  basic_string(_Reserve_t, size_t __n)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type(), __n + 1)
-  { _M_terminate_string(); }
-  basic_string(_Reserve_t, size_t __n, const allocator_type& __a)
-#endif
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a, __n + 1)
   { _M_terminate_string(); }
 
   basic_string(const _Self&);
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   basic_string(const _Self& __s, size_type __pos, size_type __n = npos,
                const allocator_type& __a = allocator_type())
-#else
-  basic_string(const _Self& __s, size_type __pos)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type()) {
-    if (__pos > __s.size())
-      this->_M_throw_out_of_range();
-    else
-      _M_range_initialize(__s._M_Start() + __pos, __s._M_Finish());
-  }
-  basic_string(const _Self& __s, size_type __pos, size_type __n)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type()) {
-    if (__pos > __s.size())
-      this->_M_throw_out_of_range();
-    else
-      _M_range_initialize(__s._M_Start() + __pos,
-                          __s._M_Start() + __pos + (min) (__n, __s.size() - __pos));
-  }
-  basic_string(const _Self& __s, size_type __pos, size_type __n,
-               const allocator_type& __a)
-#endif
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a) {
     if (__pos > __s.size())
       this->_M_throw_out_of_range();
@@ -209,84 +160,45 @@ public:                         // Constructor, destructor, assignment.
                           __s._M_Start() + __pos + (min) (__n, __s.size() - __pos));
   }
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   basic_string(const _CharT* __s, size_type __n,
                const allocator_type& __a = allocator_type())
-#else
-  basic_string(const _CharT* __s, size_type __n)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type()) {
-      _STLP_FIX_LITERAL_BUG(__s)
-      _M_range_initialize(__s, __s + __n);
-    }
-  basic_string(const _CharT* __s, size_type __n, const allocator_type& __a)
-#endif
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a) {
       _STLP_FIX_LITERAL_BUG(__s)
       _M_range_initialize(__s, __s + __n);
     }
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   basic_string(const _CharT* __s,
                const allocator_type& __a = allocator_type());
-#else
-  basic_string(const _CharT* __s);
-  basic_string(const _CharT* __s, const allocator_type& __a);
-#endif
 
-#if !defined (_STLP_DONT_SUP_DFLT_PARAM)
   basic_string(size_type __n, _CharT __c,
                const allocator_type& __a = allocator_type())
-#else
-  basic_string(size_type __n, _CharT __c)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type(), __n + 1) {
-    this->_M_finish = _STLP_PRIV __uninitialized_fill_n(this->_M_Start(), __n, __c);
-    _M_terminate_string();
-  }
-  basic_string(size_type __n, _CharT __c, const allocator_type& __a)
-#endif
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a, __n + 1) {
     this->_M_finish = _STLP_PRIV __uninitialized_fill_n(this->_M_Start(), __n, __c);
     _M_terminate_string();
   }
 
-#if !defined (_STLP_NO_MOVE_SEMANTIC)
-  basic_string(__move_source<_Self> src)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(__move_source<_Base>(src.get())) {}
-#endif
+  basic_string(_Self&& x) :
+      _STLP_PRIV _String_base<_CharT,_Alloc>(_STLP_STD::move(x))
+    { }
 
   // Check to see if _InputIterator is an integer type.  If so, then
   // it can't be an iterator.
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
+#if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   template <class _InputIterator>
   basic_string(_InputIterator __f, _InputIterator __l,
-               const allocator_type & __a _STLP_ALLOCATOR_TYPE_DFL)
+               const allocator_type & __a = allocator_type())
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a) {
-    typedef typename _IsIntegral<_InputIterator>::_Ret _Integral;
+    typedef typename is_integral<_InputIterator>::type _Integral;
     _M_initialize_dispatch(__f, __l, _Integral());
   }
-#  if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  template <class _InputIterator>
-  basic_string(_InputIterator __f, _InputIterator __l)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type()) {
-    typedef typename _IsIntegral<_InputIterator>::_Ret _Integral;
-    _M_initialize_dispatch(__f, __l, _Integral());
-  }
-#  endif
 #else
 #  if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   basic_string(const _CharT* __f, const _CharT* __l,
-               const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
+               const allocator_type& __a = allocator_type())
     : _STLP_PRIV _String_base<_CharT,_Alloc>(__a) {
     _STLP_FIX_LITERAL_BUG(__f)  _STLP_FIX_LITERAL_BUG(__l)
     _M_range_initialize(__f, __l);
   }
-#    if defined (_STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS)
-  basic_string(const _CharT* __f, const _CharT* __l)
-    : _STLP_PRIV _String_base<_CharT,_Alloc>(allocator_type()) {
-    _STLP_FIX_LITERAL_BUG(__f)  _STLP_FIX_LITERAL_BUG(__l)
-    _M_range_initialize(__f, __l);
-  }
-#    endif
 #  endif
 #  if defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   /* We need an additionnal constructor to build an empty string without
@@ -327,19 +239,18 @@ _STLP_PRIVATE:
   }
 
   template <class _InputIter>
-  void _M_range_initializeT(_InputIter __f, _InputIter __l) {
-    _M_range_initialize(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter));
-  }
+  void _M_range_initializeT(_InputIter __f, _InputIter __l)
+      { _M_range_initialize(__f, __l, typename iterator_traits<_InputIter>::iterator_category()); }
 
   template <class _Integer>
-  void _M_initialize_dispatch(_Integer __n, _Integer __x, const __true_type& /*_Integral*/) {
+  void _M_initialize_dispatch(_Integer __n, _Integer __x, const true_type& /*_Integral*/) {
     this->_M_allocate_block(__n + 1);
     this->_M_finish = _STLP_PRIV __uninitialized_fill_n(this->_M_Start(), __n, __x);
     this->_M_terminate_string();
   }
 
   template <class _InputIter>
-  void _M_initialize_dispatch(_InputIter __f, _InputIter __l, const __false_type& /*_Integral*/) {
+  void _M_initialize_dispatch(_InputIter __f, _InputIter __l, const false_type& /*_Integral*/) {
     _M_range_initializeT(__f, __l);
   }
 
@@ -365,7 +276,7 @@ private:
 _STLP_PRIVATE:                     // Helper functions used by constructors
                                    // and elsewhere.
   void _M_construct_null(_CharT* __p) const
-  { _STLP_STD::_Construct(__p); }
+      { _Self::get_allocator().construct( __p, _CharT() ); }
   void _M_terminate_string()
   { _M_construct_null(this->_M_Finish()); }
   bool _M_inside(const _CharT* __s) const {
@@ -455,7 +366,7 @@ public:                         // Append, operator+=, push_back.
 private:
   _Self& _M_append(const _CharT* __first, const _CharT* __last);
 
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
+#if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   template <class _InputIter>
   _Self& _M_appendT(_InputIter __first, _InputIter __last,
                     const input_iterator_tag &) {
@@ -465,20 +376,19 @@ private:
   }
 
   template <class _ForwardIter>
-  _Self& _M_appendT(_ForwardIter __first, _ForwardIter __last,
-                    const forward_iterator_tag &) {
+  _Self& _M_appendT( _ForwardIter __first, _ForwardIter __last, const forward_iterator_tag& )
+      {
     if (__first != __last) {
       size_type __n = __STATIC_CAST(size_type, _STLP_STD::distance(__first, __last));
       if (__n >= this->_M_rest()) {
         size_type __len = _M_compute_next_size(__n);
-        pointer __new_start = this->_M_start_of_storage.allocate(__len, __len);
+        pointer __new_start = this->_M_start_of_storage.allocate(__len);
         pointer __new_finish = uninitialized_copy(this->_M_Start(), this->_M_Finish(), __new_start);
         __new_finish = uninitialized_copy(__first, __last, __new_finish);
         _M_construct_null(__new_finish);
         this->_M_deallocate_block();
         this->_M_reset(__new_start, __new_finish, __new_start + __len);
-      }
-      else {
+      } else {
         _Traits::assign(*this->_M_finish, *__first++);
         uninitialized_copy(__first, __last, this->_M_Finish() + 1);
         _M_construct_null(this->_M_Finish() + __n);
@@ -489,19 +399,19 @@ private:
   }
 
   template <class _Integer>
-  _Self& _M_append_dispatch(_Integer __n, _Integer __x, const __true_type& /*Integral*/)
+  _Self& _M_append_dispatch(_Integer __n, _Integer __x, const true_type& /*Integral*/)
   { return append((size_type) __n, (_CharT) __x); }
 
   template <class _InputIter>
-  _Self& _M_append_dispatch(_InputIter __f, _InputIter __l, const __false_type& /*Integral*/)
-  { return _M_appendT(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter)); }
+  _Self& _M_append_dispatch(_InputIter __f, _InputIter __l, const false_type& /*Integral*/)
+  { return _M_appendT(__f, __l, typename iterator_traits<_InputIter>::iterator_category()); }
 
 public:
   // Check to see if _InputIterator is an integer type.  If so, then
   // it can't be an iterator.
   template <class _InputIter>
   _Self& append(_InputIter __first, _InputIter __last) {
-    typedef typename _IsIntegral<_InputIter>::_Ret _Integral;
+    typedef typename is_integral<_InputIter>::type _Integral;
     return _M_append_dispatch(__first, __last, _Integral());
   }
 #else
@@ -567,33 +477,34 @@ public:                         // Assign
 private:
   _Self& _M_assign(const _CharT* __f, const _CharT* __l);
 
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
+#if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   // Helper functions for assign.
   template <class _Integer>
-  _Self& _M_assign_dispatch(_Integer __n, _Integer __x, const __true_type& /*_Integral*/)
+  _Self& _M_assign_dispatch(_Integer __n, _Integer __x, const true_type& /*_Integral*/)
   { return assign((size_type) __n, (_CharT) __x); }
 
   template <class _InputIter>
-  _Self& _M_assign_dispatch(_InputIter __f, _InputIter __l, const __false_type& /*_Integral*/) {
-    pointer __cur = this->_M_Start();
-    while (__f != __l && __cur != this->_M_Finish()) {
-      _Traits::assign(*__cur, *__f);
-      ++__f;
-      ++__cur;
-    }
-    if (__f == __l)
-      erase(__cur, this->end());
-    else
-      _M_appendT(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIter));
-    return *this;
-  }
+  _Self& _M_assign_dispatch(_InputIter __f, _InputIter __l, const false_type& /*_Integral*/)
+      {
+        pointer __cur = this->_M_Start();
+        while (__f != __l && __cur != this->_M_Finish()) {
+          _Traits::assign(*__cur, *__f);
+          ++__f;
+          ++__cur;
+        }
+        if (__f == __l)
+          erase(__cur, this->end());
+        else
+          _M_appendT(__f, __l, typename iterator_traits<_InputIter>::iterator_category());
+        return *this;
+      }
 
 public:
   // Check to see if _InputIterator is an integer type.  If so, then
   // it can't be an iterator.
   template <class _InputIter>
   _Self& assign(_InputIter __first, _InputIter __last) {
-    typedef typename _IsIntegral<_InputIter>::_Ret _Integral;
+    typedef typename is_integral<_InputIter>::type _Integral;
     return _M_assign_dispatch(__first, __last, _Integral());
   }
 #else
@@ -683,20 +594,19 @@ _STLP_PRIVATE:  // Helper functions for insert.
     _Traits::move(__res, __f, __l - __f);
   }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
 #  if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   template <class _ForwardIter>
-  void _M_insert_overflow(iterator __pos, _ForwardIter __first, _ForwardIter __last,
-                          size_type __n) {
-    size_type __len = _M_compute_next_size(__n);
-    pointer __new_start = this->_M_start_of_storage.allocate(__len, __len);
-    pointer __new_finish = uninitialized_copy(this->_M_Start(), __pos, __new_start);
-    __new_finish = uninitialized_copy(__first, __last, __new_finish);
-    __new_finish = uninitialized_copy(__pos, this->_M_Finish(), __new_finish);
-    _M_construct_null(__new_finish);
-    this->_M_deallocate_block();
-    this->_M_reset(__new_start, __new_finish, __new_start + __len);
-  }
+  void _M_insert_overflow( iterator __pos, _ForwardIter __first, _ForwardIter __last, size_type __n )
+      {
+        size_type __len = _M_compute_next_size(__n);
+        pointer __new_start = this->_M_start_of_storage.allocate(__len);
+        pointer __new_finish = uninitialized_copy(this->_M_Start(), __pos, __new_start);
+        __new_finish = uninitialized_copy(__first, __last, __new_finish);
+        __new_finish = uninitialized_copy(__pos, this->_M_Finish(), __new_finish);
+        _M_construct_null(__new_finish);
+        this->_M_deallocate_block();
+        this->_M_reset(__new_start, __new_finish, __new_start + __len);
+      }
 
   template <class _InputIter>
   void _M_insertT(iterator __p, _InputIter __first, _InputIter __last,
@@ -739,12 +649,12 @@ _STLP_PRIVATE:  // Helper functions for insert.
 
   template <class _Integer>
   void _M_insert_dispatch(iterator __p, _Integer __n, _Integer __x,
-                          const __true_type& /*Integral*/)
+                          const true_type& /*Integral*/)
   { insert(__p, (size_type) __n, (_CharT) __x); }
 
   template <class _InputIter>
   void _M_insert_dispatch(iterator __p, _InputIter __first, _InputIter __last,
-                          const __false_type& /*Integral*/) {
+                          const false_type& /*Integral*/) {
     _STLP_FIX_LITERAL_BUG(__p)
     /* We are forced to do a temporary string to avoid the self referencing issue. */
     const _Self __self(__first, __last, get_allocator());
@@ -770,13 +680,12 @@ public:
   // it can't be an iterator.
   template <class _InputIter>
   void insert(iterator __p, _InputIter __first, _InputIter __last) {
-    typedef typename _IsIntegral<_InputIter>::_Ret _Integral;
+    typedef typename is_integral<_InputIter>::type _Integral;
     _M_insert_dispatch(__p, __first, __last, _Integral());
   }
 #  endif
-#endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES) || !defined (_STLP_NO_METHOD_SPECIALIZATION)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION)
 public:
   void insert(iterator __p, const _CharT* __f, const _CharT* __l) {
     _STLP_FIX_LITERAL_BUG(__f) _STLP_FIX_LITERAL_BUG(__l)
@@ -889,17 +798,17 @@ _STLP_PRIVATE:                        // Helper functions for replace.
   _Self& _M_replace(iterator __first, iterator __last,
                     const _CharT* __f, const _CharT* __l, bool __self_ref);
 
-#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
+#if !defined (_STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND)
   template <class _Integer>
   _Self& _M_replace_dispatch(iterator __first, iterator __last,
-                             _Integer __n, _Integer __x, const __true_type& /*IsIntegral*/) {
+                             _Integer __n, _Integer __x, const true_type& /*IsIntegral*/) {
     _STLP_FIX_LITERAL_BUG(__first) _STLP_FIX_LITERAL_BUG(__last)
     return replace(__first, __last, (size_type) __n, (_CharT) __x);
   }
 
   template <class _InputIter>
   _Self& _M_replace_dispatch(iterator __first, iterator __last,
-                             _InputIter __f, _InputIter __l, const __false_type& /*IsIntegral*/) {
+                             _InputIter __f, _InputIter __l, const false_type& /*IsIntegral*/) {
     _STLP_FIX_LITERAL_BUG(__first) _STLP_FIX_LITERAL_BUG(__last)
     /* We are forced to do a temporary string to avoid the self referencing issue. */
     const _Self __self(__f, __l, get_allocator());
@@ -913,12 +822,12 @@ public:
   _Self& replace(iterator __first, iterator __last,
                  _InputIter __f, _InputIter __l) {
     _STLP_FIX_LITERAL_BUG(__first)_STLP_FIX_LITERAL_BUG(__last)
-    typedef typename _IsIntegral<_InputIter>::_Ret _Integral;
+    typedef typename is_integral<_InputIter>::type _Integral;
     return _M_replace_dispatch(__first, __last, __f, __l,  _Integral());
   }
 #endif
 
-#if !defined (_STLP_MEMBER_TEMPLATES) || !defined (_STLP_NO_METHOD_SPECIALIZATION)
+#if !defined (_STLP_NO_METHOD_SPECIALIZATION)
 public:
   _Self& replace(iterator __first, iterator __last,
                  const _CharT* __f, const _CharT* __l) {
@@ -1084,11 +993,6 @@ public: // Helper functions for compare.
 
 #undef _STLP_PRIVATE
 
-#if defined (__GNUC__) && (__GNUC__ == 2) && (__GNUC_MINOR__ == 96)
-template <class _CharT, class _Traits, class _Alloc>
-const size_t basic_string<_CharT, _Traits, _Alloc>::npos = ~(size_t) 0;
-#endif
-
 #if defined (_STLP_USE_TEMPLATE_EXPORT)
 _STLP_EXPORT_TEMPLATE_CLASS basic_string<char, char_traits<char>, allocator<char> >;
 #  if defined (_STLP_HAS_WCHAR_T)
@@ -1098,8 +1002,38 @@ _STLP_EXPORT_TEMPLATE_CLASS basic_string<wchar_t, char_traits<wchar_t>, allocato
 
 #if defined (basic_string)
 _STLP_MOVE_TO_STD_NAMESPACE
+#  if !defined (_STLP_NO_MOVE_SEMANTIC)
+
+#    if !defined (_STLP_USE_SHORT_STRING_OPTIM)
+template <class _CharT, class _Traits, class _Alloc>
+struct __has_trivial_move<_STLP_PRIV basic_string<_CharT, _Traits, _Alloc> > :
+  public integral_constant<bool, is_trivial<_Alloc>::value> /* true_type */
+{ };
+#    endif
+
+template <class _CharT, class _Traits, class _Alloc>
+struct __has_move_constructor<_STLP_PRIV basic_string<_CharT, _Traits, _Alloc> > :
+    public true_type
+{ };
+
+#  endif
 #  undef basic_string
-#endif
+#else // basic_string
+#  if !defined (_STLP_NO_MOVE_SEMANTIC)
+#    if !defined (_STLP_USE_SHORT_STRING_OPTIM)
+template <class _CharT, class _Traits, class _Alloc>
+struct __has_trivial_move<basic_string<_CharT, _Traits, _Alloc> > :
+  public integral_constant<bool, is_trivial<_Alloc>::value> /* true_type */
+{ };
+#    endif
+
+template <class _CharT, class _Traits, class _Alloc>
+struct __has_move_constructor<basic_string<_CharT, _Traits, _Alloc> > :
+    public true_type
+{ };
+
+#  endif
+#endif // basic_string
 
 _STLP_END_NAMESPACE
 
@@ -1131,22 +1065,6 @@ inline void _STLP_CALL swap(wstring& __x, wstring& __y)
 #  endif
 #endif
 
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION) && !defined (_STLP_NO_MOVE_SEMANTIC)
-template <class _CharT, class _Traits, class _Alloc>
-struct __move_traits<basic_string<_CharT, _Traits, _Alloc> > {
-  typedef __true_type implemented;
-  //Completness depends on the allocator:
-  typedef typename __move_traits<_Alloc>::complete complete;
-};
-/*#else
- * There is no need to specialize for string and wstring in this case
- * as the default __move_traits will already tell that string is movable
- * but not complete. We cannot define it as complete as nothing guaranty
- * that the STLport user hasn't specialized std::allocator for char or
- * wchar_t.
- */
-#endif
-
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _CharT, class _Traits, class _Alloc>
@@ -1168,8 +1086,7 @@ _STLP_END_NAMESPACE
 
 #include <stl/_string_operators.h>
 
-#if defined(_STLP_USE_NO_IOSTREAMS) || \
-    (defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION))
+#if defined(_STLP_USE_NO_IOSTREAMS) || defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 #  include <stl/_string.c>
 #endif
 

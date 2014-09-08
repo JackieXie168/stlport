@@ -88,7 +88,7 @@ int __lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
     ++__first2;
   }
   if (__first2 == __last2) {
-    return !(__first1 == __last1);
+    return __first1 == __last1 ? 0 : 1;
   }
   else {
     return -1;
@@ -109,10 +109,10 @@ int lexicographical_compare_3way(_InputIter1 __first1, _InputIter1 __last1,
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _RandomAccessIter, class _Tp>
-_STLP_INLINE_LOOP _RandomAccessIter __find(_RandomAccessIter __first, _RandomAccessIter __last,
+inline _RandomAccessIter __find(_RandomAccessIter __first, _RandomAccessIter __last,
                                            const _Tp& __val,
                                            const random_access_iterator_tag &) {
-  _STLP_DIFFERENCE_TYPE(_RandomAccessIter) __trip_count = (__last - __first) >> 2;
+  typename iterator_traits<_RandomAccessIter>::difference_type __trip_count = (__last - __first) >> 2;
 
   for ( ; __trip_count > 0 ; --__trip_count) {
     if (*__first == __val) return __first;
@@ -156,10 +156,10 @@ __find(const char* __first, const char* __last, char __val, const random_access_
 }
 
 template <class _RandomAccessIter, class _Predicate>
-_STLP_INLINE_LOOP _RandomAccessIter __find_if(_RandomAccessIter __first, _RandomAccessIter __last,
+inline _RandomAccessIter __find_if(_RandomAccessIter __first, _RandomAccessIter __last,
                                               _Predicate __pred,
                                               const random_access_iterator_tag &) {
-  _STLP_DIFFERENCE_TYPE(_RandomAccessIter) __trip_count = (__last - __first) >> 2;
+  typename iterator_traits<_RandomAccessIter>::difference_type __trip_count = (__last - __first) >> 2;
 
   for ( ; __trip_count > 0 ; --__trip_count) {
     if (__pred(*__first)) return __first;
@@ -192,17 +192,17 @@ _STLP_INLINE_LOOP _RandomAccessIter __find_if(_RandomAccessIter __first, _Random
 }
 
 template <class _InputIter, class _Tp>
-_STLP_INLINE_LOOP _InputIter __find(_InputIter __first, _InputIter __last,
-                                    const _Tp& __val,
-                                    const input_iterator_tag &) {
+inline _InputIter __find(_InputIter __first, _InputIter __last, const _Tp& __val,
+                         const input_iterator_tag&)
+{
   while (__first != __last && !(*__first == __val)) ++__first;
   return __first;
 }
 
 template <class _InputIter, class _Predicate>
-_STLP_INLINE_LOOP _InputIter __find_if(_InputIter __first, _InputIter __last,
-                                       _Predicate __pred,
-                                       const input_iterator_tag &) {
+inline _InputIter __find_if(_InputIter __first, _InputIter __last, _Predicate __pred,
+                            const input_iterator_tag&)
+{
   while (__first != __last && !__pred(*__first))
     ++__first;
   return __first;
@@ -211,22 +211,24 @@ _STLP_INLINE_LOOP _InputIter __find_if(_InputIter __first, _InputIter __last,
 _STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _InputIter, class _Predicate>
-_InputIter find_if(_InputIter __first, _InputIter __last,
-                   _Predicate __pred) {
+_InputIter find_if(_InputIter __first, _InputIter __last, _Predicate __pred)
+{
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
-  return _STLP_PRIV __find_if(__first, __last, __pred, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+  return _STLP_PRIV __find_if(__first, __last, __pred, typename iterator_traits<_InputIter>::iterator_category());
 }
 
 template <class _InputIter, class _Tp>
-_InputIter find(_InputIter __first, _InputIter __last, const _Tp& __val) {
+_InputIter find(_InputIter __first, _InputIter __last, const _Tp& __val)
+{
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
-  return _STLP_PRIV __find(__first, __last, __val, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+  return _STLP_PRIV __find(__first, __last, __val, typename iterator_traits<_InputIter>::iterator_category());
 }
 
 template <class _ForwardIter1, class _ForwardIter2, class _BinaryPred>
 _ForwardIter1 search(_ForwardIter1 __first1, _ForwardIter1 __last1,
                      _ForwardIter2 __first2, _ForwardIter2 __last2,
-                     _BinaryPred  __pred) {
+                     _BinaryPred  __pred)
+{
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
   // Test for empty ranges
@@ -268,20 +270,26 @@ _ForwardIter1 search(_ForwardIter1 __first1, _ForwardIter1 __last1,
 }
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
+
 template <class _Tp>
-struct _IsCharLikeType
-{ typedef __false_type _Ret; };
+struct is_char :
+    public false_type
+{ };
 
-_STLP_TEMPLATE_NULL struct _IsCharLikeType<char>
-{ typedef __true_type _Ret; };
+template <>
+struct is_char<char> :
+    public true_type
+{ };
 
-_STLP_TEMPLATE_NULL struct _IsCharLikeType<unsigned char>
-{ typedef __true_type _Ret; };
+template <>
+struct is_char<signed char> :
+    public true_type
+{ };
 
-#  ifndef _STLP_NO_SIGNED_BUILTINS
-_STLP_TEMPLATE_NULL struct _IsCharLikeType<signed char>
-{ typedef __true_type _Ret; };
-#  endif
+template <>
+struct is_char<unsigned char> :
+    public true_type
+{ };
 
 template <class _Tp1, class _Tp2>
 inline bool __stlp_eq(_Tp1 __val1, _Tp2 __val2)
@@ -293,11 +301,12 @@ inline bool __stlp_eq(_Tp, _Tp)
 { return true; }
 #endif
 
-template <class _InputIter, class _ForwardIter, class _Tp2, class _Predicate>
+template <class _InputIter, class _ForwardIter, class _Predicate>
 inline _InputIter __find_first_of_aux2(_InputIter __first1, _InputIter __last1,
                                        _ForwardIter __first2, _ForwardIter __last2,
-                                       _Tp2*, _Predicate __pred,
-                                       const __true_type& /* _UseStrcspnLikeAlgo */) {
+                                       _Predicate __pred,
+                                       const true_type& /* _UseStrcspnLikeAlgo */)
+{
   unsigned char __hints[(UCHAR_MAX + 1) / CHAR_BIT];
   memset(__hints, 0, sizeof(__hints) / sizeof(unsigned char));
   for (; __first2 != __last2; ++__first2) {
@@ -306,7 +315,7 @@ inline _InputIter __find_first_of_aux2(_InputIter __first1, _InputIter __last1,
   }
 
   for (; __first1 != __last1; ++__first1) {
-    _Tp2 __tmp = (_Tp2)*__first1;
+    typename iterator_traits<_ForwardIter>::value_type __tmp = static_cast<typename iterator_traits<_ForwardIter>::value_type>(*__first1);
     if (__stlp_eq(*__first1, __tmp) &&
         __pred((__hints[(unsigned char)__tmp / CHAR_BIT] & (1 << ((unsigned char)__tmp % CHAR_BIT))) != 0))
       break;
@@ -314,40 +323,47 @@ inline _InputIter __find_first_of_aux2(_InputIter __first1, _InputIter __last1,
   return __first1;
 }
 
-template <class _InputIter, class _ForwardIter, class _Tp2, class _Predicate>
+template <class _InputIter, class _ForwardIter, class _Predicate>
 inline _InputIter __find_first_of_aux2(_InputIter __first1, _InputIter __last1,
                                        _ForwardIter __first2, _ForwardIter __last2,
-                                       _Tp2* /* __dummy */, _Predicate /* __pred */,
-                                       const __false_type& /* _UseStrcspnLikeAlgo */) {
+                                       _Predicate /* __pred */,
+                                       const false_type& /* _UseStrcspnLikeAlgo */)
+{
   return _STLP_PRIV __find_first_of(__first1, __last1, __first2, __last2,
-                                    _STLP_PRIV __equal_to(_STLP_VALUE_TYPE(__first1, _InputIter)));
+                                    equal_to<typename iterator_traits<_InputIter>::value_type>());
 }
 
-template <class _InputIter, class _ForwardIter, class _Tp1, class _Tp2>
-inline _InputIter __find_first_of_aux1(_InputIter __first1, _InputIter __last1,
-                                       _ForwardIter __first2, _ForwardIter __last2,
-                                       _Tp1* __pt1, _Tp2* __pt2) {
-  typedef _STLP_TYPENAME _STLP_STD::_IsIntegral<_Tp1>::_Ret _IsIntegral;
-  typedef _STLP_TYPENAME _STLP_PRIV _IsCharLikeType<_Tp2>::_Ret _IsCharLike;
-  typedef _STLP_TYPENAME _STLP_STD::_Land2<_IsIntegral, _IsCharLike>::_Ret _UseStrcspnLikeAlgo;
-  return _STLP_PRIV __find_first_of_aux2(__first1, __last1,
-                                         __first2, __last2,
-                                         __pt2, _Identity<bool>(), _UseStrcspnLikeAlgo());
-}
+//template <class _InputIter, class _ForwardIter, class _Tp1, class _Tp2>
+//inline _InputIter __find_first_of_aux1(_InputIter __first1, _InputIter __last1,
+//                                       _ForwardIter __first2, _ForwardIter __last2,
+//                                       _Tp1*, _Tp2* __pt2)
+//{
+//  typedef _STLP_TYPENAME _STLP_STD::integral_constant<bool, is_integral<_Tp1>::value && _STLP_PRIV is_char<_Tp2>::value>::type _UseStrcspnLikeAlgo;
+//  return _STLP_PRIV __find_first_of_aux2(__first1, __last1,
+//                                         __first2, __last2,
+//                                         _Identity<bool>(), _UseStrcspnLikeAlgo());
+//}
 
 template <class _InputIter, class _ForwardIter>
 inline _InputIter __find_first_of(_InputIter __first1, _InputIter __last1,
-                                  _ForwardIter __first2, _ForwardIter __last2) {
-  return _STLP_PRIV __find_first_of_aux1(__first1, __last1, __first2, __last2,
-                                         _STLP_VALUE_TYPE(__first1, _InputIter),
-                                         _STLP_VALUE_TYPE(__first2, _ForwardIter));
+                                  _ForwardIter __first2, _ForwardIter __last2)
+{
+  typedef _STLP_TYPENAME _STLP_STD::integral_constant<bool, is_integral<typename iterator_traits<_InputIter>::value_type>::value && _STLP_PRIV is_char<typename iterator_traits<_ForwardIter>::value_type>::value>::type _UseStrcspnLikeAlgo;
+  return _STLP_PRIV __find_first_of_aux2(__first1, __last1,
+                                         __first2, __last2,
+                                         _Identity<bool>(), _UseStrcspnLikeAlgo());
+
+  //return _STLP_PRIV __find_first_of_aux1(__first1, __last1, __first2, __last2,
+  //                                       typename iterator_traits<_InputIter>::pointer,
+  //                                       typename iterator_traits<_ForwardIter>::pointer);
 }
 
 // find_first_of, with and without an explicitly supplied comparison function.
 template <class _InputIter, class _ForwardIter, class _BinaryPredicate>
 _InputIter __find_first_of(_InputIter __first1, _InputIter __last1,
                            _ForwardIter __first2, _ForwardIter __last2,
-                           _BinaryPredicate __comp) {
+                           _BinaryPredicate __comp)
+{
   for ( ; __first1 != __last1; ++__first1) {
     for (_ForwardIter __iter = __first2; __iter != __last2; ++__iter) {
       if (__comp(*__first1, *__iter)) {
@@ -368,8 +384,9 @@ template <class _ForwardIter1, class _ForwardIter2,
   class _BinaryPredicate>
 _ForwardIter1 __find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
                          _ForwardIter2 __first2, _ForwardIter2 __last2,
-                         const forward_iterator_tag &, const forward_iterator_tag &,
-                         _BinaryPredicate __comp) {
+                         const forward_iterator_tag &, const forward_iterator_tag&,
+                         _BinaryPredicate __comp)
+{
   if (__first2 == __last2)
     return __last1;
   else {
@@ -389,8 +406,7 @@ _ForwardIter1 __find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
 
 _STLP_MOVE_TO_STD_NAMESPACE
 
-// find_end for bidirectional iterators.  Requires partial specialization.
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
+// find_end for bidirectional iterators.
 
 #  ifndef _STLP_INTERNAL_ITERATOR_H
 _STLP_END_NAMESPACE
@@ -400,13 +416,12 @@ _STLP_BEGIN_NAMESPACE
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-template <class _BidirectionalIter1, class _BidirectionalIter2,
-          class _BinaryPredicate>
-_BidirectionalIter1
-__find_end(_BidirectionalIter1 __first1, _BidirectionalIter1 __last1,
-           _BidirectionalIter2 __first2, _BidirectionalIter2 __last2,
-           const bidirectional_iterator_tag &, const bidirectional_iterator_tag &,
-           _BinaryPredicate __comp) {
+template <class _BidirectionalIter1, class _BidirectionalIter2, class _BinaryPredicate>
+_BidirectionalIter1 __find_end(_BidirectionalIter1 __first1, _BidirectionalIter1 __last1,
+                               _BidirectionalIter2 __first2, _BidirectionalIter2 __last2,
+                               const bidirectional_iterator_tag&, const bidirectional_iterator_tag&,
+                               _BinaryPredicate __comp)
+{
   typedef _STLP_STD::reverse_iterator<_BidirectionalIter1> _RevIter1;
   typedef _STLP_STD::reverse_iterator<_BidirectionalIter2> _RevIter2;
 
@@ -418,42 +433,39 @@ __find_end(_BidirectionalIter1 __first1, _BidirectionalIter1 __last1,
 
   if (__rresult == __rlast1)
     return __last1;
-  else {
-    _BidirectionalIter1 __result = __rresult.base();
-    _STLP_STD::advance(__result, -_STLP_STD::distance(__first2, __last2));
-    return __result;
-  }
+
+  _BidirectionalIter1 __result = __rresult.base();
+  _STLP_STD::advance(__result, -_STLP_STD::distance(__first2, __last2));
+  return __result;
 }
 
 _STLP_MOVE_TO_STD_NAMESPACE
-#endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
 
-template <class _ForwardIter1, class _ForwardIter2,
-          class _BinaryPredicate>
-_ForwardIter1
-find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
-         _ForwardIter2 __first2, _ForwardIter2 __last2,
-         _BinaryPredicate __comp) {
+template <class _ForwardIter1, class _ForwardIter2, class _BinaryPredicate>
+_ForwardIter1 find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
+                       _ForwardIter2 __first2, _ForwardIter2 __last2,
+                       _BinaryPredicate __comp)
+{
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first2, __last2))
   return _STLP_PRIV __find_end(__first1, __last1, __first2, __last2,
-#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
-                               _STLP_ITERATOR_CATEGORY(__first1, _ForwardIter1),
-                               _STLP_ITERATOR_CATEGORY(__first2, _ForwardIter2),
-#else
-                               forward_iterator_tag(),
-                               forward_iterator_tag(),
-#endif
+                               typename iterator_traits<_ForwardIter1>::iterator_category(),
+                               typename iterator_traits<_ForwardIter2>::iterator_category(),
                                __comp);
 }
 
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
-template <class _ForwardIter, class _Tp, class _Compare1, class _Compare2, class _Distance>
+template <class _ForwardIter, class _Tp, class _Compare1, class _Compare2>
 _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp& __val,
-                           _Compare1 __comp1, _Compare2 __comp2, _Distance*) {
-  _Distance __len = _STLP_STD::distance(__first, __last);
-  _Distance __half;
+                           _Compare1 __comp1, _Compare2
+#ifdef _STLP_DEBUG
+                                                        __comp2
+#endif
+  )
+{
+  typename iterator_traits<_ForwardIter>::difference_type __len = _STLP_STD::distance(__first, __last);
+  typename iterator_traits<_ForwardIter>::difference_type __half;
   _ForwardIter __middle;
 
   while (__len > 0) {

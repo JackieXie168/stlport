@@ -33,7 +33,7 @@
 
 #if (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 4))
 /* define for gcc versions before 3.4.0. */
-#  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD
+#  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD /* support removed */
 #endif
 
 #if !defined (_REENTRANT) && (defined (_THREAD_SAFE) || \
@@ -55,8 +55,6 @@
 /* For gcc before version 3 this macro is defined below */
 #    define _STLP_VENDOR_GLOBAL_CSTD
 #  endif
-#  undef  _STLP_NO_DRAND48
-#  define _STLP_NO_DRAND48
 #  define _STLP_CALL
 #endif /* __MINGW32__ */
 
@@ -150,7 +148,14 @@ typedef unsigned int wint_t;
 #  define _STLP_NO_VENDOR_MATH_F
 #endif
 
+#ifdef __ANDROID__
+#  define _STLP_HAS_NO_NEW_C_HEADERS 1
+#endif
+
 #if (__GNUC__ >= 3)
+#  ifndef _STLP_HAS_NO_NEW_C_HEADERS
+#    define _STLP_HAS_NO_NEW_C_HEADERS // experiment
+#  endif
 #  ifndef _STLP_HAS_NO_NEW_C_HEADERS
 /*
 #    ifndef _STLP_USE_UCLIBC
@@ -177,8 +182,10 @@ typedef unsigned int wint_t;
 #  define _STLP_DEF_CONST_PLCT_NEW_BUG 1
 #endif
 
-#undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
-#undef _STLP_NO_UNEXPECTED_EXCEPT_SUPPORT
+#ifndef __ANDROID__
+#  undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
+#  undef _STLP_NO_UNEXPECTED_EXCEPT_SUPPORT
+#endif
 
 /* strict ANSI prohibits "long long" ( gcc) */
 #if defined ( __STRICT_ANSI__ )
@@ -195,4 +202,48 @@ typedef unsigned int wint_t;
    instantiation within library: nothing except increased library size. - ptr
  */
 #  define _STLP_NO_FORCE_INSTANTIATE
+#endif
+
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 5))
+#  define _STLP_IS_POD(T)             __is_pod(T)
+#  define _STLP_IS_STANDARD_LAYOUT(T) __is_standard_layout(T)
+#  define _STLP_IS_ABSTRACT(T)        __is_abstract(T)
+#  define _STLP_IS_POLYMORPHIC(T)     __is_polymorphic(T)
+#  define _STLP_IS_TRIVIAL(T)         __is_trivial(T)
+#  define _STLP_IS_EMPTY(T)           __is_empty(T)
+#  define _STLP_IS_CLASS(T)           __is_class(T)
+#  define _STLP_IS_UNION(T)           __is_union(T)
+#  define _STLP_IS_ENUM(T)            __is_enum(T)
+#  define _STLP_IS_BASE_OF(B,D)       __is_base_of(B,D)
+/* #  define _STLP_IS_LITERAL_TYPE(T)    __is_literal_type(T) */
+/* in 4.5.1 known, but not implemented: */
+/* #  define _STLP_IS_CONVERTIBLE(F,T)  __is_convertible_to(F,T) */
+#  define _STLP_HAS_VIRTUAL_DESTRUCTOR(T) __has_virtual_destructor(T)
+#  define _STLP_HAS_TRIVIAL_DESTRUCTOR(T) __has_trivial_destructor(T)
+#  define _STLP_HAS_TRIVIAL_COPY(T)   __has_trivial_copy(T)
+#  define _STLP_HAS_NOTHROW_COPY(T)   __has_nothrow_copy(T)
+#  define _STLP_HAS_TRIVIAL_CONSTRUCTOR(T) __has_trivial_constructor(T)
+#  define _STLP_HAS_NOTHROW_CONSTRUCTOR(T) __has_nothrow_constructor(T)
+#  define _STLP_HAS_TRIVIAL_ASSIGN(T) __has_trivial_assign(T)
+#  define _STLP_HAS_NOTHROW_ASSIGN(T) __has_nothrow_assign(T)
+/* #  define _STLP_UNDERLYING_TYPE(T) __underlying_type(T) */
+#endif
+
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#  define _STLP_RVR /* we have rvalue reference, T&& */
+#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))
+#    define _STLP_VARIADIC_TEMPLATES
+#    define _STLP_CPP_0X
+#  endif
+#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ < 6))
+#    define _STLP_NO_NULLPTR_T
+#  endif
+#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ > 5))
+#    define _STLP_NOEXCEPT noexcept
+#  endif
+#  define _STLP_OPERATORS_NEW_DELETE /* use own implemenation of new and delete */
+#  define _STLP_VENDOR_BAD_ALLOC /* */
+#  if (__GNUC__ < 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ <= 6))
+#    define _STLP_NO_ALIAS_TEMPLATES /* no alias templates yet */
+#  endif
 #endif

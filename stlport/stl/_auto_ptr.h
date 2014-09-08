@@ -64,18 +64,12 @@ public:
   }
 
   _Tp* get() const _STLP_NOTHROW
-#if !defined (__GNUC__) || (__GNUC__ > 2)
   { return __STATIC_CAST(_Tp*, _M_p); }
-#else
-  { return __REINTERPRET_CAST(_Tp*, _M_p); }
-#endif
 
-#if !defined (_STLP_NO_ARROW_OPERATOR)
   _Tp* operator->() const _STLP_NOTHROW {
     _STLP_VERBOSE_ASSERT(get() != 0, _StlMsg_AUTO_PTR_NULL)
     return get();
   }
-#endif
   _Tp& operator*() const _STLP_NOTHROW {
     _STLP_VERBOSE_ASSERT(get() != 0, _StlMsg_AUTO_PTR_NULL)
     return *get();
@@ -83,7 +77,6 @@ public:
 
   explicit auto_ptr(_Tp* __px = 0) _STLP_NOTHROW { this->__set(__px); }
 
-#if defined (_STLP_MEMBER_TEMPLATES)
 #  if !defined (_STLP_NO_TEMPLATE_CONVERSIONS)
   template<class _Tp1> auto_ptr(auto_ptr<_Tp1>& __r) _STLP_NOTHROW {
     _Tp* __conversionCheck = __r.release();
@@ -95,7 +88,6 @@ public:
     reset(__conversionCheck);
     return *this;
   }
-#endif
 
   auto_ptr(_Self& __r) _STLP_NOTHROW { this->__set(__r.release()); }
 
@@ -114,7 +106,7 @@ public:
     return *this;
   }
 
-#if defined(_STLP_MEMBER_TEMPLATES) && !defined(_STLP_NO_TEMPLATE_CONVERSIONS)
+#if !defined(_STLP_NO_TEMPLATE_CONVERSIONS)
   template<class _Tp1> operator auto_ptr_ref<_Tp1>() _STLP_NOTHROW
   { return auto_ptr_ref<_Tp1>(*this, this->get()); }
   template<class _Tp1> operator auto_ptr<_Tp1>() _STLP_NOTHROW
