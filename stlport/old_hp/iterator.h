@@ -72,6 +72,10 @@
 #include <stl_raw_storage_iter.h>
 #endif
 
+# ifndef __SGI_STL_INTERNAL_STREAM_ITERATOR_H
+#  include <stl_stream_iterator.h>
+# endif
+
 #ifdef __STL_USE_NAMESPACES
 
 // Names from stl_iterator.h

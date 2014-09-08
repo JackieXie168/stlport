@@ -19,14 +19,11 @@
  *  header properly included
  */
 
-#ifndef __STLPORT_BC_locale_H
-#  define  __STLPORT_BC_locale_H
+#  include  <..\clocale.>
 
-#  include  <..\include\locale.h>
-
+# ifndef __IN_STLPORT_CLOCALE
 #  include  <..\locale.>
-
-#endif
+# endif
 
 // Local Variables:
 // mode:C++

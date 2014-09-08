@@ -20,22 +20,12 @@
  */
 
 
-#ifndef __STLPORT_BC_string_H
-#  define  __STLPORT_BC_string_H
+#  include <..\string.h>
 
-// There is a chance we get this file included from within
-// <config.h>
-
-# if defined (__STL_CONFIG_H) && ! defined (__STL_CONFIG_H_DONE)
-// include BC header and undef ourselves
-#  include <..\include\string.h>
-#  undef __STLPORT_BC_string_H
-# else
+# ifndef __IN_STLPORT_CSTRING
 // okay, include STLPort header
 #  include  <..\string.>
-# endif
-
-#endif
+# endif /* __IN_STLPORT_CSTRING */
 
 
 // Local Variables:

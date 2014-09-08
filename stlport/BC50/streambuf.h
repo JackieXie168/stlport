@@ -22,7 +22,7 @@
 #ifndef __STLPORT_BC_streambuf_H
 #  define  __STLPORT_BC_streambuf_H
 
-#  include  <..\..\stl\streambuf.>
+#  include  <..\streambuf.>
 
 #endif
 

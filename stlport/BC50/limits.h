@@ -19,17 +19,12 @@
  *  header properly included
  */
 
-#ifndef __STLPORT_BC_limits_H
-#  define  __STLPORT_BC_limits_H
-
 // include BC native <limits.h>
 
-#  include  <..\include\limits.h>
+#include  <..\climits.>
 
-// include <limits>
-
-#  include  <..\limits.>
-
+#ifndef __IN_STLPORT_CLIMITS
+# include  <..\limits.>
 #endif
 
 // Local Variables:

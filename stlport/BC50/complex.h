@@ -22,8 +22,6 @@
 #ifndef __STLPORT_BC_complex_H
 #  define  __STLPORT_BC_complex_H
 
-#  include <..\include\complex.h>
-
 #  include  <..\complex.>
 
 #endif
