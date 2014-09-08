@@ -17,16 +17,30 @@
 #  endif
 #endif
 
-#if defined (__CYGWIN__)
-#  if (__GNUC__ >= 3) && (__GNUC_MINOR__ >= 3) && !defined (_GLIBCPP_USE_C99)
-#    define _STLP_NO_VENDOR_MATH_L
-#    define _STLP_NO_VENDOR_STDLIB_L
-#  endif
-#  if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ > 3))
-/* Before version 3.4.4, the cygwin package include path was conform to the 
- * GNU convention which is set later in this file:
+#if defined (__CYGWIN__) && \
+     (__GNUC__ >= 3) && (__GNUC_MINOR__ >= 3) && !defined (_GLIBCPP_USE_C99)
+#  define _STLP_NO_VENDOR_MATH_L
+#  define _STLP_NO_VENDOR_STDLIB_L
+#endif
+
+#if (__GNUC__ < 3)
+#  define _STLP_NO_VENDOR_STDLIB_L
+#endif
+
+/* We guess if we are using the cygwin distrib that has a special include schema.
+ * There is no way to distinguish a cygwin distrib used in no-cygwin mode from a
+ * mingw install. We are forced to use a configuration option
  */
+#if !defined (_STLP_NATIVE_INCLUDE_PATH) && \
+    (defined (__CYGWIN__) || defined (__MINGW32__) && defined (_STLP_NO_CYGWIN))
+#  if (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ > 3))
 #    define _STLP_NATIVE_INCLUDE_PATH ../../../__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__/include/c++
+#  elif defined (_STLP_NO_CYGWIN)
+#    define _STLP_NATIVE_INCLUDE_PATH ../mingw
+/*#  else
+ * Before version gcc 3.4, the cygwin package include path was conform to the 
+ * GNU convention which is set later in this file.
+ */
 #  endif
 #endif
 
@@ -116,10 +130,12 @@
 #endif
 
 #if defined (__CYGWIN__) || defined (__MINGW32__) || !(defined (_STLP_USE_GLIBC) || defined (__sun) || defined(__APPLE__)) 
-#  ifndef __MINGW32__
-#    define _STLP_NO_NATIVE_MBSTATE_T      1
+#  if !defined (__MINGW32__) && !defined (__CYGWIN__)
+#    define _STLP_NO_NATIVE_MBSTATE_T    1
 #  endif
-#  define _STLP_NO_NATIVE_WIDE_FUNCTIONS 1
+#  if !defined (__MINGW32__) || (__GNUC__ < 3) || (__GNUC__ == 3) && (__GNUC_MINOR__ < 4)
+#    define _STLP_NO_NATIVE_WIDE_FUNCTIONS 1
+#  endif
 #  define _STLP_NO_NATIVE_WIDE_STREAMS   1
 #elif defined(__linux__)
 #  if (__GNUC__ < 3)
@@ -211,7 +227,7 @@ typedef unsigned int wint_t;
 */
 #endif
 
-#if defined(__OpenBSD__) || defined(__FreeBSD__)
+#if defined (__OpenBSD__) || defined (__FreeBSD__)
 #  define _STLP_NO_VENDOR_MATH_L
 #  define _STLP_NO_VENDOR_STDLIB_L /* no llabs */
 #  ifndef __unix
@@ -219,7 +235,11 @@ typedef unsigned int wint_t;
 #  endif
 #endif
 
-#ifdef __hpux
+#if defined (__alpha__)
+#  define _STLP_NO_VENDOR_MATH_L
+#endif
+
+#if defined (__hpux)
 #  define _STLP_NO_VENDOR_STDLIB_L /* no llabs */
   /* No *f math fuctions variants (i.e. sqrtf, fabsf, etc.) */
 #  define _STLP_NO_VENDOR_MATH_F
@@ -248,17 +268,17 @@ typedef unsigned int wint_t;
 #  ifndef __HONOR_STD
 #    define _STLP_VENDOR_GLOBAL_EXCEPT_STD 1
 #  endif
+/* egcs fails to initialize builtin types in expr. like this : new(p) char();  */
+#  define _STLP_DEF_CONST_PLCT_NEW_BUG 1
 #endif
 
 /*
 #define _STLP_VENDOR_GLOBAL_CSTD 1
 */
 
-#if (__GNUC_MINOR__ < 95)  && (__GNUC__ < 3)
+#if (__GNUC__ == 2) && (__GNUC_MINOR__ < 95)
 #  define _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
 #  define _STLP_NO_UNEXPECTED_EXCEPT_SUPPORT
-/* egcs fails to initialize builtin types in expr. like this : new(p) char();  */
-#  define _STLP_DEF_CONST_PLCT_NEW_BUG 1
 #  define _STLP_DEF_CONST_DEF_PARAM_BUG 1
 #else
 #  undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT

@@ -1,4 +1,4 @@
-# Time-stamp: <05/08/19 09:51:52 ptr>
+# Time-stamp: <05/09/20 00:38:58 ptr>
 # $Id$
 
 
@@ -7,10 +7,6 @@ INCLUDES :=
 
 CXX := c++
 CC := gcc -ansi
-
-ifeq ($(OSNAME), cygming)
-RC := windres
-endif
 
 ifdef TARGET_OS
 CXX := ${TARGET_OS}-${CXX}
@@ -24,6 +20,7 @@ CXX_VERSION_MAJOR := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { pr
 CXX_VERSION_MINOR := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { print $2; }')
 CXX_VERSION_PATCH := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { print $3; }')
 else
+ifneq ($(OSNAME), windows)
 CXX_VERSION := $(shell ${CXX} --version | grep GCC | awk '{ print $$3; }')
 
 ifeq ($(CXX_VERSION),)
@@ -34,6 +31,7 @@ endif
 CXX_VERSION_MAJOR := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$1; }')
 CXX_VERSION_MINOR := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$2; }')
 CXX_VERSION_PATCH := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$3; }')
+endif
 endif
 
 DEFS ?=
@@ -56,6 +54,21 @@ CXXFLAGS += -mthreads
 else
 DEFS += -D_REENTRANT
 endif
+CCFLAGS += $(OPT)
+CFLAGS += $(OPT)
+CXXFLAGS += $(OPT)
+COMPILE.rc = $(RC) $(RCFLAGS)
+endif
+
+ifeq ($(OSNAME), windows)
+release-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=r -DBUILD_INFOS="-O2" --output-format coff
+dbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=d -DBUILD_INFOS="-g" --output-format coff
+stldbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=stld -DBUILD_INFOS="-g -D_STLP_DEBUG" --output-format coff
+RC_OUTPUT_OPTION = -o $@
+CXXFLAGS = -Wall -Wsign-promo -fexceptions -fident 
+CCFLAGS += -mthreads
+CFLAGS += -mthreads
+CXXFLAGS += -mthreads
 CCFLAGS += $(OPT)
 CFLAGS += $(OPT)
 CXXFLAGS += $(OPT)
@@ -125,7 +138,11 @@ endif
 
 # Required for correct order of static objects dtors calls:
 ifneq ($(OSNAME),cygming)
+ifneq ($(OSNAME),windows)
+ifneq ($(CXX_VERSION_MAJOR),2)
 CXXFLAGS += -fuse-cxa-atexit
+endif
+endif
 endif
 
 ifdef EXTRA_CXXFLAGS
@@ -156,7 +173,6 @@ stldbg-shared : OPT += -g
 #stldbg-shared-dep : OPT += -g
 
 # dependency output parser (dependencies collector)
-
 DP_OUTPUT_DIR = | sed 's|\($*\)\.o[ :]*|$(OUTPUT_DIR)/\1.o $@ : |g' > $@; \
                            [ -s $@ ] || rm -f $@
 
@@ -165,4 +181,3 @@ DP_OUTPUT_DIR_DBG = | sed 's|\($*\)\.o[ :]*|$(OUTPUT_DIR_DBG)/\1.o $@ : |g' > $@
 
 DP_OUTPUT_DIR_STLDBG = | sed 's|\($*\)\.o[ :]*|$(OUTPUT_DIR_STLDBG)/\1.o $@ : |g' > $@; \
                            [ -s $@ ] || rm -f $@
-

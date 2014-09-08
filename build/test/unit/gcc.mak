@@ -9,12 +9,18 @@ include Makefile.inc
 include ${SRCROOT}/Makefiles/top.mak
 
 INCLUDES += -I${STLPORT_INCLUDE_DIR}
-DEFS += -D_STLP_NO_CUSTOM_IO -D_STLP_LEAKS_PEDANTIC
+DEFS += -D_STLP_NO_CUSTOM_IO
 
 dbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
 stldbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
 
 ifeq ($(OSNAME), cygming)
+release-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
+dbg-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
+stldbg-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
+endif
+
+ifeq ($(OSNAME), windows)
 release-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
 dbg-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
 stldbg-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
@@ -57,14 +63,21 @@ endif
 endif
 
 ifeq ($(OSNAME),cygming)
-LIB_VERSION = ${LIBMAJOR}${LIBMINOR}
-release-shared : LDLIBS = -lstlport_r${LIB_VERSION}
-dbg-shared     : LDLIBS = -lstlport_d${LIB_VERSION}
-stldbg-shared  : LDLIBS = -lstlport_stld${LIB_VERSION}
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : LDLIBS = -lstlport.${LIB_VERSION}
+dbg-shared     : LDLIBS = -lstlportg.${LIB_VERSION}
+stldbg-shared  : LDLIBS = -lstlportstlg.${LIB_VERSION}
+else
+ifeq ($(OSNAME),windows)
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : LDLIBS = -lstlport.${LIB_VERSION}
+dbg-shared     : LDLIBS = -lstlportg.${LIB_VERSION}
+stldbg-shared  : LDLIBS = -lstlportstlg.${LIB_VERSION}
 else
 release-shared : LDLIBS = -lstlport
 dbg-shared     : LDLIBS = -lstlportg
 stldbg-shared  : LDLIBS = -lstlportstlg
+endif
 endif
 
 ifeq ($(OSNAME),sunos)
