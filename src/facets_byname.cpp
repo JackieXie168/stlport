@@ -21,7 +21,8 @@
 #include "locale_impl.h"
 #include "c_locale.h"
 
-#include "locale_nonclassic.h"
+//#include "locale_nonclassic.h"
+#include "locale_impl.h"
 
 
 #include <stl/_codecvt.h>
@@ -44,15 +45,14 @@ _STLP_BEGIN_NAMESPACE
 _Locale_ctype* __acquire_ctype(const char* name); 
 void __release_ctype(_Locale_ctype* cat);
 
-
 //----------------------------------------------------------------------
 // ctype_byname<char>
 
-ctype_byname<char>::ctype_byname(const char* name, size_t refs)
-  : ctype<char>(_M_byname_table+1, false, refs),
-  _M_ctype(__acquire_ctype(name))
+ctype_byname<char>::ctype_byname(const char* name, size_t refs) :
+    ctype<char>( 0, false, refs),
+    _M_ctype(__acquire_ctype(name))
 {
-  
+  ctype<char>::_M_ctype_table = _M_byname_table;
   if (!_M_ctype)
     locale::_M_throw_runtime_error();
   
@@ -61,10 +61,10 @@ ctype_byname<char>::ctype_byname(const char* name, size_t refs)
 
   const _Locale_mask_t* p = _Locale_ctype_table(_M_ctype);
 
-   if (!p)
-     locale::_M_throw_runtime_error(); 
+  if (!p)
+    locale::_M_throw_runtime_error(); 
 
-  for (size_t i = 0; i < table_size + 1; ++i) {
+  for (size_t i = 0; i < table_size; ++i) {
     _Locale_mask_t __m = p[i];
     if (__m & (upper | lower))
       __m |= alpha;
@@ -72,34 +72,29 @@ ctype_byname<char>::ctype_byname(const char* name, size_t refs)
   }
 }
 
-ctype_byname<char>::~ctype_byname()
-{
+ctype_byname<char>::~ctype_byname() {
   __release_ctype(_M_ctype);
 }
 
-char ctype_byname<char>::do_toupper(char c) const 
-{
-  return _Locale_toupper(_M_ctype, c);
+char ctype_byname<char>::do_toupper(char c) const {
+  return (char)_Locale_toupper(_M_ctype, c);
 }
 
-char ctype_byname<char>::do_tolower(char c) const 
-{
-  return _Locale_tolower(_M_ctype, c);
+char ctype_byname<char>::do_tolower(char c) const {
+  return (char)_Locale_tolower(_M_ctype, c);
 }
 
 const char*
-ctype_byname<char>::do_toupper(char* first, const char* last) const
-{
+ctype_byname<char>::do_toupper(char* first, const char* last) const {
   for ( ; first != last ; ++first) 
-    *first = _Locale_toupper(_M_ctype, *first);
+    *first = (char)_Locale_toupper(_M_ctype, *first);
   return last;
 }
 
 const char*
-ctype_byname<char>::do_tolower(char* first, const char* last) const
-{
+ctype_byname<char>::do_tolower(char* first, const char* last) const {
   for ( ; first != last ; ++first) 
-    *first = _Locale_tolower(_M_ctype, *first);
+    *first = (char)_Locale_tolower(_M_ctype, *first);
   return last;
 }
 
@@ -110,40 +105,36 @@ ctype_byname<char>::do_tolower(char* first, const char* last) const
 
 // ctype_byname<wchar_t>
 
-  struct _Ctype_byname_w_is_mask {
-    typedef wchar_t argument_type;
-    typedef bool    result_type;
+struct _Ctype_byname_w_is_mask {
+  typedef wchar_t argument_type;
+  typedef bool    result_type;
 
-    /* ctype_base::mask*/ int  M;
-    _Locale_ctype* M_ctp;
+  /* ctype_base::mask*/ int  M;
+  _Locale_ctype* M_ctp;
 
-    _Ctype_byname_w_is_mask(/* ctype_base::mask */ int m, _Locale_ctype* c) : M((int)m), M_ctp(c) {}
-    bool operator()(wchar_t c) const
-      { return (M & _Locale_wchar_ctype(M_ctp, c, M)) != 0; }
-  };
+  _Ctype_byname_w_is_mask(/* ctype_base::mask */ int m, _Locale_ctype* c) : M((int)m), M_ctp(c) {}
+  bool operator()(wchar_t c) const
+    { return (M & _Locale_wchar_ctype(M_ctp, c, M)) != 0; }
+};
 
 ctype_byname<wchar_t>::ctype_byname(const char* name, size_t refs)
   : ctype<wchar_t>(refs),
-    _M_ctype(__acquire_ctype(name))
-{
+    _M_ctype(__acquire_ctype(name)) {
   if (!_M_ctype)
     locale::_M_throw_runtime_error();    
 }
 
-ctype_byname<wchar_t>::~ctype_byname()
-{
+ctype_byname<wchar_t>::~ctype_byname() {
   __release_ctype(_M_ctype);
 }
 
-bool ctype_byname<wchar_t>::do_is(ctype_base::mask  m, wchar_t c) const
-{
+bool ctype_byname<wchar_t>::do_is(ctype_base::mask  m, wchar_t c) const {
   return (m & _Locale_wchar_ctype(_M_ctype, c, m)) != 0;
 }
 
 const wchar_t*
 ctype_byname<wchar_t>::do_is(const wchar_t* low, const wchar_t* high,
-                             ctype_base::mask * m) const
-{
+                             ctype_base::mask * m) const {
   ctype_base::mask all_bits = ctype_base::mask(
     ctype_base::space |
     ctype_base::print |
@@ -163,39 +154,33 @@ ctype_byname<wchar_t>::do_is(const wchar_t* low, const wchar_t* high,
     
 const wchar_t*
 ctype_byname<wchar_t>
-  ::do_scan_is(ctype_base::mask  m, const wchar_t* low, const wchar_t* high) const
-{
+  ::do_scan_is(ctype_base::mask  m, const wchar_t* low, const wchar_t* high) const {
   return find_if(low, high, _Ctype_byname_w_is_mask(m, _M_ctype));
 }
 
 const wchar_t*
 ctype_byname<wchar_t>
-  ::do_scan_not(ctype_base::mask  m, const wchar_t* low, const wchar_t* high) const
-{
+  ::do_scan_not(ctype_base::mask  m, const wchar_t* low, const wchar_t* high) const {
   return find_if(low, high, not1(_Ctype_byname_w_is_mask(m, _M_ctype)));
 }
 
-wchar_t ctype_byname<wchar_t>::do_toupper(wchar_t c) const 
-{
+wchar_t ctype_byname<wchar_t>::do_toupper(wchar_t c) const {
   return _Locale_wchar_toupper(_M_ctype, c);
 }
 
 const wchar_t* 
-ctype_byname<wchar_t>::do_toupper(wchar_t* low, const wchar_t* high) const
-{
+ctype_byname<wchar_t>::do_toupper(wchar_t* low, const wchar_t* high) const {
   for ( ; low < high; ++low)
     *low = _Locale_wchar_toupper(_M_ctype, *low);
   return high;
 }
 
-wchar_t ctype_byname<wchar_t>::do_tolower(wchar_t c) const 
-{
+wchar_t ctype_byname<wchar_t>::do_tolower(wchar_t c) const {
   return _Locale_wchar_tolower(_M_ctype, c);
 }
 
 const wchar_t* 
-ctype_byname<wchar_t>::do_tolower(wchar_t* low, const wchar_t* high) const
-{
+ctype_byname<wchar_t>::do_tolower(wchar_t* low, const wchar_t* high) const {
   for ( ; low < high; ++low)
     *low = _Locale_wchar_tolower(_M_ctype, *low);
   return high;
@@ -220,14 +205,12 @@ void __release_collate(_Locale_collate* cat);
 
 collate_byname<char>::collate_byname(const char* name, size_t refs)
   : collate<char>(refs),
-    _M_collate(__acquire_collate(name))
-{
+    _M_collate(__acquire_collate(name)) {
   if (!_M_collate)
     locale::_M_throw_runtime_error();
 }
 
-collate_byname<char>::~collate_byname()
-{
+collate_byname<char>::~collate_byname() {
   __release_collate(_M_collate);
 }
 
@@ -246,7 +229,7 @@ collate_byname<char>::do_transform(const char* low, const char* high) const {
                              NULL, 0,
                              low, high - low);
 
-  __vector__<char, allocator<char> > buf(n);
+  vector<char, allocator<char> > buf(n);
   _Locale_strxfrm(_M_collate, &buf.front(), n,
                               low, high - low);
 
@@ -263,22 +246,19 @@ collate_byname<char>::do_transform(const char* low, const char* high) const {
 
 collate_byname<wchar_t>::collate_byname(const char* name, size_t refs)
   : collate<wchar_t>(refs),
-    _M_collate(__acquire_collate(name))
-{
+    _M_collate(__acquire_collate(name)) {
   if (!_M_collate)
     locale::_M_throw_runtime_error();
 }
 
-collate_byname<wchar_t>::~collate_byname() 
-{
+collate_byname<wchar_t>::~collate_byname() {
   __release_collate(_M_collate);
 }
 
 int collate_byname<wchar_t>::do_compare(const wchar_t* low1,
                                         const wchar_t* high1,
                                         const wchar_t* low2,
-                                        const wchar_t* high2) const
-{
+                                        const wchar_t* high2) const {
   return _Locale_strwcmp(_M_collate,
                          low1, high1 - low1, 
                          low2, high2 - low2);
@@ -286,13 +266,12 @@ int collate_byname<wchar_t>::do_compare(const wchar_t* low1,
 
 collate_byname<wchar_t>::string_type
 collate_byname<wchar_t>
-  ::do_transform(const wchar_t* low, const wchar_t* high) const
-{
+  ::do_transform(const wchar_t* low, const wchar_t* high) const {
   size_t n = _Locale_strwxfrm(_M_collate,
                               NULL, 0,
                               low, high - low);
 
-  __vector__<wchar_t, allocator<wchar_t> > buf(high - low);
+  vector<wchar_t, allocator<wchar_t> > buf(high - low);
   _Locale_strwxfrm(_M_collate, &buf.front(), n,
                                low, high - low);
   wchar_t& __c1 = *(buf.begin());
@@ -319,8 +298,7 @@ _STLP_BEGIN_NAMESPACE
 
 codecvt_byname<char, char, mbstate_t>
   ::codecvt_byname(const char* /* name */, size_t refs)
-    : codecvt<char, char, mbstate_t>(refs)
-{}
+    : codecvt<char, char, mbstate_t>(refs) {}
 
 codecvt_byname<char, char, mbstate_t>::~codecvt_byname() {}
 
@@ -336,14 +314,12 @@ void __release_ctype(_Locale_ctype* cat);
 codecvt_byname<wchar_t, char, mbstate_t>
   ::codecvt_byname(const char* name, size_t refs)
     : codecvt<wchar_t, char, mbstate_t>(refs),
-      _M_ctype(__acquire_ctype(name))
-{
+      _M_ctype(__acquire_ctype(name)) {
   if (!_M_ctype)
     locale::_M_throw_runtime_error();
 }
 
-codecvt_byname<wchar_t, char, mbstate_t>::~codecvt_byname()
-{
+codecvt_byname<wchar_t, char, mbstate_t>::~codecvt_byname() {
   __release_ctype(_M_ctype);
 }
 
@@ -355,8 +331,7 @@ codecvt_byname<wchar_t, char, mbstate_t>
            const wchar_t*& from_next,
            char*           to,
            char*           to_limit,
-           char*&          to_next) const
-{
+           char*&          to_next) const {
   while (from != from_end) {
     size_t chars_stored = _Locale_wctomb(_M_ctype,
                                          to, to_limit - to, *from,
@@ -366,7 +341,6 @@ codecvt_byname<wchar_t, char, mbstate_t>
       to_next   = to;
       return error;
     }
-
     else if (chars_stored == (size_t) -2) {
       from_next = from;
       to_next   = to;
@@ -390,8 +364,7 @@ codecvt_byname<wchar_t, char, mbstate_t>
           const extern_type*& from_next,
           intern_type*        to,
           intern_type*        ,
-          intern_type*&       to_next) const
-{
+          intern_type*&       to_next) const {
   while (from != from_end) {
     size_t chars_read = _Locale_mbtowc(_M_ctype,
                                        to, from, from_end - from,
@@ -422,8 +395,7 @@ codecvt_byname<wchar_t, char, mbstate_t>
   ::do_unshift(state_type&   state,
                extern_type*  to,
                extern_type*  to_limit,
-               extern_type*& to_next) const
-{
+               extern_type*& to_next) const {
   to_next = to;
   size_t result = _Locale_unshift(_M_ctype, &state,
                                   to, to_limit - to, &to_next);
@@ -440,8 +412,7 @@ codecvt_byname<wchar_t, char, mbstate_t>
 }
 
 int
-codecvt_byname<wchar_t, char, mbstate_t>::do_encoding() const _STLP_NOTHROW
-{
+codecvt_byname<wchar_t, char, mbstate_t>::do_encoding() const _STLP_NOTHROW {
   if (_Locale_is_stateless(_M_ctype)) {
     int max_width = _Locale_mb_cur_max(_M_ctype);
     int min_width = _Locale_mb_cur_min(_M_ctype);
@@ -453,23 +424,19 @@ codecvt_byname<wchar_t, char, mbstate_t>::do_encoding() const _STLP_NOTHROW
 
 
 bool codecvt_byname<wchar_t, char, mbstate_t>
-  ::do_always_noconv() const _STLP_NOTHROW
-{
+  ::do_always_noconv() const _STLP_NOTHROW {
   return false;
 }
 
 int 
-codecvt_byname<wchar_t, char, mbstate_t>::do_length(
-                                                    const state_type&,
+codecvt_byname<wchar_t, char, mbstate_t>::do_length(const state_type&,
                                                     const  extern_type* from, const  extern_type* end,
-                                                    size_t mx) const 
-{
+                                                    size_t mx) const {
   return (int)(min) ((size_t) (end - from), mx);
 }
 
 int
-codecvt_byname<wchar_t, char, mbstate_t>::do_max_length() const _STLP_NOTHROW
-{
+codecvt_byname<wchar_t, char, mbstate_t>::do_max_length() const _STLP_NOTHROW {
   return _Locale_mb_cur_max(_M_ctype);
 }
 # endif /* WCHAR_T */
@@ -490,8 +457,7 @@ void  _STLP_CALL __release_numeric(_Locale_numeric* cat);
 
 numpunct_byname<char>::numpunct_byname(const char* name, size_t refs)
   : numpunct<char>(refs),
-    _M_numeric(__acquire_numeric(name))
-{
+    _M_numeric(__acquire_numeric(name)) {
   if (!_M_numeric)
     locale::_M_throw_runtime_error();
 
@@ -499,8 +465,7 @@ numpunct_byname<char>::numpunct_byname(const char* name, size_t refs)
   _M_falsename = _Locale_false(_M_numeric);
 }
 
-numpunct_byname<char>::~numpunct_byname()
-{
+numpunct_byname<char>::~numpunct_byname() {
   __release_numeric(_M_numeric);
 }
 
@@ -528,8 +493,7 @@ string numpunct_byname<char>::do_grouping() const {
 
 numpunct_byname<wchar_t>::numpunct_byname(const char* name, size_t refs)
   : numpunct<wchar_t>(refs),
-    _M_numeric(__acquire_numeric(name))
-{
+    _M_numeric(__acquire_numeric(name)) {
   if (!_M_numeric)
     locale::_M_throw_runtime_error();
 
@@ -541,8 +505,7 @@ numpunct_byname<wchar_t>::numpunct_byname(const char* name, size_t refs)
   copy(falsename, falsename + strlen(falsename), _M_falsename.begin());
 }
 
-numpunct_byname<wchar_t>::~numpunct_byname()
-{
+numpunct_byname<wchar_t>::~numpunct_byname() {
   __release_numeric(_M_numeric);
 }
 
@@ -577,200 +540,318 @@ static void _Init_monetary_formats(money_base::pattern& pos_format,
                                     money_base::pattern& neg_format,
                                     _Locale_monetary * monetary) {
   switch (_Locale_p_sign_posn(monetary)) {
-    case 0: case 1:
+    case 0: // Parentheses surround the quantity and currency_symbol
+    case 1: // The sign string precedes the quantity and currency_symbol
       pos_format.field[0] = (char) money_base::sign;
       if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[1] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[2] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::symbol;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::none;
-	}
+        // 1 if currency_symbol precedes a positive value
+        pos_format.field[1] = (char) money_base::symbol;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::space;
+          pos_format.field[3] = (char) money_base::value;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::value;
+          pos_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a positive value
+        pos_format.field[1] = (char) money_base::value;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::space;
+          pos_format.field[3] = (char) money_base::symbol;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::symbol;
+          pos_format.field[3] = (char) money_base::none;
+        }
       }       
       break;
-    case 2:
+    case 2: // The sign string succeeds the quantity and currency_symbol.
       if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  pos_format.field[1] = (char) money_base::value;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[1] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  pos_format.field[1] = (char) money_base::symbol;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
+        // 1 if currency_symbol precedes a positive value
+        pos_format.field[0] = (char) money_base::symbol;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::space;
+          pos_format.field[2] = (char) money_base::value;
+          pos_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::value;
+          pos_format.field[2] = (char) money_base::sign;
+          pos_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a positive value
+        pos_format.field[0] = (char) money_base::value;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::space;
+          pos_format.field[2] = (char) money_base::symbol;
+          pos_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::symbol;
+          pos_format.field[2] = (char) money_base::sign;
+          pos_format.field[3] = (char) money_base::none;
+        }
       }
       break;
-    case 3:
+    case 3: // The sign string immediately precedes the currency_symbol.
       if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::sign;
-	pos_format.field[1] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[0] = (char) money_base::value;
-	pos_format.field[1] = (char) money_base::sign;
-	pos_format.field[2] = (char) money_base::symbol;
-	pos_format.field[3] = (char) money_base::none;
+        // 1 if currency_symbol precedes a positive value
+        pos_format.field[0] = (char) money_base::sign;
+        pos_format.field[1] = (char) money_base::symbol;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::space;
+          pos_format.field[3] = (char) money_base::value;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[2] = (char) money_base::value;
+          pos_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a positive value
+        pos_format.field[0] = (char) money_base::value;
+        pos_format.field[1] = (char) money_base::sign;
+        pos_format.field[2] = (char) money_base::symbol;
+        pos_format.field[3] = (char) money_base::none;
       }
       break;
-    case 4: default:
+    case 4: // The sign string immediately succeeds the currency_symbol.
+    default:
       if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::symbol;
-	pos_format.field[1] = (char) money_base::sign;
-	pos_format.field[2] = (char) money_base::value;
-	pos_format.field[3] = (char) money_base::none;
-      }
-      else {
-	pos_format.field[0] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-        else {
-	  pos_format.field[1] = (char) money_base::symbol;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
+        // 1 if currency_symbol precedes a positive value
+        pos_format.field[0] = (char) money_base::symbol;
+        pos_format.field[1] = (char) money_base::sign;
+        pos_format.field[2] = (char) money_base::value;
+        pos_format.field[3] = (char) money_base::none;
+      } else {
+        // 0 if currency_symbol succeeds a positive value
+        pos_format.field[0] = (char) money_base::value;
+        if (_Locale_p_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::space;
+          pos_format.field[2] = (char) money_base::symbol;
+          pos_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a positive value.
+          pos_format.field[1] = (char) money_base::symbol;
+          pos_format.field[2] = (char) money_base::sign;
+          pos_format.field[3] = (char) money_base::none;
+        }
       }
     break;
   }
 
   switch (_Locale_n_sign_posn(monetary)) {
-    case 0: case 1:
+    case 0: // Parentheses surround the quantity and currency_symbol
+    case 1: // The sign string precedes the quantity and currency_symbol
       neg_format.field[0] = (char) money_base::sign;
       if (_Locale_n_cs_precedes(monetary)) {
+        // 1 if currency_symbol precedes a negative value
         neg_format.field[1] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[2] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::symbol;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::none;
-	}
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[2] = (char) money_base::space;
+          neg_format.field[3] = (char) money_base::value;
+        } else {
+          // a space not separates currency_symbol from a negative value.
+          neg_format.field[2] = (char) money_base::value;
+          neg_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a negative value
+        neg_format.field[1] = (char) money_base::value;
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[2] = (char) money_base::space;
+          neg_format.field[3] = (char) money_base::symbol;
+        } else {
+          // a space not separates currency_symbol from a negative value. 
+          neg_format.field[2] = (char) money_base::symbol;
+          neg_format.field[3] = (char) money_base::none;
+        }
       }       
       break;
-    case 2:
+    case 2: // The sign string succeeds the quantity and currency_symbol.
       if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  neg_format.field[1] = (char) money_base::value;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[1] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  neg_format.field[1] = (char) money_base::symbol;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
+        // 1 if currency_symbol precedes a negative value
+        neg_format.field[0] = (char) money_base::symbol;
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::space;
+          neg_format.field[2] = (char) money_base::value;
+          neg_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::value;
+          neg_format.field[2] = (char) money_base::sign;
+          neg_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a negative value
+        neg_format.field[0] = (char) money_base::value;
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::space;
+          neg_format.field[2] = (char) money_base::symbol;
+          neg_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::symbol;
+          neg_format.field[2] = (char) money_base::sign;
+          neg_format.field[3] = (char) money_base::none;
+        }
       }
       break;
-    case 3:
+    case 3: // The sign string immediately precedes the currency_symbol.
       if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::sign;
-	neg_format.field[1] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[0] = (char) money_base::value;
-	neg_format.field[1] = (char) money_base::sign;
-	neg_format.field[2] = (char) money_base::symbol;
-	neg_format.field[3] = (char) money_base::none;
+        // 1 if currency_symbol precedes a negative value
+        neg_format.field[0] = (char) money_base::sign;
+        neg_format.field[1] = (char) money_base::symbol;
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[2] = (char) money_base::space;
+          neg_format.field[3] = (char) money_base::value;
+        } else {
+          // a space not separates currency_symbol from a negative value.
+          neg_format.field[2] = (char) money_base::value;
+          neg_format.field[3] = (char) money_base::none;
+        }
+      } else {
+        // 0 if currency_symbol succeeds a negative value
+        neg_format.field[0] = (char) money_base::value;
+        neg_format.field[1] = (char) money_base::sign;
+        neg_format.field[2] = (char) money_base::symbol;
+        neg_format.field[3] = (char) money_base::none;
       }
       break;
-    case 4: default:
+    case 4: // The sign string immediately succeeds the currency_symbol.
+    default:
       if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::symbol;
-	neg_format.field[1] = (char) money_base::sign;
-	neg_format.field[2] = (char) money_base::value;
-	neg_format.field[3] = (char) money_base::none;
-      }
-      else {
-	neg_format.field[0] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-        else {
-	  neg_format.field[1] = (char) money_base::symbol;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
+        // 1 if currency_symbol precedes a negative value
+        neg_format.field[0] = (char) money_base::symbol;
+        neg_format.field[1] = (char) money_base::sign;
+        neg_format.field[2] = (char) money_base::value;
+        neg_format.field[3] = (char) money_base::none;
+      } else {
+        // 0 if currency_symbol succeeds a negative value
+        neg_format.field[0] = (char) money_base::value;
+        if (_Locale_n_sep_by_space(monetary)) {
+          // a space separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::space;
+          neg_format.field[2] = (char) money_base::symbol;
+          neg_format.field[3] = (char) money_base::sign;
+        } else {
+          // a space not separates currency_symbol from a negative value.
+          neg_format.field[1] = (char) money_base::symbol;
+          neg_format.field[2] = (char) money_base::sign;
+          neg_format.field[3] = (char) money_base::none;
+        }
       }
       break;
   }
 }
 
+// international variant of monetary
+
+/*
+ * int_curr_symbol
+ *
+ *   The international currency symbol. The operand is a four-character
+ *   string, with the first three characters containing the alphabetic
+ *   international currency symbol in accordance with those specified
+ *   in the ISO 4217 specification. The fourth character is the character used
+ *   to separate the international currency symbol from the monetary quantity.
+ *
+ * (http://www.opengroup.org/onlinepubs/7990989775/xbd/locale.html)
+ */
+
+/*
+ * Standards are unclear in the usage of international currency
+ * and monetary formats.
+ * But I am expect that international currency symbol should be the first
+ * (not depends upon where currency symbol situated in the national
+ * format).
+ * 
+ * If this isn't so, let's see:
+ *       1 234.56 RUR
+ *       GBP 1,234.56
+ *       USD 1,234.56
+ * The situation really is worse than you see above:
+ * RUR typed wrong here---it prints '1 234.56 RUR ' (see space after RUR).
+ * This is due to intl_fmp.curr_symbol() == "RUR ". (see reference in comments
+ * above).
+ *
+ */
+
+static void _Init_monetary_formats_int(money_base::pattern& pos_format,
+                                       money_base::pattern& neg_format,
+                                       _Locale_monetary * monetary)
+{
+  pos_format.field[0] = (char) money_base::symbol;
+  // pos_format.field[1] = (char) money_base::space;
+
+  switch (_Locale_p_sign_posn(monetary)) {
+    case 0: // Parentheses surround the quantity and currency_symbol
+    case 1: // The sign string precedes the quantity and currency_symbol
+      pos_format.field[1] = (char) money_base::sign;
+      pos_format.field[2] = (char) money_base::value;
+      break;
+    case 2: // The sign string succeeds the quantity and currency_symbol.
+      pos_format.field[1] = (char) money_base::value;
+      pos_format.field[2] = (char) money_base::sign;
+      break;
+    case 3: // The sign string immediately precedes the currency_symbol.
+    case 4: // The sign string immediately succeeds the currency_symbol.
+    default:
+      if (_Locale_p_cs_precedes(monetary)) {
+        // 1 if currency_symbol precedes a positive value
+        pos_format.field[1] = (char) money_base::sign;
+        pos_format.field[2] = (char) money_base::value;
+      } else {
+        // 0 if currency_symbol succeeds a positive value
+        pos_format.field[1] = (char) money_base::value;
+        pos_format.field[2] = (char) money_base::sign;
+      }
+      break;
+  }
+  pos_format.field[3] = (char) money_base::none;
+
+  neg_format.field[0] = (char) money_base::symbol;
+  // neg_format.field[1] = (char) money_base::space;
+
+  switch (_Locale_n_sign_posn(monetary)) {
+    case 0: // Parentheses surround the quantity and currency_symbol
+    case 1: // The sign string precedes the quantity and currency_symbol
+      neg_format.field[1] = (char) money_base::sign;
+      neg_format.field[2] = (char) money_base::value;
+      break;
+    case 2: // The sign string succeeds the quantity and currency_symbol.
+      neg_format.field[1] = (char) money_base::value;
+      neg_format.field[2] = (char) money_base::sign;
+      break;
+    case 3: // The sign string immediately precedes the currency_symbol.
+    case 4: // The sign string immediately succeeds the currency_symbol.
+    default:
+      if (_Locale_n_cs_precedes(monetary)) {
+        // 1 if currency_symbol precedes a negative value
+        neg_format.field[1] = (char) money_base::sign;
+        neg_format.field[2] = (char) money_base::value;
+      } else {
+        // 0 if currency_symbol succeeds a negative value
+        neg_format.field[1] = (char) money_base::value;
+        neg_format.field[2] = (char) money_base::sign;
+      }
+      break;
+  }
+  neg_format.field[3] = (char) money_base::none;
+}
 
 //
 // moneypunct_byname<>
@@ -780,17 +861,14 @@ _Locale_monetary* __acquire_monetary(const char* name);
 void __release_monetary(_Locale_monetary* mon);
 
 moneypunct_byname<char, true>::moneypunct_byname(const char * name,
-						 size_t refs):
-  moneypunct<char, true>(refs),
-  _M_monetary(__acquire_monetary(name))
-{
+                                                 size_t refs):
+  moneypunct<char, true>(refs), _M_monetary(__acquire_monetary(name)) {
   if (!_M_monetary)
     locale::_M_throw_runtime_error();
-  _Init_monetary_formats(_M_pos_format, _M_neg_format, _M_monetary);
+  _Init_monetary_formats_int(_M_pos_format, _M_neg_format, _M_monetary);
 }
 
-moneypunct_byname<char, true>::~moneypunct_byname()
-{
+moneypunct_byname<char, true>::~moneypunct_byname() {
   __release_monetary(_M_monetary);
 }
 
@@ -816,17 +894,14 @@ int moneypunct_byname<char, true>::do_frac_digits() const
   {return _Locale_int_frac_digits(_M_monetary);}
 
 moneypunct_byname<char, false>::moneypunct_byname(const char * name,
-						  size_t refs):
-  moneypunct<char, false>(refs),
-  _M_monetary(__acquire_monetary(name))
-{
+                                                  size_t refs):
+  moneypunct<char, false>(refs), _M_monetary(__acquire_monetary(name)) {
   if (!_M_monetary)
     locale::_M_throw_runtime_error();
   _Init_monetary_formats(_M_pos_format, _M_neg_format, _M_monetary);
 }
 
-moneypunct_byname<char, false>::~moneypunct_byname()
-{
+moneypunct_byname<char, false>::~moneypunct_byname() {
   __release_monetary(_M_monetary);
 }
 
@@ -857,17 +932,14 @@ int moneypunct_byname<char, false>::do_frac_digits() const
 # ifndef _STLP_NO_WCHAR_T
 
 moneypunct_byname<wchar_t, true>::moneypunct_byname(const char * name,
-						 size_t refs):
-  moneypunct<wchar_t, true>(refs),
-  _M_monetary(__acquire_monetary(name))
-{
+                                                    size_t refs):
+  moneypunct<wchar_t, true>(refs), _M_monetary(__acquire_monetary(name)) {
   if (!_M_monetary)
     locale::_M_throw_runtime_error();
-  _Init_monetary_formats(_M_pos_format, _M_neg_format, _M_monetary);
+  _Init_monetary_formats_int(_M_pos_format, _M_neg_format, _M_monetary);
 }
 
-moneypunct_byname<wchar_t, true>::~moneypunct_byname() 
-{
+moneypunct_byname<wchar_t, true>::~moneypunct_byname() {
   __release_monetary(_M_monetary);
 }
 
@@ -879,12 +951,12 @@ wchar_t moneypunct_byname<wchar_t, true>::do_thousands_sep() const
 
 string moneypunct_byname<wchar_t, true>::do_grouping() const
   {return _Locale_mon_grouping(_M_monetary);}
-
-wstring moneypunct_byname<wchar_t, true>::do_curr_symbol() const
-{
-  string str = _Locale_int_curr_symbol(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
+  
+inline wstring __do_widen (string const& str) {
+# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__) //*ty 05/26/2001 - added workaround for mpw
+  wstring::_Reserve_t __Reserve;
+  size_t __size = str.size();
+  wstring result(__Reserve, __size);
   copy(str.begin(), str.end(), result.begin());
 # else
   wstring result(str.begin(), str.end());
@@ -892,48 +964,28 @@ wstring moneypunct_byname<wchar_t, true>::do_curr_symbol() const
   return result;
 }
 
-wstring moneypunct_byname<wchar_t, true>::do_positive_sign() const
-{
-  string str = _Locale_positive_sign(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
-  copy(str.begin(), str.end(), result.begin());
-# else
-  wstring result(str.begin(), str.end());
-# endif
-  return result;
-}
+wstring moneypunct_byname<wchar_t, true>::do_curr_symbol() const 
+  {return __do_widen(_Locale_int_curr_symbol(_M_monetary));}
 
+wstring moneypunct_byname<wchar_t, true>::do_positive_sign() const 
+  {return __do_widen(_Locale_positive_sign(_M_monetary));}
 
-wstring moneypunct_byname<wchar_t, true>::do_negative_sign() const
-{
-  string str = _Locale_negative_sign(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC)  || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
-  copy(str.begin(), str.end(), result.begin());
-# else
-  wstring result(str.begin(), str.end());
-# endif
-  return result;
-}
+wstring moneypunct_byname<wchar_t, true>::do_negative_sign() const 
+  {return __do_widen(_Locale_negative_sign(_M_monetary));}
 
 int moneypunct_byname<wchar_t, true>::do_frac_digits() const 
   {return _Locale_int_frac_digits(_M_monetary);}
 
 moneypunct_byname<wchar_t, false>::moneypunct_byname(const char * name,
-						 size_t refs):
-  moneypunct<wchar_t, false>(refs),
-  _M_monetary(__acquire_monetary(name))
-{
+                                                     size_t refs):
+  moneypunct<wchar_t, false>(refs), _M_monetary(__acquire_monetary(name)) {
   if (!_M_monetary)
     locale::_M_throw_runtime_error() ;
   _Init_monetary_formats(_M_pos_format, _M_neg_format, _M_monetary);
 }
 
-moneypunct_byname<wchar_t, false>::~moneypunct_byname()
-{
-  __release_monetary(_M_monetary);
-}
+moneypunct_byname<wchar_t, false>::~moneypunct_byname() 
+  {__release_monetary(_M_monetary);}
 
 wchar_t moneypunct_byname<wchar_t, false>::do_decimal_point() const
   {return _Locale_mon_decimal_point(_M_monetary);}
@@ -944,41 +996,14 @@ wchar_t moneypunct_byname<wchar_t, false>::do_thousands_sep() const
 string moneypunct_byname<wchar_t, false>::do_grouping() const
   {return _Locale_mon_grouping(_M_monetary);}
 
-wstring moneypunct_byname<wchar_t, false>::do_curr_symbol() const
-{
-  string str =  _Locale_currency_symbol(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
-  copy(str.begin(), str.end(), result.begin());
-# else
-  wstring result(str.begin(), str.end());
-# endif
-  return result;
-}
+wstring moneypunct_byname<wchar_t, false>::do_curr_symbol() const 
+  {return __do_widen(_Locale_currency_symbol(_M_monetary));}
 
-wstring moneypunct_byname<wchar_t, false>::do_positive_sign() const
-{
-  string str = _Locale_positive_sign(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
-  copy(str.begin(), str.end(), result.begin());
-# else
-  wstring result(str.begin(), str.end());
-# endif
-  return result;
-}
+wstring moneypunct_byname<wchar_t, false>::do_positive_sign() const 
+  {return __do_widen(_Locale_positive_sign(_M_monetary));}
 
-wstring moneypunct_byname<wchar_t, false>::do_negative_sign() const
-{
-  string str = _Locale_negative_sign(_M_monetary);
-# if defined (_STLP_NO_MEMBER_TEMPLATES) || defined (_STLP_MSVC) || defined(__MRC__) || defined(__SC__)		//*ty 05/26/2001 - added workaround for mpw
-  wstring result(wstring::_Reserve_t(), str.size());
-  copy(str.begin(), str.end(), result.begin());
-# else
-  wstring result(str.begin(), str.end());
-# endif
-  return result;
-}
+wstring moneypunct_byname<wchar_t, false>::do_negative_sign() const 
+  {return __do_widen(_Locale_negative_sign(_M_monetary));}
 
 int moneypunct_byname<wchar_t, false>::do_frac_digits() const 
   {return _Locale_frac_digits(_M_monetary);}
@@ -989,48 +1014,49 @@ _STLP_END_NAMESPACE
 
 #include <stl/_messages_facets.h>
 #include "message_facets.h"
-#include <typeinfo>
+
+#ifndef _STLP_NO_RTTI
+# include <typeinfo>
+#endif /*_STLP_NO_RTTI*/
 
 _STLP_BEGIN_NAMESPACE
 
-void _Catalog_locale_map::insert(int key, const locale& L)
-{
-# ifdef _STLP_NO_WCHAR_T
-  typedef char _Char;
-# else
-  typedef wchar_t _Char;
-# endif
-#if !defined(_STLP_NO_TYPEINFO)
-  // Don't bother to do anything unless we're using a non-default ctype facet
+void _Catalog_locale_map::insert(nl_catd_type key, const locale& L) {
   _STLP_TRY {
+#if !defined(_STLP_NO_TYPEINFO) && !defined(_STLP_NO_RTTI)
+    // Don't bother to do anything unless we're using a non-default ctype facet
+# ifdef _STLP_NO_WCHAR_T
+    typedef char _Char;
+# else
+    typedef wchar_t _Char;
+# endif
+
     typedef ctype<_Char> wctype;
-    wctype& wct = (wctype &)use_facet<wctype>(L);
-    wctype* zz;
-    if (typeid(&wct) != typeid(zz)) {
+    wctype const& wct = use_facet<wctype>(L);
+    if (typeid(wct) != typeid(wctype)) {
+# endif /* _STLP_NO_TYPEINFO */
       if (!M)
-        M = new hash_map<int, locale, hash<int>, equal_to<int> >;
+        M = new map_type;
 
 #if defined(__SC__)
       if (!M) delete M;
 #endif
-      if (M->find(key) == M->end())
-        M->insert(pair<const int, locale>(key, L));
+      M->insert(map_type::value_type(key, L));
+#if !defined(_STLP_NO_TYPEINFO) && !defined(_STLP_NO_RTTI)
     }
+# endif /* _STLP_NO_TYPEINFO */
   }
   _STLP_CATCH_ALL {}
-# endif /* _STLP_NO_TYPEINFO */
 }
 
-void _Catalog_locale_map::erase(int key)
-{
+void _Catalog_locale_map::erase(nl_catd_type key) {
   if (M)
     M->erase(key);
 }
 
-locale _Catalog_locale_map::lookup(int key) const
-{
+locale _Catalog_locale_map::lookup(nl_catd_type key) const {
   if (M) {
-    hash_map<int, locale, hash<int>, equal_to<int> >::iterator i = M->find(key);
+    map_type::const_iterator i = M->find(key);
     return i != M->end() ? (*i).second : locale::classic();
   }
   else
@@ -1038,13 +1064,41 @@ locale _Catalog_locale_map::lookup(int key) const
 }
 
 
+#if defined (_STLP_USE_NL_CATD_MAPPING)
+int _Catalog_nl_catd_map::_count = 0;
+
+messages_base::catalog _Catalog_nl_catd_map::insert(nl_catd_type cat) {
+  messages_base::catalog &res = Mr[cat];
+  if ( res == 0 ) {
+#if defined (_STLP_ATOMIC_INCREMENT)
+    res = _STLP_ATOMIC_INCREMENT(&_count);
+#else
+    static _STLP_STATIC_MUTEX _Count_lock _STLP_MUTEX_INITIALIZER;
+    {
+      _STLP_auto_lock sentry(_Count_lock);
+      res = ++_count;
+    }
+#endif
+    M[res] = cat;
+  }
+  return res;
+}
+
+void _Catalog_nl_catd_map::erase(messages_base::catalog cat) {
+  map_type::iterator mit(M.find(cat));
+  if (mit != M.end()) {
+    Mr.erase((*mit).second);
+    M.erase(mit);
+  }
+}
+#endif
+
 //----------------------------------------------------------------------
 //
 //
 
 _Messages_impl::_Messages_impl(bool is_wide) : 
-  _M_message_obj(0), _M_map(0)
-{ 
+  _M_message_obj(0), _M_map(0) { 
   _M_delete = true;
   if (is_wide) 
     _M_map = new _Catalog_locale_map;
@@ -1052,36 +1106,35 @@ _Messages_impl::_Messages_impl(bool is_wide) :
 }
 
 _Messages_impl::_Messages_impl(bool is_wide, _Locale_messages* msg_obj ) : 
-  _M_message_obj(msg_obj), _M_map(0)
-{ 
+  _M_message_obj(msg_obj), _M_map(0) { 
   _M_delete = true;
   if (is_wide) 
     _M_map = new _Catalog_locale_map;
 }
 
-_Messages_impl::~_Messages_impl()
-{
+_Messages_impl::~_Messages_impl() {
   __release_messages(_M_message_obj);
   if (_M_map) delete _M_map;
 }
 
-int _Messages_impl::do_open(const string& filename, const locale& L) const
-{  
-  int result = _M_message_obj
-    ? _Locale_catopen(_M_message_obj, filename.c_str())
-    : -1;
+_Messages::catalog _Messages_impl::do_open(const string& filename, const locale& L) const {  
+  nl_catd_type result = _M_message_obj ? _Locale_catopen(_M_message_obj, filename.c_str())
+    : (nl_catd_type)(-1);
 
-  if (result >= 0 && _M_map != 0)
-    _M_map->insert(result, L);
+  if ( result != (nl_catd_type)(-1) ) {
+    if ( _M_map != 0 ) {
+      _M_map->insert(result, L);
+    }
+    return _M_cat.insert( result );
+  }
 
-  return result;
+  return -1;
 }
 
 string _Messages_impl::do_get(catalog cat,
-                              int set, int p_id, const string& dfault) const
-{
+                              int set, int p_id, const string& dfault) const {
   return _M_message_obj != 0 && cat >= 0
-    ? string(_Locale_catgets(_M_message_obj, cat, set, p_id, dfault.c_str()))
+    ? string(_Locale_catgets(_M_message_obj, _M_cat[cat], set, p_id, dfault.c_str()))
     : dfault;
 }
 
@@ -1089,19 +1142,18 @@ string _Messages_impl::do_get(catalog cat,
 
 wstring
 _Messages_impl::do_get(catalog thecat,
-		       int set, int p_id, const wstring& dfault) const
-{
+                       int set, int p_id, const wstring& dfault) const {
   typedef ctype<wchar_t> wctype;
-  const wctype& ct = use_facet<wctype>(_M_map->lookup(thecat));
+  const wctype& ct = use_facet<wctype>(_M_map->lookup( _M_cat[thecat] ) );
 
-  const char* str = _Locale_catgets(_M_message_obj, thecat, set, p_id, "");
+  const char* str = _Locale_catgets(_M_message_obj, _M_cat[thecat], set, p_id, "");
 
   // Verify that the lookup failed; an empty string might represent success.
   if (!str)
     return dfault;
   else if (str[0] == '\0') {
-    const char* str2 = _Locale_catgets(_M_message_obj, thecat, set, p_id, "*");
-    if (!str2 || strcmp(str2, "*") == 0)
+    const char* str2 = _Locale_catgets(_M_message_obj, _M_cat[thecat], set, p_id, "*");
+    if (!str2 || ((str2[0] == '*') && (str2[1] == '\0')))
       return dfault;
   }
 
@@ -1117,11 +1169,11 @@ _Messages_impl::do_get(catalog thecat,
 
 # endif
 
-void _Messages_impl::do_close(catalog thecat) const
-{
+void _Messages_impl::do_close(catalog thecat) const {
   if (_M_message_obj)
-    _Locale_catclose(_M_message_obj, thecat);
-  if (_M_map) _M_map->erase(thecat);
+    _Locale_catclose(_M_message_obj, _M_cat[thecat]);
+  if (_M_map) _M_map->erase(_M_cat[thecat]);
+  _M_cat.erase( thecat );
 }
 
 
@@ -1129,23 +1181,19 @@ void _Messages_impl::do_close(catalog thecat) const
 // messages<char>
 
 messages<char>::messages(size_t refs)  : 
-  _BaseFacet(refs), _M_impl(new _Messages_impl(false))
-{}
+  locale::facet(refs), _M_impl(new _Messages_impl(false)) {}
 
-messages<char>::messages(size_t refs, _Locale_messages* msg_obj) : _BaseFacet(refs), 
-  _M_impl(new _Messages_impl(false, msg_obj))
-{}
+messages<char>::messages(size_t refs, _Locale_messages* msg_obj) : locale::facet(refs), 
+  _M_impl(new _Messages_impl(false, msg_obj)) {}
 
 
 //----------------------------------------------------------------------
 // messages_byname<char>
 
 messages_byname<char>::messages_byname(const char* name, size_t refs)
-  : messages<char>(refs, name ? __acquire_messages(name) : 0)
-{}
+  : messages<char>(refs, name ? __acquire_messages(name) : 0) {}
 
-messages_byname<char>::~messages_byname()
-{}
+messages_byname<char>::~messages_byname() {}
 
 # ifndef _STLP_NO_WCHAR_T
 
@@ -1153,24 +1201,20 @@ messages_byname<char>::~messages_byname()
 // messages<wchar_t>
 
 messages<wchar_t>::messages(size_t refs)  : 
-  _BaseFacet(refs), _M_impl(new _Messages_impl(true))
-{}
+  locale::facet(refs), _M_impl(new _Messages_impl(true)) {}
 
 messages<wchar_t>::messages(size_t refs, _Locale_messages* msg_obj)
-  : _BaseFacet(refs),
-    _M_impl(new _Messages_impl(true, msg_obj))
-{}
+  : locale::facet(refs),
+    _M_impl(new _Messages_impl(true, msg_obj)) {}
 
 //----------------------------------------------------------------------
 // messages_byname<wchar_t>
 
 
 messages_byname<wchar_t>::messages_byname(const char* name, size_t refs)
-  : messages<wchar_t>(refs, name ? __acquire_messages(name) : 0)
-{}
+  : messages<wchar_t>(refs, name ? __acquire_messages(name) : 0) {}
 
-messages_byname<wchar_t>::~messages_byname()
-{}
+messages_byname<wchar_t>::~messages_byname() {}
 
 # endif
 

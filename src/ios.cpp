@@ -19,6 +19,7 @@
 # include "stlport_prefix.h"
 # include <algorithm>
 # include <stl/_ios.h>
+# include "aligned_buffer.h"
 
 _STLP_BEGIN_NAMESPACE
 
@@ -119,19 +120,27 @@ PODType* _Stl_copy_array(const PODType* array, size_t N) {
 }
 
 locale ios_base::imbue(const locale& loc) {
+  if (loc._M_impl != _M_locale._M_impl) {
     locale previous = _M_locale;
     _M_locale = loc;
     _M_invoke_callbacks(imbue_event);
     return previous;
+  }
+  else {
+    _M_invoke_callbacks(imbue_event);
+    return _M_locale;
+  }
 }
 
-int ios_base::_S_index = 0;
-
-int _STLP_CALL ios_base::xalloc()
-{
+int _STLP_CALL ios_base::xalloc() {
+  static int _S_index = 0;
+#if defined (_STLP_WIN32THREADS) && defined (_STLP_NEW_PLATFORM_SDK)
+  return _STLP_ATOMIC_INCREMENT(&_S_index);
+#else
   static _STLP_STATIC_MUTEX L _STLP_MUTEX_INITIALIZER;
   _STLP_auto_lock sentry(L);
   return _S_index++;
+#endif
 }
 
 long& ios_base::iword(int index) {
@@ -271,7 +280,6 @@ void ios_base::_M_copy_state(const ios_base& x) {
   }
 }
 
-
 // ios's (protected) default constructor.  The standard says that all 
 // fields have indeterminate values; we initialize them to zero for
 // simplicity.  The only thing that really matters is that the arrays
@@ -289,7 +297,8 @@ ios_base::ios_base()
 { }
 
 // ios's destructor.
-ios_base::~ios_base() {
+ios_base::~ios_base()
+{
   _M_invoke_callbacks(erase_event);
   free(_M_callbacks);
   free(_M_iwords);

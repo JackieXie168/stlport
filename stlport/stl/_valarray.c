@@ -67,13 +67,12 @@ template <class _Size>
 bool _Gslice_Iter_tmpl<_Size>::_M_incr() {
   size_t __dim = _M_indices.size() - 1;
   ++_M_step;
-  while (true) {
+  for (;;) {
     _M_1d_idx += _M_gslice._M_strides[__dim];
     if (++_M_indices[__dim] != _M_gslice._M_lengths[__dim])
       return true;
     else if (__dim != 0) {
-      _M_1d_idx -=
-	_M_gslice._M_strides[__dim] * _M_gslice._M_lengths[__dim];
+      _M_1d_idx -= _M_gslice._M_strides[__dim] * _M_gslice._M_lengths[__dim];
       _M_indices[__dim] = 0;
       --__dim;
     }
@@ -97,7 +96,7 @@ valarray<_Tp>& valarray<_Tp>::operator=(const gslice_array<_Tp>& __x)
 }
 
 template <class _Tp>
-valarray<_Tp> valarray<_Tp>::operator[](gslice __slice) const
+valarray<_Tp> valarray<_Tp>::operator[](const gslice& __slice) const
 {
   valarray<_Tp> __tmp(__slice._M_size(), _NoInit());
   if (__tmp.size() != 0) {

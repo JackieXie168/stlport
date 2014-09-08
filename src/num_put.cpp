@@ -43,23 +43,32 @@ __write_integer(char* buf, ios_base::fmtflags flags, long x)
 
 ptrdiff_t _STLP_CALL
 __insert_grouping(char * first, char * last, const string& grouping,
-		  char separator, char Plus, char Minus, int basechars)
-{
+                  char separator, char Plus, char Minus, int basechars) {
   return __insert_grouping_aux(first, last, grouping, 
-			       separator, Plus, Minus, basechars);
+                               separator, Plus, Minus, basechars);
+}
+
+void _STLP_CALL
+__insert_grouping(__iostring &str, size_t dec_pos, const string& grouping,
+                  char separator, char Plus, char Minus, int basechars) {
+  __insert_grouping_aux(str, dec_pos, grouping, separator, Plus, Minus, basechars);
 }
 
 # ifndef _STLP_NO_WCHAR_T
-
 ptrdiff_t _STLP_CALL
 __insert_grouping(wchar_t* first, wchar_t* last, const string& grouping,
                   wchar_t separator, wchar_t Plus, wchar_t Minus,
-		  int basechars)
-{
+                  int basechars) {
   return __insert_grouping_aux(first, last, grouping, separator, 
-			       Plus, Minus, basechars);
+                               Plus, Minus, basechars);
 }
 
+void _STLP_CALL
+__insert_grouping(__iowstring &str, size_t dec_pos, const string& grouping,
+                  wchar_t separator, wchar_t Plus, wchar_t Minus,
+                  int basechars) {
+  __insert_grouping_aux(str, dec_pos, grouping, separator, Plus, Minus, basechars);
+}
 # endif
 
 

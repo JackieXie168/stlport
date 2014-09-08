@@ -30,10 +30,6 @@
 #ifndef _STLP_INTERNAL_HEAP_H
 #define _STLP_INTERNAL_HEAP_H
 
-#ifndef _STLP_CONFIG_H
-#include <stl/_config.h>
-#endif
-
 _STLP_BEGIN_NAMESPACE
 
 // Heap-manipulation functions: push_heap, pop_heap, make_heap, sort_heap.
@@ -64,7 +60,7 @@ __pop_heap(_RandomAccessIterator __first, _RandomAccessIterator __last,
 
 template <class _RandomAccessIterator>
 void pop_heap(_RandomAccessIterator __first, 
-	      _RandomAccessIterator __last);
+        _RandomAccessIterator __last);
 
 template <class _RandomAccessIterator, class _Distance,
           class _Tp, class _Compare>

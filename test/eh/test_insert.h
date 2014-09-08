@@ -1,6 +1,6 @@
 /***********************************************************************************
-	test_insert.h
-	
+  test_insert.h
+  
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -77,24 +77,24 @@ size_t CountUniqueItems_Aux( const C& original, Iter firstNew,
 #endif
                              Iter lastNew, const KeyOfValue& keyOfValue )
 {
-	typedef typename C::key_type key;
-	typedef typename C::const_iterator const_iter;
-	typedef EH_STD::vector<key> key_list;
-	typedef typename key_list::iterator key_iterator;
-	key_list keys;
-	size_t dist = 0;
+  typedef typename C::key_type key;
+  typedef typename C::const_iterator const_iter;
+  typedef EH_STD::vector<key> key_list;
+  typedef typename key_list::iterator key_iterator;
+  key_list keys;
+  size_t dist = 0;
 #ifdef __SUNPRO_CC
-	EH_DISTANCE( firstNew, lastNew, dist );
+  EH_DISTANCE( firstNew, lastNew, dist );
 #else
-	EH_DISTANCE( Iter(firstNew), Iter(lastNew), dist );
+  EH_DISTANCE( Iter(firstNew), Iter(lastNew), dist );
 #endif
-	keys.reserve( dist );
-	for ( Iter x = firstNew; x != lastNew; ++x )
-		keys.push_back( keyOfValue(*x) );
-		
-	EH_STD::sort( keys.begin(), keys.end() );
-	key_iterator last = EH_STD::unique( keys.begin(), keys.end() );
-	 
+  keys.reserve( dist );
+  for ( Iter x = firstNew; x != lastNew; ++x )
+    keys.push_back( keyOfValue(*x) );
+    
+  EH_STD::sort( keys.begin(), keys.end() );
+  key_iterator last = EH_STD::unique( keys.begin(), keys.end() );
+   
     size_t cnt = 0;
     for ( key_iterator tmp = keys.begin(); tmp != last; ++tmp )
     {
@@ -109,7 +109,7 @@ EH_BEGIN_NAMESPACE
 template <class T>
 struct identity
 {
-	const T& operator()( const T& x ) const { return x; }
+  const T& operator()( const T& x ) const { return x; }
 };
 # if ! defined (__KCC)
 template <class _Pair>
@@ -180,7 +180,7 @@ inline void VerifyInsertion( const C& original, const C& result,
         if ( p.second != result.end() )
         {
             SrcIter srcItem = EH_STD::find( SrcIter(firstNew), SrcIter(lastNew), *p.second );
-			
+      
             if (srcItem == lastNew)
             {                           
                 // not found in input range, probably re-ordered from the orig
@@ -209,7 +209,7 @@ inline void VerifyInsertion( const C& original, const C& result,
         first1 = p.first;
         first2 = p.second;
     }
-	
+  
     delete [] from_orig;
 }
 
@@ -295,7 +295,7 @@ void VerifyInsertN( const C& original, const C& result, size_t insCnt,
 {
     typename C::const_iterator p1 = original.begin();
     typename C::const_iterator p2 = result.begin();
-	(void)val;		//*TY 02/06/2000 - to suppress unused variable warning under nondebug build
+  (void)val;    //*TY 02/06/2000 - to suppress unused variable warning under nondebug build
 
     for ( size_t n = 0; n < insPos; n++ )
         EH_ASSERT( *p1++ == *p2++ );
@@ -306,7 +306,7 @@ void VerifyInsertN( const C& original, const C& result, size_t insCnt,
         EH_ASSERT(*p2 == val );
         ++p2;
     }
-	
+  
     while ( p2 != result.end() ) {
         EH_ASSERT( *p1 == *p2 );
         ++p1; ++p2;
@@ -319,7 +319,7 @@ void prepare_insert_n( C&, size_t ) {}
 
 // Metrowerks 1.8 compiler requires that specializations appear first (!!)
 // or it won't call them. Fixed in 1.9, though.
-inline void MakeRandomValue(bool& b) { b = bool(random_number(2)); }
+inline void MakeRandomValue(bool& b) { b = bool(random_number(2) != 0); }
 
 template<class T>
 inline void MakeRandomValue(T&) {}
@@ -342,14 +342,14 @@ struct test_insert_one
         else
             gTestController.SetCurrentTestName("single insertion at random position");
     }
-	
+  
     void operator()( C& c ) const
     {
         prepare_insert_n( c, (size_t)1 );
         typename C::iterator pos = c.begin();
         EH_STD::advance( pos, size_t(fPos) );
         c.insert( pos, fInsVal );
-		
+    
         // Prevent simulated failures during verification
         gTestController.CancelFailureCountdown();
         // Success. Check results.
@@ -379,14 +379,14 @@ struct test_insert_n
         else
             gTestController.SetCurrentTestName("n-ary insertion at random position");
     }
-	
+  
     void operator()( C& c ) const
     {
         prepare_insert_n( c, fInsCnt );
         typename C::iterator pos = c.begin();
         EH_STD::advance( pos, fPos );
         c.insert( pos, fInsCnt, fInsVal );
-		
+    
         // Prevent simulated failures during verification
         gTestController.CancelFailureCountdown();
         // Success. Check results.
@@ -406,13 +406,13 @@ struct test_insert_value
         : original( orig )
     {
         MakeRandomValue( fInsVal );
-        gTestController.SetCurrentTestName("insertion or random value");
+        gTestController.SetCurrentTestName("insertion of random value");
     }
-	
+  
     void operator()( C& c ) const
     {
         c.insert( fInsVal );
-		
+    
         // Prevent simulated failures during verification
         gTestController.CancelFailureCountdown();
         // Success. Check results.
@@ -519,7 +519,7 @@ struct test_insert_range
     {
 //        prepare_insert_range( c, fPos, fFirst, fLast );
         do_insert_range( c, fPos, fFirst, fLast, container_category(c) );
-		
+    
         // Prevent simulated failures during verification
         gTestController.CancelFailureCountdown();
         // Success. Check results.
@@ -540,12 +540,13 @@ test_insert_range<C, Iter> insert_range_tester( const C& orig, const Iter& first
 template <class C, class Iter>
 test_insert_range<C, Iter> insert_range_at_begin_tester( const C& orig, const Iter& first, const Iter& last )
 {
-	return test_insert_range<C, Iter>( orig, first, last , 0);
+  return test_insert_range<C, Iter>( orig, first, last , 0);
 }
 
 template <class C, class Iter>
 test_insert_range<C, Iter> insert_range_at_end_tester( const C& orig, const Iter& first, const Iter& last )
 {
-	return test_insert_range<C, Iter>( orig, first, last , (int)orig.size());
+  return test_insert_range<C, Iter>( orig, first, last , (int)orig.size());
 }
+
 #endif // test_insert_H_

@@ -28,7 +28,8 @@ public:
   void  __set(void* p) { _M_p = p; }
 };
 
-template <class _Tp> class auto_ptr_ref {
+template <class _Tp>
+class auto_ptr_ref {
 public:
   __ptr_base& _M_r;
   _Tp* const _M_p;
@@ -37,10 +38,15 @@ public:
 
   _Tp* release() const { _M_r.__set((void*)0); return _M_p; }
 
+private:
+  //explicitely defined as private to avoid warnings:
+  typedef auto_ptr_ref<_Tp> _Self;
+  _Self& operator = (_Self const&);
 };
 
-template<class _Tp> class auto_ptr :  public __ptr_base {
-public:	
+template<class _Tp>
+class auto_ptr :  public __ptr_base {
+public:
   typedef _Tp element_type;
   typedef auto_ptr<_Tp>           _Self;
   
@@ -80,7 +86,7 @@ public:
     _Tp* __conversionCheck = __r.release();
     this->__set(__conversionCheck);
   }
-# endif	
+# endif
   template<class _Tp1> auto_ptr<_Tp>& operator=(auto_ptr<_Tp1>& __r) {
     _Tp* __conversionCheck = __r.release();
     reset(__conversionCheck);
@@ -96,11 +102,11 @@ public:
   }
 
   ~auto_ptr() { /* boris : reset(0) might be better */ delete this->get(); }
-	
+
   auto_ptr(auto_ptr_ref<_Tp> __r) {
     this->__set(__r.release());
   }
-	
+
   _Self& operator=(auto_ptr_ref<_Tp> __r) {
     reset(__r.release());
     return *this;
@@ -117,7 +123,7 @@ public:
   operator auto_ptr_ref<_Tp>()
   { return auto_ptr_ref<_Tp>(*this, this->get()); }
 # endif
-	
+
 };
 _STLP_END_NAMESPACE
 

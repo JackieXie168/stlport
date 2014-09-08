@@ -7,7 +7,7 @@
 
 # define _STLP_HAS_NO_NEW_C_HEADERS
 // # define _STLP_VENDOR_GLOBAL_EXCEPT_STD
-// # define _STLP_LONG_LONG
+# define _STLP_LONG_LONG long long
 
 
 //
@@ -72,8 +72,8 @@
 
 // Comeau C++ under LINUX/INTEL/ELF
 // Preprocess away "long long" routines for now, even in relaxed mode
-# define __wcstoull_internal_defined	1
-# define __wcstoll_internal_defined	1
+# define __wcstoull_internal_defined  1
+# define __wcstoll_internal_defined  1
 
 #endif /* __COMO__ under __linux__ */
 
@@ -175,19 +175,14 @@ namespace std {
 #define _STLP_PARTIAL_SPECIALIZATION_SYNTAX
 #define _STLP_NO_USING_CLAUSE_IN_CLASS
 
-
+#if __COMO_VERSION__ < 4300
 #if __COMO_VERSION__ >= 4245
 #define _STLP_NO_EXCEPTION_HEADER /**/
+    // Is this needed?
+#   include <stdexcept.stdh>
 #endif
 #define _STLP_NO_BAD_ALLOC /**/
 #define _STLP_USE_AUTO_PTR_CONVERSIONS /**/
-
-#if __COMO_VERSION__ >= 4245
-// Is this needed?
-#include <stdexcept.stdh>
-//
-// ALSO: SEE THE END OF THIS FILE FOR #INCLUDE <IOSTREAM>
-//
 #endif
 
 // this one is true only with MS
@@ -200,7 +195,7 @@ namespace std {
 #   define _STLP_NO_BAD_ALLOC 1
 #   define _STLP_NO_EXCEPTION_HEADER 1
 #   define _STLP_NO_NEW_NEW_HEADER 1
-#   define _STLP_NO_NEW_IOSTREAMS 1
+#   define _STLP_USE_NO_IOSTREAMS 1
 #  endif
 # endif
 

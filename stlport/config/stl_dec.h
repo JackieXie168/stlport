@@ -48,7 +48,8 @@
 # define _STLP_NON_TYPE_TMPL_PARAM_BUG 1
 # define _STLP_BROKEN_USING_DIRECTIVE 1
 # define _STLP_NO_EXCEPTION_HEADER 1
-# define _STLP_DEFAULT_CONSTRUCTOR_BUG 1
+# define _STLP_DEF_CONST_PLCT_NEW_BUG 1
+# define _STLP_DEF_CONST_DEF_PARAM_BUG 1
 
 #endif
 
@@ -61,12 +62,6 @@
 #  define __USE_STD_IOSTREAM
 # endif
 #endif
-
-// # if !defined (_STLP_NEW_IOSTREAMS) && ! defined (_STLP_DONT_REDEFINE_STD) \
-//  && ! defined (_STLP_REDEFINE_STD)
-// # undef __PRAGMA_ENVIRONMENT
-//   #  define _STLP_DONT_REDEFINE_STD
-// # endif
 
 //# ifndef __STD_STRICT_ANSI_ERRORS
 //# endif
@@ -104,7 +99,7 @@
 
 #  define _STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS 1
 
-# if (__DECCXX_VER <= 60400000)
+# if (__DECCXX_VER <= 60600000)
 #  define _STLP_HAS_NO_NEW_C_HEADERS 1 
 # endif
 

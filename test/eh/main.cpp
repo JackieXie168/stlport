@@ -1,6 +1,6 @@
 /***********************************************************************************
-	Main.cpp
-	
+  Main.cpp
+  
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -50,41 +50,45 @@ no
 #  include <assert.h>
 # endif
 
-# if defined ( EH_USE_SGI_STL ) 
+# if defined (_STL_DEBUG)
+
+#  if defined ( EH_USE_SGI_STL ) 
 // Override assertion behavior
 #  include <cstdarg>
 //#  include <stldebug.h>
-void __stl_debug_message(const char * format_str, ...)
+void STLPORT::__stl_debug_message(const char * format_str, ...)
 {
-	std::va_list args;
-	va_start( args, format_str );
-	char msg[256];
-	std::vsnprintf(msg, sizeof(msg)/sizeof(*msg) - 1, format_str, args );
-	DebugStr( c2pstr(msg) );
+  std::va_list args;
+  va_start( args, format_str );
+  char msg[256];
+  std::vsnprintf(msg, sizeof(msg)/sizeof(*msg) - 1, format_str, args );
+  DebugStr( c2pstr(msg) );
 }
-# else
+#  else
 /*===================================================================================
-	__assertion_failed  (override standard library function)
+  __assertion_failed  (override standard library function)
 
-	EFFECTS: Breaks into the debugger and shows the assertion. This implementation
-		is Mac-specific; others could be added for other platforms.
+  EFFECTS: Breaks into the debugger and shows the assertion. This implementation
+           is Mac-specific; others could be added for other platforms.
 ====================================================================================*/
 extern "C"
 {
-	void __assertion_failed(char *condition, char *testfilename, int lineno);
-	void __assertion_failed(char *condition, char *testfilename, int lineno)
-	{
-	    char msg[256];
-	    std::strncpy( msg, condition, 255 );
-	    std::strncat( msg, ": ", 255 );
-	    std::strncat(  msg, testfilename, 255 );
-	    std::strncat( msg, ", ", 255 );
-	    char line[20];
-	    std::sprintf( line, "%d", lineno );
-	    std::strncat(  msg, line, 255 );
-	    DebugStr( c2pstr( msg ) );
-	}
+  void __assertion_failed(char *condition, char *testfilename, int lineno);
+  void __assertion_failed(char *condition, char *testfilename, int lineno)
+  {
+      char msg[256];
+      std::strncpy( msg, condition, 255 );
+      std::strncat( msg, ": ", 255 );
+      std::strncat(  msg, testfilename, 255 );
+      std::strncat( msg, ", ", 255 );
+      char line[20];
+      std::sprintf( line, "%d", lineno );
+      std::strncat(  msg, line, 255 );
+      DebugStr( c2pstr( msg ) );
+  }
 }
+#  endif
+
 # endif
 
 #endif
@@ -106,13 +110,20 @@ extern "C"
 # include <except.h>
 #endif
 
-EH_USE_STD
+# if defined(EH_USE_NAMESPACES)
+namespace  // dwa 1/21/00 - must use unnamed namespace here to avoid conflict under gcc using native streams
+{
+  using namespace std;
+  // using std::cerr;
+  // using std::endl;
+}
+# endif
 
 
 /*===================================================================================
-	usage  (file-static helper)
+  usage  (file-static helper)
 
-	EFFECTS: Prints a message describing the command-line parameters
+  EFFECTS: Prints a message describing the command-line parameters
 ====================================================================================*/
 static void usage(const char* name)
 {
@@ -137,13 +148,22 @@ static void usage(const char* name)
 #  include <set.h>
 # endif
 
+#if defined(_WIN32_WCE)
+#include <fstream>
+#endif
+
 int _STLP_CALL main(int argc, char** argv)
 {
-#if defined( __MWERKS__ ) && defined( macintosh )	// Get command line.
-	argc = ccommand(&argv);
-	// Allow the i/o window to be repositioned.
-//	EH_STD::string s;
-//	getline(EH_STD::cin, s);
+#if defined(_WIN32_WCE)
+  std::ofstream file( "\\eh_test.txt" );
+  std::streambuf* old_cout_buf = cout.rdbuf(file.rdbuf());
+  std::streambuf* old_cerr_buf = cerr.rdbuf(file.rdbuf());
+#endif
+#if defined( __MWERKS__ ) && defined( macintosh )  // Get command line.
+  argc = ccommand(&argv);
+  // Allow the i/o window to be repositioned.
+//  EH_STD::string s;
+//  getline(EH_STD::cin, s);
 #endif
     unsigned int niters=2;
     bool run_all=true;
@@ -171,8 +191,8 @@ int _STLP_CALL main(int argc, char** argv)
 
     cerr << argv[0]<<" : Exception handling testsuite.\n";
     cerr.flush();
-	
-	bool track_allocations = false;
+
+  bool track_allocations = false;
     // parse parameters :
     // leak_test [-iterations] [-test] ...
     for (cur_argv=1; cur_argv<argc; cur_argv++) {
@@ -185,7 +205,7 @@ int _STLP_CALL main(int argc, char** argv)
             case 'v':
                 gTestController.SetVerbose(true);
                 break;
-#if 0	// This option was never actually used -- dwa 9/22/97
+#if 0  // This option was never actually used -- dwa 9/22/97
             case 'i':
                 gTestController.IgnoreLeaks(true);
                 break;
@@ -198,8 +218,8 @@ int _STLP_CALL main(int argc, char** argv)
                     usage(argv[0]);
                 break;
             case 't':
-            	track_allocations = true;
-            	break;
+              track_allocations = true;
+              break;
             case 'e':
                 gTestController.TurnOffExceptions();
                 break;
@@ -252,12 +272,12 @@ int _STLP_CALL main(int argc, char** argv)
         }
     }
 
-	gTestController.TrackAllocations( track_allocations );
+  gTestController.TrackAllocations( track_allocations );
 
     // Over and over...
     for ( unsigned i = 0; i < niters ; i++ )
     {
-   	cerr << "iteration #" << i << "\n";
+     cerr << "iteration #" << i << "\n";
         if (run_all || run_algobase) {
             gTestController.SetCurrentContainer("algobase");
             cerr << "EH test : algobase" << endl;
@@ -341,7 +361,7 @@ int _STLP_CALL main(int argc, char** argv)
 #endif // EH_HASHED_CONTAINERS_IMPLEMENTED
 
 #if defined( EH_ROPE_IMPLEMENTED )
-	// CW1.8 can't compile this for some reason!
+  // CW1.8 can't compile this for some reason!
 #if !( defined(__MWERKS__) && __MWERKS__ < 0x1900 )
         if (run_all || run_rope) {
             gTestController.SetCurrentContainer("rope");
@@ -373,9 +393,16 @@ int _STLP_CALL main(int argc, char** argv)
 #endif
     }
 
-	gTestController.TrackAllocations( false );
-	
+  gTestController.TrackAllocations( false );
+  
     cerr << "EH test : Done\n";
+
+#if defined(_WIN32_WCE)
+   cout.rdbuf(old_cout_buf);
+   cerr.rdbuf(old_cerr_buf);
+   file.close();
+#endif
+
     return 0;
 }
 

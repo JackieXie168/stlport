@@ -17,7 +17,7 @@
  */ 
 
 # ifndef _STLP_NUM_PUT_H
-#  define _STLP_NUM_PUT_H
+# define _STLP_NUM_PUT_H
 
 #ifndef _STLP_INTERNAL_NUM_PUT_H
 #include <stl/_num_put.h>
@@ -25,6 +25,11 @@
 #ifndef _STLP_INTERNAL_OSTREAM_H
 #include <stl/_ostream.h>
 #endif
+
+#ifndef _STLP_INTERNAL_IOSTREAM_STRING_H
+#include <stl/_iostream_string.h>
+#endif
+
 
 _STLP_BEGIN_NAMESPACE
 
@@ -35,7 +40,7 @@ template <class Char>
 ptrdiff_t 
 __insert_grouping_aux(Char* first, Char* last, const string& grouping,
                       Char separator, Char Plus, Char Minus,
-		      int basechars)
+                      int basechars)
 {
   typedef string::size_type str_size;
 
@@ -55,7 +60,7 @@ __insert_grouping_aux(Char* first, Char* last, const string& grouping,
                                 // digit of the current group.
   int groupsize = 0;            // Size of the current group.
   
-  while (true) {
+  for (;;) {
     groupsize = n < grouping.size() ? grouping[n] : groupsize;
     ++n;
 
@@ -72,6 +77,51 @@ __insert_grouping_aux(Char* first, Char* last, const string& grouping,
   return (last - first) + sign + basechars;
 }
 
+//Dynamic output buffer version.
+template <class Char, class Str>
+void 
+__insert_grouping_aux( /* __basic_iostring<Char> */ Str& iostr, size_t __dec_pos,
+                      const string& grouping,
+                      Char separator, Char Plus, Char Minus,
+                      int basechars)
+{
+  typedef string::size_type str_size;
+
+  if ( iostr.size() <= __dec_pos )
+    return;
+
+  size_t __first_pos = 0;
+  Char __first = *iostr.begin();
+  int sign = 0;
+
+  if (__first == Plus || __first == Minus) {
+    sign = 1;
+    ++__first_pos;
+  }
+ 
+  __first_pos += basechars;
+  str_size n = 0;                                                   // Index of the current group.
+  typename basic_string<Char>::iterator cur_group(iostr.begin() + __dec_pos);  // Points immediately beyond the rightmost
+                                                                    // digit of the current group.
+  unsigned int groupsize = 0;                                       // Size of the current group.
+  
+  for (;;) {
+    groupsize = n < grouping.size() ? grouping[n] : groupsize;
+    ++n;
+
+    if (groupsize <= 0 || groupsize >= ((cur_group - iostr.begin()) + __first_pos))
+      break;
+
+    // Insert a separator character just before position cur_group - groupsize
+    cur_group -= groupsize;
+    cur_group = iostr.insert(cur_group, separator);
+  }
+}
+
 _STLP_END_NAMESPACE
 
 # endif
+
+// Local Variables:
+// mode:C++
+// End:

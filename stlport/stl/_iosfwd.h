@@ -1,5 +1,5 @@
-# ifndef _STLP_INTERNAL_IOSFWD
-#  define _STLP_INTERNAL_IOSFWD
+#ifndef _STLP_INTERNAL_IOSFWD
+#define _STLP_INTERNAL_IOSFWD
 
 #if defined(__sgi) && !defined(__GNUC__) && !defined(_STANDARD_C_PLUS_PLUS)
 #error This header file requires the -LANG:std option
@@ -19,7 +19,7 @@
 // template arguments.  All of the other I/O headers include <iosfwd>.
 
 #ifndef _STLP_CHAR_TRAITS_H
-# include <stl/char_traits.h>
+#  include <stl/char_traits.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -114,7 +114,7 @@ _STLP_TEMPLATE_NULL class _STLP_CLASS_DECLSPEC collate_byname<wchar_t>;
 
 # if !(defined (__SUNPRO_CC) && __SUNPRO_CC < 0x500 ) && !defined(_STLP_WINCE)
 // Typedefs for ordinary (narrow-character) streams.
-_STLP_TEMPLATE_NULL class _STLP_CLASS_DECLSPEC basic_streambuf<char, char_traits<char> >;
+//_STLP_TEMPLATE_NULL class _STLP_CLASS_DECLSPEC basic_streambuf<char, char_traits<char> >;
 # endif
 
 typedef basic_istream<char, char_traits<char> >   istream;

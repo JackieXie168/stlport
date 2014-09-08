@@ -19,14 +19,8 @@
 #define _STLP_INTERNAL_STREAMBUF
 
 #ifndef _STLP_IOS_BASE_H
-#include <stl/_ios_base.h>      // Needed for ios_base bitfield members.
-                                // <ios_base> includes <iosfwd>.
-#endif
-
-#ifndef _STLP_STDIO_FILE_H
-#include <stl/_stdio_file.h>     // Declaration of struct FILE, and of
-                                // functions to manipulate it.
-#endif
+#  include <stl/_ios_base.h>      // Needed for ios_base bitfield members.
+#endif                            // <ios_base> includes <iosfwd>.
 
 _STLP_BEGIN_NAMESPACE
 
@@ -51,8 +45,7 @@ _STLP_BEGIN_NAMESPACE
 // because C++ language rules do not allow it to be declared twice. 
 
 template <class _CharT, class _Traits>
-class basic_streambuf
-{
+class basic_streambuf {
   friend class basic_istream<_CharT, _Traits>;
   friend class basic_ostream<_CharT, _Traits>;
 
@@ -75,14 +68,23 @@ private:                        // Data members.
 
   locale _M_locale;             // The streambuf's locale object
 
-public:                         // Extension: locking, for thread safety.
-  _STLP_mutex _M_lock;
+//public:                         // Extension: locking, for thread safety.
+//  _STLP_mutex _M_lock;
 
 public:                         // Destructor.
   virtual ~basic_streambuf();
 
 protected:                      // The default constructor.
-  basic_streambuf();
+  basic_streambuf()
+#if defined (_STLP_MSVC) && (_STLP_MSVC < 1300) && defined (_STLP_USE_STATIC_LIB)
+    //We make it inline to avoid unresolved symbol.
+    : _M_gbegin(0), _M_gnext(0), _M_gend(0),
+      _M_pbegin(0), _M_pnext(0), _M_pend(0),
+      _M_locale()
+  {}
+#else
+  ;
+#endif
 
 protected:                      // Protected interface to the get area.
   char_type* eback() const { return _M_gbegin; } // Beginning
@@ -100,13 +102,12 @@ public:
   // An alternate public interface to the above functions
   // which allows us to avoid using templated friends which
   // are not supported on some compilers.
-
   char_type* _M_eback() const { return eback(); }
   char_type* _M_gptr()  const { return gptr(); }
   char_type* _M_egptr() const { return egptr(); }
   void _M_gbump(int __n)      { gbump(__n); }
   void _M_setg(char_type* __gbegin, char_type* __gnext, char_type* __gend)
-    { setg(__gbegin, __gnext, __gend); }
+  { this->setg(__gbegin, __gnext, __gend); }
 
 protected:                      // Protected interface to the put area
 
@@ -142,15 +143,15 @@ protected:                      // Virtual buffer management functions.
 
 public:                         // Buffer management.
   basic_streambuf<_CharT, _Traits>* pubsetbuf(char_type* __s, streamsize __n) 
-    { return this->setbuf(__s, __n); }
+  { return this->setbuf(__s, __n); }
 
   pos_type pubseekoff(off_type __offset, ios_base::seekdir __way,
                       ios_base::openmode __mod = ios_base::in | ios_base::out)
-    { return this->seekoff(__offset, __way, __mod); }
+  { return this->seekoff(__offset, __way, __mod); }
 
   pos_type pubseekpos(pos_type __sp,
                       ios_base::openmode __mod = ios_base::in | ios_base::out)
-    { return this->seekpos(__sp, __mod); }
+  { return this->seekpos(__sp, __mod); }
 
   int pubsync() { return this->sync(); }
 
@@ -204,15 +205,14 @@ public:                         // Public members for writing characters.
 
   // Write __n characters.
   streamsize sputn(const char_type* __s, streamsize __n)
-    { return this->xsputn(__s, __n); }
+  { return this->xsputn(__s, __n); }
 
   // Extension: write __n copies of __c.
   streamsize _M_sputnc(char_type __c, streamsize __n)
-    { return this->_M_xsputnc(__c, __n); }
+  { return this->_M_xsputnc(__c, __n); }
 
 private:                        // Helper functions.
   int_type _M_snextc_aux();
-
 
 public:                         // Public members for reading characters.
   streamsize in_avail() {
@@ -265,10 +265,10 @@ public:                         // Locale-related functions.
   locale pubimbue(const locale&);
   locale getloc() const { return _M_locale; }
 
-# ifndef _STLP_NO_ANACHRONISMS
+#if !defined (_STLP_NO_ANACHRONISMS)
   void stossc() { this->sbumpc(); }
-# endif
-#if defined(__MVS__) || defined(__OS400__)
+#endif
+#if defined (__MVS__) || defined (__OS400__)
 private: // Data members.
 
   char_type* _M_gbegin; // Beginning of get area
@@ -281,246 +281,21 @@ private: // Data members.
 #endif
 };
 
+#if defined (_STLP_USE_TEMPLATE_EXPORT)
+_STLP_EXPORT_TEMPLATE_CLASS basic_streambuf<char, char_traits<char> >;
+#  if !defined (_STLP_NO_WCHAR_T)
+_STLP_EXPORT_TEMPLATE_CLASS basic_streambuf<wchar_t, char_traits<wchar_t> >;
+#  endif // _STLP_NO_WCHAR_T
+#endif // _STLP_USE_TEMPLATE_EXPORT
 
-//----------------------------------------------------------------------
-// Specialization: basic_streambuf<char, char_traits<char> >
-
-// We implement basic_streambuf<char, char_traits<char> > very differently
-// than the general basic_streambuf<> template.  The main reason for this
-// difference is a requirement in the C++ standard: the standard input
-// and output streams cin and cout are required by default to be synchronized
-// with the C library components stdin and stdout.  This means it must be
-// possible to synchronize a basic_streambuf<char> with a C buffer.
-//
-// There are two basic ways to do that.  First, the streambuf could be
-// unbuffered and delegate all buffering to stdio operations.  This
-// would be correct, but slow: it would require at least one virtual
-// function call for every character.  Second, the streambuf could use 
-// a C stdio FILE as its buffer.  
-//
-// We choose the latter option.  Every streambuf has pointers to two
-// FILE objects, one for the get area and one for the put area.  Ordinarily
-// it just uses a FILE object as a convenient way to package the three
-// get/put area pointers.  If a basic_streambuf<char> is synchronized with
-// a stdio stream, though, then the pointers are to a FILE object that's
-// also used by the C library.
-//
-// The header <stl/_stdio_file.h> encapsulates the implementation details
-// of struct FILE.  It contains low-level inline functions that convert
-// between whe FILE's internal representation and the three-pointer 
-// representation that basic_streambuf<> needs.
-
-_STLP_TEMPLATE_NULL 
-class _STLP_CLASS_DECLSPEC basic_streambuf<char, char_traits<char> >
-{
-  friend class basic_istream<char, char_traits<char> >;
-  friend class basic_ostream<char, char_traits<char> >;
-public:                         // Typedefs.
-  typedef char                        char_type;
-  typedef char_traits<char>::int_type int_type;
-  typedef char_traits<char>::pos_type pos_type;
-  typedef char_traits<char>::off_type off_type;
-  typedef char_traits<char>           traits_type;
-
-private:                        // Data members.
-
-  FILE* _M_get;                 // Reference to the get area
-  FILE* _M_put;                 // Reference to the put area
-
-#if defined(__hpux)
-  _FILEX  _M_default_get;          // Get area, unless we're syncing with stdio.
-  _FILEX  _M_default_put;          // Put area, unless we're syncing with stdio.
-#else
-  FILE  _M_default_get;          // Get area, unless we're syncing with stdio.
-  FILE  _M_default_put;          // Put area, unless we're syncing with stdio.
-#endif
-
-  locale _M_locale;
-
-public:                         // Extension: locking, for thread safety.
-  _STLP_mutex _M_lock;
-
-public:                         // Destructor.
-  virtual ~basic_streambuf _STLP_PSPEC2(char, char_traits<char>) ();
-
-protected:                      // Constructors.
-
-  // The default constructor; defined here inline as some compilers require it
-  basic_streambuf _STLP_PSPEC2(char, char_traits<char>) ()
-    : _M_get(__REINTERPRET_CAST(FILE*,&_M_default_get)),
-      _M_put(__REINTERPRET_CAST(FILE*,&_M_default_put)), _M_locale()
-  {
-    // _M_lock._M_initialize();
-    _FILE_I_set(_M_get, 0, 0, 0);
-    _FILE_O_set(_M_put, 0, 0, 0);
-  }
-  
-  // Extension: a constructor for streambufs synchronized with C stdio files.
-  basic_streambuf _STLP_PSPEC2(char, char_traits<char>) (FILE* __get, FILE* __put);
-
-protected:                      // Protected interface to the get area.
-  char_type* eback() const { return _FILE_I_begin(_M_get); }
-  char_type* gptr()  const { return _FILE_I_next(_M_get); }
-  char_type* egptr() const { return _FILE_I_end(_M_get); }
-  void gbump(int __n) { _FILE_I_bump(_M_get, __n); }
-  void setg(char_type* __gbegin, char_type* __gnext, char_type* __gend)
-    { _FILE_I_set(_M_get, __gbegin, __gnext, __gend); }
-
-public:
-  // An alternate public interface to the above functions
-  // which allows us to avoid using templated friends which
-  // are not supported on some compilers.
-
-  char_type* _M_eback() const { return _FILE_I_begin(_M_get); }
-  char_type* _M_gptr()  const { return _FILE_I_next(_M_get); }
-  char_type* _M_egptr() const { return _FILE_I_end(_M_get); }
-
-  void _M_gbump(int __n) { _FILE_I_bump(_M_get, __n); }
-  void _M_setg(char_type* __gbegin, char_type* __gnext, char_type* __gend)
-    { _FILE_I_set(_M_get, __gbegin, __gnext, __gend); }
-
-protected:                      // Protected interface to the put area
-  char_type* pbase() const { return _FILE_O_begin(_M_put); }
-  char_type* pptr()  const { return _FILE_O_next(_M_put); }
-  char_type* epptr() const { return _FILE_O_end(_M_put); }
-
-  void pbump(int __n) { _FILE_O_bump(_M_put, __n); }
-  void setp(char_type* __pbegin, char_type* __pend)
-    { _FILE_O_set(_M_put, __pbegin, __pbegin, __pend); }
-
-protected:                      // Virtual buffer-management functions.
-  virtual basic_streambuf<char, char_traits<char> >* setbuf(char_type*, streamsize);
-  virtual pos_type seekoff(off_type, ios_base::seekdir,
-                           ios_base::openmode = ios_base::in | ios_base::out);
-  virtual pos_type
-  seekpos(pos_type, ios_base::openmode = ios_base::in | ios_base::out);
-  virtual int sync();
-
-public:                         // Buffer management.
-  basic_streambuf<char, char_traits<char> >* pubsetbuf(char_type* __s, streamsize __n) 
-    { return this->setbuf(__s, __n); }
-
-  pos_type pubseekoff(off_type __offset, ios_base::seekdir __way,
-                      ios_base::openmode __mod = ios_base::in | ios_base::out)
-    { return this->seekoff(__offset, __way, __mod); }
-
-  pos_type pubseekpos(pos_type __sp,
-                      ios_base::openmode __mod = ios_base::in | ios_base::out)
-    { return this->seekpos(__sp, __mod); }
-
-  int pubsync() { return this->sync(); }
-
-protected:                      // Virtual get area functions.
-  virtual streamsize showmanyc();
-  virtual streamsize xsgetn(char_type* __s, streamsize __n);
-  virtual int_type underflow();
-  virtual int_type uflow();
-  virtual int_type pbackfail(int_type __c = traits_type::eof());
-
-protected:                      // Virtual put area functions.
-  virtual streamsize xsputn(const char_type* __s, streamsize __n);
-  virtual streamsize _M_xsputnc(char_type __c, streamsize __n);
-  virtual int_type overflow(int_type = traits_type::eof());
-
-public:                         // Public members for writing characters.
-  // Write a single character.
-  int_type sputc(char_type __c) {
-    int_type __res;
-	if( _FILE_O_avail(_M_put) > 0 )
-	{
-		_FILE_O_postincr(_M_put) = __c;
-		__res = traits_type::to_int_type(__c);
-	}
-	else
-      __res = this->overflow(traits_type::to_int_type(__c));
-    return __res;
-  }
-
-  // Write __n characters.
-  streamsize sputn(const char_type* __s, streamsize __n)
-    { return this->xsputn(__s, __n); }
-
-  // Extension: write __n copies of __c.
-  streamsize _M_sputnc(char_type __c, streamsize __n)
-    { return this->_M_xsputnc(__c, __n); }
-
-private:                        // Helper functions.
-  int_type _M_snextc_aux();
-
-public:                         // Public members for reading characters.
-  streamsize in_avail()
-    { return _FILE_I_avail(_M_get) > 0 ? _FILE_I_avail(_M_get) 
-                                     : this->showmanyc(); }
-  
-  // Advance to the next character and return it.
-  int_type snextc() {
-    return _FILE_I_avail(_M_get) > 1
-      ? traits_type::to_int_type(_FILE_I_preincr(_M_get))
-      : this->_M_snextc_aux();
-  }
-
-  // Return the current character and advance to the next.
-  int_type sbumpc() {
-    return _FILE_I_avail(_M_get) > 0
-      ? traits_type::to_int_type(_FILE_I_postincr(_M_get))
-      : this->uflow();
-  }
-
-  // Return the current character without advancing to the next.
-  int_type sgetc() {
-    return _FILE_I_avail(_M_get) > 0
-      ? traits_type::to_int_type(*_FILE_I_next(_M_get))
-      : this->underflow();
-  }
-    
-  streamsize sgetn(char_type* __s, streamsize __n)
-    { return this->xsgetn(__s, __n); }
-
-  int_type sputbackc(char_type __c) {
-    return _FILE_I_begin(_M_get) < _FILE_I_next(_M_get) &&
-           __c == *(_FILE_I_next(_M_get) - 1)
-      ? traits_type::to_int_type(_FILE_I_predecr(_M_get))
-      : this->pbackfail(traits_type::to_int_type(__c));
-  }
-
-  int_type sungetc() {
-    return _FILE_I_begin(_M_get) < _FILE_I_next(_M_get)
-      ? traits_type::to_int_type(_FILE_I_predecr(_M_get))
-      : this->pbackfail();
-  }
-
-protected:                      // Virtual locale functions.
-  virtual void imbue(const locale&);
-
-public:                         // Locale-related functions.
-  locale pubimbue(const locale&);
-  locale getloc() const { return _M_locale; }
-
-# ifndef _STLP_NO_ANACHRONISMS
-public:
-  void stossc() { this->sbumpc(); }
-# endif
-
-#if defined(__MVS__) || defined(__OS400__)
-private: // Data members.
-
-  char_type* _M_gbegin; // Beginning of get area
-  char_type* _M_gnext; // Current position within the get area
-  char_type* _M_gend; // End of get area
-
-  char_type* _M_pbegin; // Beginning of put area
-  char_type* _M_pnext; // Current position within the put area
-  char_type* _M_pend; // End of put area
-#endif
-
-};
 _STLP_END_NAMESPACE
 
-# if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
+#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_streambuf.c>
-# endif
+#endif
 
 #endif
+
 // Local Variables:
 // mode:C++
 // End:

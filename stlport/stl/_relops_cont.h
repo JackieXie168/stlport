@@ -7,7 +7,7 @@ _STLP_TEMPLATE_HEADER
 inline bool  _STLP_CALL operator==(const _STLP_TEMPLATE_CONTAINER& __x, 
                                    const _STLP_TEMPLATE_CONTAINER& __y) {
   return __x.size() == __y.size() &&
-    equal(__x.begin(), __x.end(), __y.begin());
+         equal(__x.begin(), __x.end(), __y.begin());
 }
 #endif /* _STLP_EQUAL_OPERATOR_SPECIALIZED */
 
@@ -15,7 +15,7 @@ _STLP_TEMPLATE_HEADER
 inline bool  _STLP_CALL operator<(const _STLP_TEMPLATE_CONTAINER& __x, 
                                   const _STLP_TEMPLATE_CONTAINER& __y) {
   return lexicographical_compare(__x.begin(), __x.end(), 
-				 __y.begin(), __y.end());
+                                 __y.begin(), __y.end());
 }
 
 _STLP_RELOPS_OPERATORS( _STLP_TEMPLATE_HEADER , _STLP_TEMPLATE_CONTAINER )

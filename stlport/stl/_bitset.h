@@ -35,33 +35,29 @@
 // returns a reference to a bit, again without doing any range checking.
 
 
-# ifndef _STLP_INTERNAL_ALGOBASE_H
+#ifndef _STLP_INTERNAL_ALGOBASE_H
 #  include <stl/_algobase.h>
-# endif
+#endif
 
-# ifndef _STLP_INTERNAL_ALLOC_H
+#ifndef _STLP_INTERNAL_ALLOC_H
 #  include <stl/_alloc.h>
-# endif
+#endif
 
-# ifndef _STLP_INTERNAL_ITERATOR_H
+#ifndef _STLP_INTERNAL_ITERATOR_H
 #  include <stl/_iterator.h>
-# endif
+#endif
 
-# ifndef _STLP_INTERNAL_UNINITIALIZED_H
+#ifndef _STLP_INTERNAL_UNINITIALIZED_H
 #  include <stl/_uninitialized.h>
-# endif
+#endif
 
-# ifndef _STLP_RANGE_ERRORS_H
+#ifndef _STLP_RANGE_ERRORS_H
 #  include <stl/_range_errors.h>
-# endif
+#endif
 
-# ifndef _STLP_STRING
-#  include <string>
-# endif
-
-# ifndef _STLP_ISTREAM
-#  include <istream>
-# endif
+#ifndef _STLP_INTERNAL_STRING_H
+#  include <stl/_string.h>
+#endif
 
 #define __BITS_PER_WORD (CHAR_BIT*sizeof(unsigned long))
 #define __BITSET_WORDS(__n) ((__n + __BITS_PER_WORD - 1)/__BITS_PER_WORD)
@@ -72,11 +68,15 @@ _STLP_BEGIN_NAMESPACE
 template<class _Dummy> 
 class _Bs_G {
 public:
-  static unsigned char _S_bit_count[256];
-  // Mapping from 8 bit unsigned integers to the index of the first one
-  // bit:
-  static unsigned char _S_first_one[256];
+  //returns the number of bit set within the buffer between __beg and __end.
+  static size_t _S_count(const unsigned char *__beg, const unsigned char *__end);
+  // Mapping from 8 bit unsigned integers to the index of the first one bit:
+  static unsigned char _S_first_one(unsigned char);
 };
+
+#if defined (_STLP_USE_TEMPLATE_EXPORT) 
+_STLP_EXPORT_TEMPLATE_CLASS _Bs_G<bool>;
+#endif
 
 //
 // Base class: general case.
@@ -88,7 +88,7 @@ struct _Base_bitset {
 
   _WordT _M_w[_Nw];                // 0 is the least significant word.
 
-  _Base_bitset( void ) { _M_do_reset(); }
+  _Base_bitset() { _M_do_reset(); }
 
   _Base_bitset(unsigned long __val) {
     _M_do_reset();
@@ -148,7 +148,6 @@ struct _Base_bitset {
     }
   }
 
-
   void _M_do_reset() { memset(_M_w, 0, _Nw * sizeof(_WordT)); }
 
   bool _M_is_equal(const _Base_bitset<_Nw>& __x) const {
@@ -168,18 +167,13 @@ struct _Base_bitset {
   }
 
   size_t _M_do_count() const {
-    size_t __result = 0;
     const unsigned char* __byte_ptr = (const unsigned char*)_M_w;
     const unsigned char* __end_ptr = (const unsigned char*)(_M_w+_Nw);
 
-    while ( __byte_ptr < __end_ptr ) {
-      __result += _Bs_G<bool>::_S_bit_count[*__byte_ptr];
-      __byte_ptr++;
-    }
-    return __result;
+    return _Bs_G<bool>::_S_count(__byte_ptr, __end_ptr);
   }
 
-  unsigned long _M_do_to_ulong() const; 
+  unsigned long _M_do_to_ulong() const;
 
   // find first "on" bit
   size_t _M_do_find_first(size_t __not_found) const;
@@ -191,7 +185,6 @@ struct _Base_bitset {
 //
 // Base class: specialization for a single word.
 //
-
 _STLP_TEMPLATE_NULL
 struct _Base_bitset<1UL> {
   typedef unsigned long _WordT;
@@ -221,7 +214,6 @@ struct _Base_bitset<1UL> {
   _WordT& _M_hiword()       { return _M_w; }
   _WordT  _M_hiword() const { return _M_w; }
 
-
   void _M_do_and(const _Self& __x) { _M_w &= __x._M_w; }
   void _M_do_or(const _Self& __x)  { _M_w |= __x._M_w; }
   void _M_do_xor(const _Self& __x) { _M_w ^= __x._M_w; }
@@ -239,14 +231,9 @@ struct _Base_bitset<1UL> {
   }
 
   size_t _M_do_count() const {
-    size_t __result = 0;
     const unsigned char* __byte_ptr = (const unsigned char*)&_M_w;
     const unsigned char* __end_ptr = ((const unsigned char*)&_M_w)+sizeof(_M_w);
-    while ( __byte_ptr < __end_ptr ) {
-      __result += _Bs_G<bool>::_S_bit_count[*__byte_ptr];
-      __byte_ptr++;
-    }
-    return __result;
+    return _Bs_G<bool>::_S_count(__byte_ptr, __end_ptr);
   }
 
   unsigned long _M_do_to_ulong() const { return _M_w; }
@@ -255,7 +242,6 @@ struct _Base_bitset<1UL> {
 
   // find the next "on" bit that follows "prev"
   inline size_t _M_do_find_next(size_t __prev, size_t __not_found) const; 
-
 };
 
 
@@ -264,10 +250,8 @@ struct _Base_bitset<1UL> {
 // Definitions of should-be-non-inline functions from the single-word version of
 //  _Base_bitset.
 //
-
 inline size_t 
-_Base_bitset<1UL>::_M_do_find_first(size_t __not_found) const
-{
+_Base_bitset<1UL>::_M_do_find_first(size_t __not_found) const {
   //  typedef unsigned long _WordT;
   _WordT __thisword = _M_w;
 
@@ -277,7 +261,7 @@ _Base_bitset<1UL>::_M_do_find_first(size_t __not_found) const
       unsigned char __this_byte
         = __STATIC_CAST(unsigned char,(__thisword & (~(unsigned char)0)));
       if ( __this_byte )
-        return __j*CHAR_BIT + _Bs_G<bool>::_S_first_one[__this_byte];
+        return __j*CHAR_BIT + _Bs_G<bool>::_S_first_one(__this_byte);
 
       __thisword >>= CHAR_BIT;
     }
@@ -288,8 +272,7 @@ _Base_bitset<1UL>::_M_do_find_first(size_t __not_found) const
 
 inline size_t 
 _Base_bitset<1UL>::_M_do_find_next(size_t __prev, 
-                                   size_t __not_found ) const
-{
+                                   size_t __not_found ) const {
   // make bound inclusive
   ++__prev;
 
@@ -311,7 +294,7 @@ _Base_bitset<1UL>::_M_do_find_next(size_t __prev,
       unsigned char __this_byte
         = __STATIC_CAST(unsigned char,(__thisword & (~(unsigned char)0)));
       if ( __this_byte )
-        return __j*CHAR_BIT + _Bs_G<bool>::_S_first_one[__this_byte];
+        return __j*CHAR_BIT + _Bs_G<bool>::_S_first_one(__this_byte);
 
       __thisword >>= CHAR_BIT;
     }
@@ -327,7 +310,7 @@ _Base_bitset<1UL>::_M_do_find_next(size_t __prev,
 
 template <size_t _Extrabits> struct _Sanitize {
   static void _STLP_CALL _M_do_sanitize(unsigned long& __val)
-    { __val &= ~((~__STATIC_CAST(unsigned long,0)) << _Extrabits); }
+  { __val &= ~((~__STATIC_CAST(unsigned long,0)) << _Extrabits); }
 };
 
 _STLP_TEMPLATE_NULL struct _Sanitize<0UL> {
@@ -340,8 +323,7 @@ _STLP_TEMPLATE_NULL struct _Sanitize<0UL> {
 
 
 template<size_t _Nb>
-class bitset : public _Base_bitset<__BITSET_WORDS(_Nb) > 
-{
+class bitset : public _Base_bitset<__BITSET_WORDS(_Nb) > {
 public:
   enum { _Words = __BITSET_WORDS(_Nb) } ;
 
@@ -413,12 +395,11 @@ public:
 
   bitset(unsigned long __val) : _Base_bitset<_Words>(__val) { _M_do_sanitize(); }
 
-# ifdef _STLP_MEMBER_TEMPLATES
+#if defined (_STLP_MEMBER_TEMPLATES)
   template<class _CharT, class _Traits, class _Alloc>
   explicit bitset(const basic_string<_CharT,_Traits,_Alloc>& __s,
                   size_t __pos = 0)
-    : _Base_bitset<_Words >() 
-  {
+    : _Base_bitset<_Words >() {
     if (__pos > __s.size()) 
       __stl_throw_out_of_range("bitset");
     _M_copy_from_string(__s, __pos,
@@ -428,8 +409,7 @@ public:
   bitset(const basic_string<_CharT, _Traits, _Alloc>& __s,
           size_t __pos,
           size_t __n)
-  : _Base_bitset<_Words >() 
-  {
+  : _Base_bitset<_Words >() {
     if (__pos > __s.size()) 
       __stl_throw_out_of_range("bitset");
     _M_copy_from_string(__s, __pos, __n);
@@ -563,7 +543,7 @@ public:
 
   unsigned long to_ulong() const { return this->_M_do_to_ulong(); }
 
-#if defined (_STLP_MEMBER_TEMPLATES) && !  defined (_STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS)
+#if defined (_STLP_MEMBER_TEMPLATES) && !defined (_STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS)
   template <class _CharT, class _Traits, class _Alloc>
   basic_string<_CharT, _Traits, _Alloc> to_string() const {
     basic_string<_CharT, _Traits, _Alloc> __result;
@@ -625,45 +605,44 @@ public:
 //
 // Definitions of should-be non-inline member functions.
 //
-# if defined (_STLP_MEMBER_TEMPLATES)
+#if defined (_STLP_MEMBER_TEMPLATES)
   template<class _CharT, class _Traits, class _Alloc>
-    void _M_copy_from_string(const basic_string<_CharT,_Traits,_Alloc>& __s,
-			     size_t __pos,
-			     size_t __n) {
+  void _M_copy_from_string(const basic_string<_CharT,_Traits,_Alloc>& __s,
+                           size_t __pos, size_t __n) {
 #else
-    void _M_copy_from_string(const string& __s,
-			     size_t __pos,
-			     size_t __n) {
-      typedef char_traits<char> _Traits;
+  void _M_copy_from_string(const string& __s,
+                           size_t __pos, size_t __n) {
+    typedef typename string::traits_type _Traits;
 #endif
-      reset();
-      size_t __tmp = _Nb;
-      const size_t __Nbits = (min) (__tmp, (min) (__n, __s.size() - __pos));
-      for ( size_t __i= 0; __i < __Nbits; ++__i) {
-        typename _Traits::int_type __k = _Traits::to_int_type(__s[__pos + __Nbits - __i - 1]);
-        // boris : widen() ?
-        if (__k == '1')
-          set(__i);
-        else if (__k !='0')
-          __stl_throw_invalid_argument("bitset");
-      }
+    reset();
+    size_t __tmp = _Nb;
+    const size_t __Nbits = (min) (__tmp, (min) (__n, __s.size() - __pos));
+    for ( size_t __i= 0; __i < __Nbits; ++__i) {
+      typename _Traits::int_type __k = _Traits::to_int_type(__s[__pos + __Nbits - __i - 1]);
+      // boris : widen() ?
+      if (__k == '1')
+        set(__i);
+      else if (__k != '0')
+        __stl_throw_invalid_argument("bitset");
     }
-  
-# if defined (_STLP_MEMBER_TEMPLATES)
+  }
+ 
+#if defined (_STLP_MEMBER_TEMPLATES)
   template <class _CharT, class _Traits, class _Alloc>
-    void _M_copy_to_string(basic_string<_CharT, _Traits, _Alloc>& __s) const
-# else
-    void _M_copy_to_string(string& __s) const
-# endif
-    {
-      __s.assign(_Nb, '0');
+  void _M_copy_to_string(basic_string<_CharT, _Traits, _Alloc>& __s) const
+#else
+  void _M_copy_to_string(string& __s) const
+#endif
+  {
+    __s.assign(_Nb, '0');
       
-      for (size_t __i = 0; __i < _Nb; ++__i) 
-	if (_Unchecked_test(__i))
-	  __s[_Nb - 1 - __i] = '1';
+    for (size_t __i = 0; __i < _Nb; ++__i) {
+      if (_Unchecked_test(__i))
+        __s[_Nb - 1 - __i] = '1';
     }
+  }
 
-# if defined (_STLP_NON_TYPE_TMPL_PARAM_BUG)
+#if defined (_STLP_NON_TYPE_TMPL_PARAM_BUG)
   bitset<_Nb> operator&(const bitset<_Nb>& __y) const {
     bitset<_Nb> __result(*this);
     __result &= __y;
@@ -679,17 +658,14 @@ public:
     __result ^= __y;
     return __result;
   }
-# endif 
-
+#endif 
 };
 
 // ------------------------------------------------------------
 //
 // 23.3.5.3 bitset operations:
 //
-
-# if ! defined (_STLP_NON_TYPE_TMPL_PARAM_BUG)
-
+#if ! defined (_STLP_NON_TYPE_TMPL_PARAM_BUG)
 template <size_t _Nb>
 inline bitset<_Nb>  _STLP_CALL
 operator&(const bitset<_Nb>& __x,
@@ -718,51 +694,154 @@ operator^(const bitset<_Nb>& __x,
   return __result;
 }
 
-#if defined ( _STLP_USE_NEW_IOSTREAMS )
+#if !defined (_STLP_USE_NO_IOSTREAMS)
+
+_STLP_END_NAMESPACE
+
+#  if !(defined (_STLP_MSVC) || (_STLP_MSVC < 1300)) && \
+      !(defined(__SUNPRO_CC) || (__SUNPRO_CC < 0x500))
+
+#ifndef _STLP_INTERNAL_IOSFWD
+#  include <stl/_iosfwd.h>
+#endif
+
+_STLP_BEGIN_NAMESPACE
 
 template <class _CharT, class _Traits, size_t _Nb>
 basic_istream<_CharT, _Traits>&  _STLP_CALL
 operator>>(basic_istream<_CharT, _Traits>& __is, bitset<_Nb>& __x);
 
-
 template <class _CharT, class _Traits, size_t _Nb>
 basic_ostream<_CharT, _Traits>& _STLP_CALL
 operator<<(basic_ostream<_CharT, _Traits>& __os, const bitset<_Nb>& __x);
 
-#elif ! defined ( _STLP_USE_NO_IOSTREAMS )
+#  else
 
-// (reg) For Watcom IO, this tells if ostream class is in .exe or in .dll
-template <size_t _Nb>
-_ISTREAM_DLL& _STLP_CALL
-operator>>(_ISTREAM_DLL& __is, bitset<_Nb>& __x);
+#ifndef _STLP_STRING_IO_H
+#  include <stl/_string_io.h> //includes _istream.h and _ostream.h
+#endif
+
+_STLP_BEGIN_NAMESPACE
 
 template <size_t _Nb>
-inline _OSTREAM_DLL&  _STLP_CALL operator<<(_OSTREAM_DLL& __os, const bitset<_Nb>& __x) {
+istream&  _STLP_CALL
+operator>>(istream& __is, bitset<_Nb>& __x) {
+  typedef typename string::traits_type _Traits;
+  string __tmp;
+  __tmp.reserve(_Nb);
+
+  // Skip whitespace
+  typename istream::sentry __sentry(__is);
+  if (__sentry) {
+    streambuf* __buf = __is.rdbuf();
+    for (size_t __i = 0; __i < _Nb; ++__i) {
+      static typename _Traits::int_type __eof = _Traits::eof();
+
+      typename _Traits::int_type __c1 = __buf->sbumpc();
+      if (_Traits::eq_int_type(__c1, __eof)) {
+        __is.setstate(ios_base::eofbit);
+        break;
+      }
+      else {
+        typename _Traits::char_type __c2 = _Traits::to_char_type(__c1);
+        char __c  = __is.narrow(__c2, '*');
+
+        if (__c == '0' || __c == '1')
+          __tmp.push_back(__c);
+        else if (_Traits::eq_int_type(__buf->sputbackc(__c2), __eof)) {
+          __is.setstate(ios_base::failbit);
+          break;
+        }
+      }
+    }
+
+    if (__tmp.empty())
+      __is.setstate(ios_base::failbit);
+    else
+      __x._M_copy_from_string(__tmp, __STATIC_CAST(size_t,0), _Nb);
+  }
+
+  return __is;
+}
+
+template <size_t _Nb>
+ostream& _STLP_CALL
+operator<<(ostream& __os, const bitset<_Nb>& __x) {
   string __tmp;
   __x._M_copy_to_string(__tmp);
   return __os << __tmp;
 }
 
+#    if !defined (_STLP_NO_WCHAR_T)
+
+template <size_t _Nb>
+wistream&  _STLP_CALL
+operator>>(wistream& __is, bitset<_Nb>& __x) {
+  typedef typename wstring::traits_type _Traits;
+  wstring __tmp;
+  __tmp.reserve(_Nb);
+
+  // Skip whitespace
+  typename wistream::sentry __sentry(__is);
+  if (__sentry) {
+    wstreambuf* __buf = __is.rdbuf();
+    for (size_t __i = 0; __i < _Nb; ++__i) {
+      static typename _Traits::int_type __eof = _Traits::eof();
+
+      typename _Traits::int_type __c1 = __buf->sbumpc();
+      if (_Traits::eq_int_type(__c1, __eof)) {
+        __is.setstate(ios_base::eofbit);
+        break;
+      }
+      else {
+        typename _Traits::char_type __c2 = _Traits::to_char_type(__c1);
+        char __c  = __is.narrow(__c2, '*');
+
+        if (__c == '0' || __c == '1')
+          __tmp.push_back(__c);
+        else if (_Traits::eq_int_type(__buf->sputbackc(__c2), __eof)) {
+          __is.setstate(ios_base::failbit);
+          break;
+        }
+      }
+    }
+
+    if (__tmp.empty())
+      __is.setstate(ios_base::failbit);
+    else
+      __x._M_copy_from_string(__tmp, __STATIC_CAST(size_t,0), _Nb);
+  }
+
+  return __is;
+}
+
+template <size_t _Nb>
+wostream& _STLP_CALL
+operator<<(wostream& __os, const bitset<_Nb>& __x) {
+  wstring __tmp;
+  __x._M_copy_to_string(__tmp);
+  return __os << __tmp;
+}
+
+#    endif /* _STLP_NO_WCHAR_T */
+#  endif
 #endif
 
-# endif /* _STLP_NON_TYPE_TMPL_PARAM_BUG */
+#endif /* _STLP_NON_TYPE_TMPL_PARAM_BUG */
 
-#  undef  bitset
-
+#undef  bitset
 
 _STLP_END_NAMESPACE
 
-#  undef __BITS_PER_WORD
-#  undef __BITSET_WORDS
+#undef __BITS_PER_WORD
+#undef __BITSET_WORDS
 
-# if !defined (_STLP_LINK_TIME_INSTANTIATION)
+#if !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_bitset.c>
-# endif
+#endif
 
 #endif /* _STLP_BITSET_H */
-
 
 // Local Variables:
 // mode:C++
 // End:
-

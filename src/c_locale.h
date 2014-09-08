@@ -32,8 +32,14 @@
 # define _STLP_C_LOCALE_IMPL_H
 
 # include <stl/c_locale.h>
-// # include <wchar.h>
+/* # include <wchar.h> */
 # include <stl/_cwchar.h>
+
+# ifdef _STLP_REAL_LOCALE_IMPLEMENTED
+#  if defined (_STLP_USE_GLIBC) && !defined (__CYGWIN__)
+#   include <nl_types.h>
+#  endif
+# endif
 
 #define _Locale_MAX_SIMPLE_NAME 256
 
@@ -56,7 +62,7 @@ extern "C" {
  * Typedefs:
  */
 
-#if defined (__GNUC__) || defined (_KCC) || defined(__ICC)
+#if (defined (__GNUC__) && !defined (__MINGW32__)) || defined (_KCC) || defined (__ICC)
 typedef unsigned short int _Locale_mask_t;
 #else
 typedef unsigned int _Locale_mask_t;
@@ -170,7 +176,7 @@ int _Locale_tolower(struct _Locale_ctype *, int);
  * Wide character functions:
  */
 _Locale_mask_t _Locale_wchar_ctype(struct _Locale_ctype *, wint_t, 
-	_Locale_mask_t);
+  _Locale_mask_t);
 wint_t _Locale_wchar_tolower(struct _Locale_ctype *, wint_t);
 wint_t _Locale_wchar_toupper(struct _Locale_ctype *, wint_t);
 # endif
@@ -376,21 +382,34 @@ const char * _Locale_t_fmt_ampm(struct _Locale_time *);
  * FUNCTIONS THAT USE MESSAGES
  */
 
-int _Locale_catopen(struct _Locale_messages*, const char*);
+# ifdef _STLP_REAL_LOCALE_IMPLEMENTED
+#  if defined (WIN32) || defined (_WIN32)
+typedef int nl_catd_type;
+#  elif defined (_STLP_USE_GLIBC) && !defined (__CYGWIN__)
+typedef nl_catd nl_catd_type;
+#  else
+typedef int nl_catd_type;
+#  endif
+# else
+typedef int nl_catd_type;
+# endif /* _STLP_REAL_LOCALE_IMPLEMENTED */
+
+
+nl_catd_type _Locale_catopen(struct _Locale_messages*, const char*);
 
 /*
  * Very similar to catopen, except that it uses L to determine
  * which catalog to open.
  */
 
-void _Locale_catclose(struct _Locale_messages*, int);
+void _Locale_catclose(struct _Locale_messages*, nl_catd_type);
 
 /*
  * catalog is a value that was returned by a previous call to
  * _Locale_catopen
  */
 
-const char * _Locale_catgets(struct _Locale_messages *, int,
+const char * _Locale_catgets(struct _Locale_messages *, nl_catd_type,
                              int, int,const char *);
 
 /*

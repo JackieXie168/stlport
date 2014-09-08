@@ -21,23 +21,19 @@
 #define _STLP_INTERNAL_OSTREAM_H
 
 #ifndef _STLP_INTERNAL_IOS_H
-# include <stl/_ios.h>                  // For basic_ios<>.  Includes <iosfwd>.
+#  include <stl/_ios.h>                  // For basic_ios<>.  Includes <iosfwd>.
 #endif
 
 #ifndef _STLP_INTERNAL_OSTREAMBUF_ITERATOR_H
-# include <stl/_ostreambuf_iterator.h>
+#  include <stl/_ostreambuf_iterator.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
 
-template <class _CharT, class _Traits, class _Number> 
-basic_ostream<_CharT, _Traits>& _STLP_CALL
-_M_put_num(basic_ostream<_CharT, _Traits>& __os, _Number __x);
-
-# if defined (_STLP_USE_TEMPLATE_EXPORT)
+#if defined (_STLP_USE_TEMPLATE_EXPORT)
 template <class _CharT, class _Traits>
 class _Osentry;
-# endif
+#endif
 
 template <class _CharT, class _Traits>
 bool
@@ -47,9 +43,14 @@ _M_init(basic_ostream<_CharT, _Traits>& __str);
 // class basic_ostream<>
 
 template <class _CharT, class _Traits>
-class basic_ostream : virtual public basic_ios<_CharT, _Traits>
-{
+class basic_ostream : virtual public basic_ios<_CharT, _Traits> {
   typedef basic_ostream<_CharT, _Traits> _Self;
+
+#if defined (_STLP_MSVC) && (_STLP_MSVC >= 1300 && _STLP_MSVC <= 1310)
+  //explicitely defined as private to avoid warnings:
+  basic_ostream(_Self const&);
+  _Self& operator = (_Self const&);
+#endif
   
 public:                         // Types
   typedef _CharT                     char_type;
@@ -95,25 +96,24 @@ public:                         // Formatted output.
   // this is needed for compiling with option char = unsigned
   _Self& operator<<(unsigned char __x) { _M_put_char(__x); return *this; }
 # endif
-  _Self& operator<<(short __x) { return _M_put_num(*this,  __STATIC_CAST(long,__x)); }
-  _Self& operator<<(unsigned short __x) { return _M_put_num(*this,  __STATIC_CAST(unsigned long,__x)); }
-  _Self& operator<<(int __x) { return _M_put_num(*this,  __STATIC_CAST(long,__x)); }
-  _Self& operator<<(unsigned int __x) { return _M_put_num(*this,  __STATIC_CAST(unsigned long,__x)); }
-  _Self& operator<<(long __x) { return _M_put_num(*this,  __x); }
-  _Self& operator<<(unsigned long __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<<(short __x);
+  _Self& operator<<(unsigned short __x);
+  _Self& operator<<(int __x);
+  _Self& operator<<(unsigned int __x);
+  _Self& operator<<(long __x);
+  _Self& operator<<(unsigned long __x);
 #ifdef _STLP_LONG_LONG
-  _Self& operator<< (_STLP_LONG_LONG __x)     { return _M_put_num(*this,  __x); }
-  _Self& operator<< (unsigned _STLP_LONG_LONG __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<< (_STLP_LONG_LONG __x);
+  _Self& operator<< (unsigned _STLP_LONG_LONG __x);
 #endif 
-  _Self& operator<<(float __x)
-    { return _M_put_num(*this,  __STATIC_CAST(double,__x)); }
-  _Self& operator<<(double __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<<(float __x);
+  _Self& operator<<(double __x);
 # ifndef _STLP_NO_LONG_DOUBLE
-  _Self& operator<<(long double __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<<(long double __x);
 # endif
-  _Self& operator<<(const void* __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<<(const void* __x);
 # ifndef _STLP_NO_BOOL
-  _Self& operator<<(bool __x) { return _M_put_num(*this,  __x); }
+  _Self& operator<<(bool __x);
 # endif
 
 public:                         // Buffer positioning and manipulation.
@@ -131,14 +131,17 @@ public:                         // Buffer positioning and manipulation.
   }
 
   _Self& seekp(pos_type __pos) {
-    if (this->rdbuf() && !this->fail())
-      this->rdbuf()->pubseekpos(__pos, ios_base::out);
+    if (this->rdbuf() && !this->fail()) {
+      if (this->rdbuf()->pubseekpos(__pos) == pos_type(-1)) {
+        this->setstate(ios_base::failbit);
+      }
+    }
     return *this;
   }
 
   _Self& seekp(off_type __off, ios_base::seekdir __dir) {
     if (this->rdbuf() && !this->fail())
-      this->rdbuf()->pubseekoff(__off, __dir, ios_base::out);
+      this->rdbuf()->pubseekoff(__off, __dir);
     return *this;
   }
 
@@ -151,10 +154,10 @@ public:                         // Buffer positioning and manipulation.
   template <class _CharT, class _Traits>
   class _Osentry {
     typedef _Osentry<_CharT, _Traits> _Self;
-# else
+#else
     class sentry {
       typedef sentry _Self;
-# endif
+#endif
     private:
       basic_ostream<_CharT, _Traits>& _M_str;
       //      basic_streambuf<_CharT, _Traits>* _M_buf;
@@ -162,44 +165,57 @@ public:                         // Buffer positioning and manipulation.
     public:
       explicit sentry(basic_ostream<_CharT, _Traits>& __str)
         : _M_str(__str), /* _M_buf(__str.rdbuf()), */ _M_ok(_M_init(__str))
-      {
-      }
+      {}
       
       ~sentry() {
         if (_M_str.flags() & ios_base::unitbuf)
-# ifndef _STLP_INCOMPLETE_EXCEPTION_HEADER 
+#ifndef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
           if (!_STLP_VENDOR_EXCEPT_STD::uncaught_exception())
-# endif
+#endif
             _M_str.flush();
       }
 
       operator bool() const { return _M_ok; }
     private:                        // Disable assignment and copy constructor.
-      sentry(const _Self& __s) : _M_str (__s._M_str) {};
-      void operator=(const _Self&) {};
+      //Implementation is here only to avoid warning with some compilers.
+      sentry(const _Self& __s) : _M_str(__s._M_str) {}
+      _Self& operator=(const _Self&) { return *this; }
     };
-# if defined (_STLP_USE_TEMPLATE_EXPORT)
+#if defined (_STLP_USE_TEMPLATE_EXPORT)
 #  undef sentry
-# else
+#else
   // close basic_ostream class definition here    
 };
-# endif
-  
-# if defined (_STLP_USE_TEMPLATE_EXPORT)
+#endif
+ 
+#if defined (_STLP_USE_TEMPLATE_EXPORT)
 _STLP_EXPORT_TEMPLATE_CLASS basic_ostream<char, char_traits<char> >;
 _STLP_EXPORT_TEMPLATE_CLASS _Osentry<char, char_traits<char> >;
 #  if !defined (_STLP_NO_WCHAR_T)
 _STLP_EXPORT_TEMPLATE_CLASS basic_ostream<wchar_t, char_traits<wchar_t> >;
 _STLP_EXPORT_TEMPLATE_CLASS _Osentry<wchar_t, char_traits<wchar_t> >;
 #  endif
-# endif /* _STLP_USE_TEMPLATE_EXPORT */
+#endif /* _STLP_USE_TEMPLATE_EXPORT */
+
+// Helper functions for istream<>::sentry constructor.
+template <class _CharT, class _Traits>
+bool _M_init(basic_ostream<_CharT, _Traits>& __str) {
+  if (__str.good()) {
+    // boris : check if this is needed !
+    if (!__str.rdbuf())
+      __str.setstate(ios_base::badbit);
+    if (__str.tie())
+      __str.tie()->flush();
+    return __str.good();
+  }
+  else
+    return false;
+}
 
 template <class _CharT, class _Traits>
 inline basic_streambuf<_CharT, _Traits>* _STLP_CALL 
 _M_get_ostreambuf(basic_ostream<_CharT, _Traits>& __St) 
-{
-  return __St.rdbuf();
-}
+{ return __St.rdbuf(); }
 
 // Non-member functions.
 
@@ -217,7 +233,7 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const _CharT* __s) {
   return __os;
 }
 
-# ifdef _STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER
+#if defined (_STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER)
 // some specializations
 
 inline basic_ostream<char, char_traits<char> >& _STLP_CALL
@@ -256,7 +272,7 @@ operator<<(basic_ostream<char, char_traits<char> >& __os, const unsigned char* _
   return __os;
 }
 
-# else
+#else
 
 // also for compilers who might use that
 template <class _CharT, class _Traits>
@@ -314,7 +330,7 @@ operator<<(basic_ostream<char, _Traits>& __os, const unsigned char* __s) {
   __os._M_put_nowiden(__REINTERPRET_CAST(const char*,__s));
   return __os;
 }
-# endif /* _STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER */
+#endif /* _STLP_NO_FUNCTION_TMPL_PARTIAL_ORDER */
 
 //----------------------------------------------------------------------
 // basic_ostream manipulators.
@@ -343,11 +359,11 @@ flush(basic_ostream<_CharT, _Traits>& __os) {
 
 _STLP_END_NAMESPACE
 
-#  undef _STLP_MANIP_INLINE
+#undef _STLP_MANIP_INLINE
 
 #if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_ostream.c>
-# endif
+#endif
 
 #endif /* _STLP_INTERNAL_OSTREAM_H */
 

@@ -15,23 +15,24 @@
  * modified is included with the above copyright notice.
  *
  */ 
-# include "stlport_prefix.h"
+#include "stlport_prefix.h"
 
 #include <istream>
-// #include <stl/_istream.h>
+//#include <stl/_istream.h>
 
 #include <stl/_fstream.h>
-#include <stdio_streambuf>
+#include "stdio_streambuf.h"
 #include "aligned_buffer.h"
+#include "_stdio_file.h"
 
 // boris : note this is repeated in <iostream>
 #ifndef _STLP_USE_NAMESPACES
 // in case of SGI iostreams, we have to rename our streams not to clash with those
 // provided in native lib
-# define cin _STLP_cin
-# define cout _STLP_cout
-# define cerr _STLP_cerr
-# define clog _STLP_clog
+#  define cin _STLP_cin
+#  define cout _STLP_cout
+#  define cerr _STLP_cerr
+#  define clog _STLP_clog
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -51,36 +52,44 @@ using _STLP_VENDOR_CSTD::_streams;
 //      the stream objects by calling the init() member function.
 
 
-#if defined (_STLP_MSVC) || defined(__MWERKS__) || defined (__ICL) || defined (__ISCPP__)
+#if defined (_STLP_MSVC) || defined (__MWERKS__) || defined (__ICL) || defined (__ISCPP__)
 
 // Definitions of the eight global I/O objects that are declared in 
 // <iostream>. For VC++ we use the init_seg pragma to put the global I/O
-// objects into an intitialization segement that will not
+// objects into an initialization segment that will not
 // be executed. We then explicitly invoke the constructors
 // with placement new in ios_base::_S_initialize() 
 
-#if defined(__MWERKS__)
-# pragma suppress_init_code on
-#else
-# pragma init_seg("STLPORT_NO_INIT")
-#endif
+#  if defined (__MWERKS__)
+#    pragma suppress_init_code on
+#  else
+#    pragma init_seg("STLPORT_NO_INIT")
+#  endif
 
 _STLP_DECLSPEC istream cin(0);
+
+#  ifdef _STLP_REDIRECT_STDSTREAMS
+_STLP_DECLSPEC ofstream cout;
+_STLP_DECLSPEC ofstream cerr;
+_STLP_DECLSPEC ofstream clog;
+#  else
 _STLP_DECLSPEC ostream cout(0);
 _STLP_DECLSPEC ostream cerr(0);
 _STLP_DECLSPEC ostream clog(0);
+#  endif
 
+#  ifndef _STLP_NO_WCHAR_T
 _STLP_DECLSPEC wistream wcin(0);
 _STLP_DECLSPEC wostream wcout(0);
 _STLP_DECLSPEC wostream wcerr(0);
 _STLP_DECLSPEC wostream wclog(0);
+#  endif
 
-#if defined(__MWERKS__)
-# pragma suppress_init_code off
-#endif
+#  if defined(__MWERKS__)
+#    pragma suppress_init_code off
+#  endif
 
 #else
-
 
 // Definitions of the eight global I/O objects that are declared in 
 // <iostream>.  Disgusting hack: we deliberately define them with the
@@ -93,43 +102,42 @@ _STLP_DECLSPEC wostream wclog(0);
 // Most compilers, however, silently accept this instead of diagnosing
 // it as an error.
 
-#ifndef __DMC__
+#  ifndef __DMC__
 _STLP_DECLSPEC _Stl_aligned_buffer<istream> cin;
 _STLP_DECLSPEC _Stl_aligned_buffer<ostream> cout;
 _STLP_DECLSPEC _Stl_aligned_buffer<ostream> cerr;
 _STLP_DECLSPEC _Stl_aligned_buffer<ostream> clog;
-#else
+#  else
 _Stl_aligned_buffer<istream> cin;
 _Stl_aligned_buffer<ostream> cout;
 _Stl_aligned_buffer<ostream> cerr;
 _Stl_aligned_buffer<ostream> clog;
 
-#pragma alias("?cin@std@@3V?$basic_istream@std@DV?$char_traits@std@D@1@@1@A", "?cin@std@@3T?$_Stl_aligned_buffer@std@V?$basic_istream@std@DV?$char_traits@std@D@1@@1@@1@A")
-#pragma alias("?cout@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?cout@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
-#pragma alias("?cerr@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?cerr@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
-#pragma alias("?clog@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?clog@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
-#endif
+#    pragma alias("?cin@std@@3V?$basic_istream@std@DV?$char_traits@std@D@1@@1@A", "?cin@std@@3T?$_Stl_aligned_buffer@std@V?$basic_istream@std@DV?$char_traits@std@D@1@@1@@1@A")
+#    pragma alias("?cout@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?cout@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
+#    pragma alias("?cerr@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?cerr@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
+#    pragma alias("?clog@std@@3V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@A", "?clog@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@DV?$char_traits@std@D@1@@1@@1@A")
+#  endif
 
-# ifndef _STLP_NO_WCHAR_T
+#  ifndef _STLP_NO_WCHAR_T
 
-#ifndef __DMC__
+#    ifndef __DMC__
 _STLP_DECLSPEC _Stl_aligned_buffer<wistream> wcin;
 _STLP_DECLSPEC _Stl_aligned_buffer<wostream> wcout;
 _STLP_DECLSPEC _Stl_aligned_buffer<wostream> wcerr;
 _STLP_DECLSPEC _Stl_aligned_buffer<wostream> wclog;
-#else
+#    else
 _Stl_aligned_buffer<wistream> wcin;
 _Stl_aligned_buffer<wostream> wcout;
 _Stl_aligned_buffer<wostream> wcerr;
 _Stl_aligned_buffer<wostream> wclog;
 
-#pragma alias("?wcin@std@@3V?$basic_istream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcin@std@@3T?$_Stl_aligned_buffer@std@V?$basic_istream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
-#pragma alias("?wcout@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcout@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
-#pragma alias("?wcerr@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcerr@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
-#pragma alias("?wclog@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wclog@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
-#endif
-# endif
-
+#      pragma alias("?wcin@std@@3V?$basic_istream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcin@std@@3T?$_Stl_aligned_buffer@std@V?$basic_istream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
+#      pragma alias("?wcout@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcout@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
+#      pragma alias("?wcerr@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wcerr@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
+#      pragma alias("?wclog@std@@3V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@A", "?wclog@std@@3T?$_Stl_aligned_buffer@std@V?$basic_ostream@std@_YV?$char_traits@std@_Y@1@@1@@1@A")
+#    endif
+#  endif
 #endif /* STL_MSVC || __MWERKS__ */
 
 // Member functions from class ios_base and ios_base::Init
@@ -139,22 +147,19 @@ long ios_base::Init::_S_count = 0;
 bool ios_base::_S_was_synced = true;
 
 ios_base::Init::Init() {
-  //    if (_S_count == 0)
-      ios_base::_S_initialize();
+  if (_S_count++ == 0)
+    ios_base::_S_initialize();
 }
 
 ios_base::Init::~Init() {
-  //    if (_S_count > 0)
-      ios_base::_S_uninitialize();
+  if (--_S_count == 0)
+    ios_base::_S_uninitialize();
 }
-
 
 filebuf*
-_Stl_create_filebuf(FILE* f, ios_base::openmode mode )
-{
-  basic_filebuf<char, char_traits<char> >* result;
-  
-  result = new basic_filebuf<char, char_traits<char> >();
+_Stl_create_filebuf(FILE* f, ios_base::openmode mode ) {
+  basic_filebuf<char, char_traits<char> >* result = 
+    new basic_filebuf<char, char_traits<char> >();
 
   _STLP_TRY {
     result->_M_open(_FILE_fd(f), mode);
@@ -168,14 +173,11 @@ _Stl_create_filebuf(FILE* f, ios_base::openmode mode )
   return result;
 }
 
-# ifndef _STLP_NO_WCHAR_T
-
+#if !defined (_STLP_NO_WCHAR_T)
 wfilebuf*
-_Stl_create_wfilebuf(FILE* f, ios_base::openmode mode )
-{
-  basic_filebuf<wchar_t, char_traits<wchar_t> >* result;
-  
-  result = new basic_filebuf<wchar_t, char_traits<wchar_t> >();
+_Stl_create_wfilebuf(FILE* f, ios_base::openmode mode) {
+  basic_filebuf<wchar_t, char_traits<wchar_t> >* result =  
+    new basic_filebuf<wchar_t, char_traits<wchar_t> >();
 
   _STLP_TRY {
     result->_M_open(_FILE_fd(f), mode);
@@ -188,29 +190,39 @@ _Stl_create_wfilebuf(FILE* f, ios_base::openmode mode )
   }
   return result;
 }
+#endif
 
-# endif
-
-void  _STLP_CALL ios_base::_S_initialize()
-{
-
-  if (ios_base::Init::_S_count++ > 0) 
-    return ;
-# if !defined(_STLP_HAS_NO_NAMESPACES) && !defined(_STLP_WINCE)
+void  _STLP_CALL ios_base::_S_initialize() {
+#if !defined(_STLP_HAS_NO_NAMESPACES) && !defined(_STLP_WINCE)
   using _SgI::stdio_istreambuf;
   using _SgI::stdio_ostreambuf;
-# endif
+#endif
   _STLP_TRY {
-    // Run constructors for the four narrow stream objects.
-    // check with locale system
-    //    if (_Loc_init::_S_count == 0) {
-      locale::_S_initialize();
-      //    }
 #if !defined(_STLP_WINCE)
-    istream* ptr_cin  = new((void*)&cin)  istream(0);
-    ostream* ptr_cout = new((void*)&cout) ostream(0);
-    ostream* ptr_cerr = new((void*)&cerr) ostream(0);
-    ostream* ptr_clog = new((void*)&clog) ostream(0);
+    istream* ptr_cin  = new(static_cast<void*>(&cin))  istream(0);
+#  ifdef _STLP_REDIRECT_STDSTREAMS
+    ofstream* ptr_cout = new(static_cast<void*>(&cout)) ofstream;
+    ofstream* ptr_cerr = new(static_cast<void*>(&cerr)) ofstream;
+    ofstream* ptr_clog = new(static_cast<void*>(&clog)) ofstream;
+
+    // Initialize the four narrow stream objects.
+    if (_S_was_synced) {
+      ptr_cin->init(new stdio_istreambuf(stdin));
+      ptr_cout->open("/stdout.txt", ios::out);
+      ptr_cerr->open("/stderr.txt", ios::out);
+      ptr_clog->open("/stdlog.txt", ios::out);
+    } else {
+      ptr_cin->init(_Stl_create_filebuf(stdin, ios_base::in));
+      ptr_cin->init(_Stl_create_filebuf(stdout, ios_base::out));
+      ptr_cin->init(_Stl_create_filebuf(stderr, ios_base::out));
+      ptr_cin->init(_Stl_create_filebuf(stderr, ios_base::out)); 
+    }
+    ptr_cin->tie(ptr_cout);
+    ptr_cerr->setf(ios_base::unitbuf);
+#  else
+    ostream* ptr_cout = new(static_cast<void*>(&cout)) ostream(0);
+    ostream* ptr_cerr = new(static_cast<void*>(&cerr)) ostream(0);
+    ostream* ptr_clog = new(static_cast<void*>(&clog)) ostream(0);
 
     // Initialize the four narrow stream objects.
     if (_S_was_synced) {
@@ -226,9 +238,9 @@ void  _STLP_CALL ios_base::_S_initialize()
     }
     ptr_cin->tie(ptr_cout);
     ptr_cerr->setf(ios_base::unitbuf);
+#  endif /*_STLP_WCE_NET*/
 
-# ifndef _STLP_NO_WCHAR_T
-
+#  ifndef _STLP_NO_WCHAR_T
     // Run constructors for the four wide stream objects.
     wistream* ptr_wcin  = new(&wcin)  wistream(0);
     wostream* ptr_wcout = new(&wcout) wostream(0);
@@ -248,33 +260,27 @@ void  _STLP_CALL ios_base::_S_initialize()
     ptr_wcin->tie(ptr_wcout);
     ptr_wcerr->setf(ios_base::unitbuf);
     
-# endif /*  _STLP_NO_WCHAR_T */
+#  endif /*  _STLP_NO_WCHAR_T */
 #endif /* _STLP_WINCE */
-
-    //    ++ios_base::Init::_S_count;
   }
 
   _STLP_CATCH_ALL {}
 }
 
-void _STLP_CALL ios_base::_S_uninitialize()
-{
-  if (--ios_base::Init::_S_count != 0) 
-    return ;
-
+void _STLP_CALL ios_base::_S_uninitialize() {
   // Note that destroying output streambufs flushes the buffers.
 
-  istream* ptr_cin  = __REINTERPRET_CAST(istream*,&cin);
-  ostream* ptr_cout = __REINTERPRET_CAST(ostream*,&cout);
-  ostream* ptr_cerr = __REINTERPRET_CAST(ostream*,&cerr);
-  ostream* ptr_clog = __REINTERPRET_CAST(ostream*,&clog);
+  istream* ptr_cin  = &cin;
+  ostream* ptr_cout = &cout;
+  ostream* ptr_cerr = &cerr;
+  ostream* ptr_clog = &clog;
 
-# ifndef _STLP_NO_WCHAR_T
-  wistream* ptr_wcin  = __REINTERPRET_CAST(wistream*,&wcin);
-  wostream* ptr_wcout = __REINTERPRET_CAST(wostream*,&wcout);
-  wostream* ptr_wcerr = __REINTERPRET_CAST(wostream*,&wcerr);
-  wostream* ptr_wclog = __REINTERPRET_CAST(wostream*,&wclog);
-# endif
+#ifndef _STLP_NO_WCHAR_T
+  wistream* ptr_wcin  = &wcin;
+  wostream* ptr_wcout = &wcout;
+  wostream* ptr_wcerr = &wcerr;
+  wostream* ptr_wclog = &wclog;
+#endif
 
   // we don't want any exceptions being thrown here
   ptr_cin->exceptions(0);
@@ -292,7 +298,7 @@ void _STLP_CALL ios_base::_S_uninitialize()
   _Destroy(ptr_cerr);
   _Destroy(ptr_clog);
 
-# ifndef _STLP_NO_WCHAR_T
+#ifndef _STLP_NO_WCHAR_T
   // we don't want any exceptions being thrown here
   ptr_wcin->exceptions(0);
   ptr_wcout->exceptions(0);
@@ -308,22 +314,16 @@ void _STLP_CALL ios_base::_S_uninitialize()
   _Destroy(ptr_wcout);
   _Destroy(ptr_wcerr);
   _Destroy(ptr_wclog);
-
-# endif
-    if (_Loc_init::_S_count > 0) {
-      locale::_S_uninitialize();
-    }
-
-    --ios_base::Init::_S_count;
+#endif
 }
 
 
 bool _STLP_CALL ios_base::sync_with_stdio(bool sync) {
 #if !defined(STLP_WINCE)
-# ifndef _STLP_HAS_NO_NAMESPACES
+#  ifndef _STLP_HAS_NO_NAMESPACES
   using _SgI::stdio_istreambuf;
   using _SgI::stdio_ostreambuf;
-# endif
+#  endif
   
   bool was_synced =  _S_was_synced;
 
@@ -334,10 +334,10 @@ bool _STLP_CALL ios_base::sync_with_stdio(bool sync) {
     return was_synced;
   }
 
-  istream* ptr_cin  = __REINTERPRET_CAST(istream*,&cin);
-  ostream* ptr_cout = __REINTERPRET_CAST(ostream*,&cout);
-  ostream* ptr_cerr = __REINTERPRET_CAST(ostream*,&cerr);
-  ostream* ptr_clog = __REINTERPRET_CAST(ostream*,&clog);
+  istream* ptr_cin  = &cin;
+  ostream* ptr_cout = &cout;
+  ostream* ptr_cerr = &cerr;
+  ostream* ptr_clog = &clog;
 
   streambuf* old_cin  = ptr_cin->rdbuf();
   streambuf* old_cout = ptr_cout->rdbuf();

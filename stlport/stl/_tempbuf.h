@@ -30,15 +30,17 @@
 #ifndef _STLP_INTERNAL_TEMPBUF_H
 #define _STLP_INTERNAL_TEMPBUF_H
 
-# ifndef _STLP_CLIMITS
+#ifndef _STLP_CLIMITS
 #  include <climits>
-# endif
-# ifndef _STLP_CSTDLIB
+#endif
+
+#ifndef _STLP_CSTDLIB
 #  include <cstdlib>
-# endif
-# ifndef _STLP_INTERNAL_UNINITIALIZED_H
+#endif
+
+#ifndef _STLP_INTERNAL_UNINITIALIZED_H
 #  include <stl/_uninitialized.h>
-# endif
+#endif
 
 _STLP_BEGIN_NAMESPACE
 
@@ -111,7 +113,7 @@ public:
 #   if defined(__sgi) && !defined(__GNUC__) && _COMPILER_VERSION < 730
     typedef typename __type_traits<_Tp>::is_POD_type _Trivial;
 #   else
-     typedef typename __type_traits<_Tp>::has_trivial_default_constructor  _Trivial;
+    typedef typename __type_traits<_Tp>::has_trivial_default_constructor  _Trivial;
 #   endif
     _STLP_TRY {
       _M_len = distance(__first, __last);
@@ -119,11 +121,11 @@ public:
       if (_M_len > 0)
         _M_initialize_buffer(*__first, _Trivial());
     }
-    _STLP_UNWIND(free(_M_buffer); _M_buffer = 0; _M_len = 0);
+    _STLP_UNWIND(free(_M_buffer); _M_buffer = 0; _M_len = 0)
   }
  
   ~_Temporary_buffer() {  
-    _STLP_STD::_Destroy(_M_buffer, _M_buffer + _M_len);
+    _STLP_STD::_Destroy_Range(_M_buffer, _M_buffer + _M_len);
     free(_M_buffer);
   }
 

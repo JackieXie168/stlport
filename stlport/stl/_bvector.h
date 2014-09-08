@@ -32,9 +32,13 @@
 
 #ifndef _STLP_INTERNAL_VECTOR_H
 # include <stl/_vector.h>
-# endif
+#endif
 
-#define __WORD_BIT (int(CHAR_BIT*sizeof(unsigned int)))
+#ifndef _STLP_RANGE_ERRORS_H
+# include <stl/_range_errors.h>
+#endif
+
+#define _STLP_WORD_BIT (int(CHAR_BIT*sizeof(unsigned int)))
 
 _STLP_BEGIN_NAMESPACE 
 
@@ -48,55 +52,61 @@ public:
   _Bit_reference() : _M_p(0), _M_mask(0) {}
 
   operator bool() const { 
-	  return !(!(*_M_p & _M_mask)); 
+    return !(!(*_M_p & _M_mask)); 
   }
-  _Bit_reference& operator=(bool __x) {
+  _Bit_reference& operator = (bool __x) {
     if (__x)  *_M_p |= _M_mask;
     else      *_M_p &= ~_M_mask;
     return *this;
   }
-  _Bit_reference& operator=(const _Bit_reference& __x) {
-	  return *this = bool(__x); 
+  _Bit_reference& operator = (const _Bit_reference& __x) {
+    return *this = bool(__x); 
   }
-  bool operator==(const _Bit_reference& __x) const {
-	  return bool(*this) == bool(__x); 
+  bool operator == (const _Bit_reference& __x) const {
+    return bool(*this) == bool(__x); 
   }
-  bool operator<(const _Bit_reference& __x) const {
+  bool operator < (const _Bit_reference& __x) const {
     return !bool(*this) && bool(__x);
   }
 
   _Bit_reference& operator |= (bool __x) {
-	  if (__x)
-		  *_M_p |= _M_mask;
-	  return *this;
+    if (__x)
+      *_M_p |= _M_mask;
+    return *this;
   }
   _Bit_reference& operator &= (bool __x) {
-	  if (!__x)
-		  *_M_p &= ~_M_mask;
-	  return *this;
+    if (!__x)
+      *_M_p &= ~_M_mask;
+    return *this;
   }
   void flip() { *_M_p ^= _M_mask; }
 };
 
 
-inline void swap(_Bit_reference& __x, _Bit_reference& __y)
-{
+inline void swap(_Bit_reference& __x, _Bit_reference& __y) {
   bool __tmp = (bool)__x;
   __x = __y;
   __y = __tmp;
 }
 
-struct _Bit_iterator_base;
+// Might not be very useful but costs nothing!
+_STLP_TEMPLATE_NULL
+struct __type_traits<_Bit_reference> { 
+  typedef __false_type    has_trivial_default_constructor;
+  typedef __true_type     has_trivial_copy_constructor;
+  typedef __false_type    has_trivial_assignment_operator;
+  typedef __true_type     has_trivial_destructor;
+  typedef __false_type    is_POD_type;
+};
 
-struct _Bit_iterator_base
-{
+struct _Bit_iterator_base {
   typedef ptrdiff_t difference_type;
 
   unsigned int* _M_p;
   unsigned int  _M_offset;
 
   void _M_bump_up() {
-    if (_M_offset++ == __WORD_BIT - 1) {
+    if (_M_offset++ == _STLP_WORD_BIT - 1) {
       _M_offset = 0;
       ++_M_p;
     }
@@ -104,29 +114,32 @@ struct _Bit_iterator_base
 
   void _M_bump_down() {
     if (_M_offset-- == 0) {
-      _M_offset = __WORD_BIT - 1;
+      _M_offset = _STLP_WORD_BIT - 1;
       --_M_p;
     }
   }
 
   _Bit_iterator_base() : _M_p(0), _M_offset(0) {}
   _Bit_iterator_base(unsigned int* __x, unsigned int __y) : _M_p(__x), _M_offset(__y) {}
-  //  _Bit_iterator_base( const _Bit_iterator_base& __x) : _M_p(__x._M_p), _M_offset(__x._M_offset) {}
+// see comment in doc/README.evc4
+#if defined(_MSC_VER) && _MSC_VER<1300 && defined(MIPS) && defined(NDEBUG)
+  _Bit_iterator_base( const _Bit_iterator_base& __x) : _M_p(__x._M_p), _M_offset(__x._M_offset) {}
+#endif
   //  _Bit_iterator_base& operator = ( const _Bit_iterator_base& __x) { _M_p = __x._M_p ; _M_offset = __x._M_offset ; return *this; }
 
   void _M_advance (difference_type __i) {
     difference_type __n = __i + _M_offset;
-    _M_p += __n / __WORD_BIT;
-    __n = __n % __WORD_BIT;
+    _M_p += __n / _STLP_WORD_BIT;
+    __n = __n % _STLP_WORD_BIT;
     if (__n < 0) {
-      _M_offset = (unsigned int) __n + __WORD_BIT;
+      _M_offset = (unsigned int) __n + _STLP_WORD_BIT;
       --_M_p;
     } else
       _M_offset = (unsigned int) __n;
   }
 
   difference_type _M_subtract(const _Bit_iterator_base& __x) const {
-    return __WORD_BIT * (_M_p - __x._M_p) + _M_offset - __x._M_offset;
+    return _STLP_WORD_BIT * (_M_p - __x._M_p) + _M_offset - __x._M_offset;
   }
 };
 
@@ -152,8 +165,7 @@ inline bool _STLP_CALL operator>=(const _Bit_iterator_base& __x, const _Bit_iter
 }
 
 template <class _Ref, class _Ptr>
-struct _Bit_iter : public _Bit_iterator_base
-{
+struct _Bit_iter : public _Bit_iterator_base {
   typedef _Ref  reference;
   typedef _Ptr  pointer;
   typedef _Bit_iter<_Ref, _Ptr> _Self;
@@ -220,6 +232,17 @@ operator+(ptrdiff_t __n, const _Bit_iter<_Ref, _Ptr>& __x) {
    return __x + __n;
 }
 
+#ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
+template <class _Ref, class _Ptr>
+struct __type_traits<_Bit_iter<_Ref, _Ptr> > {
+  typedef __false_type   has_trivial_default_constructor;
+  typedef __true_type    has_trivial_copy_constructor;
+  typedef __true_type    has_trivial_assignment_operator;
+  typedef __true_type    has_trivial_destructor;
+  typedef __false_type   is_POD_type;
+};
+#endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
+
 # ifdef _STLP_USE_OLD_HP_ITERATOR_QUERIES
 inline random_access_iterator_tag  iterator_category(const _Bit_iterator_base&) {return random_access_iterator_tag();}
 inline ptrdiff_t* distance_type(const _Bit_iterator_base&) {return (ptrdiff_t*)0;}
@@ -235,8 +258,8 @@ typedef _Bit_iter<_Bit_reference, _Bit_reference*> _Bit_iterator;
 
 
 template <class _Alloc>
-class _Bvector_base
-{
+class _Bvector_base {
+  typedef _Bvector_base<_Alloc> _Self;
 public:
   _STLP_FORCE_ALLOCATORS(bool, _Alloc)
   typedef typename _Alloc_traits<bool, _Alloc>::allocator_type allocator_type;
@@ -250,19 +273,28 @@ public:
    
   _Bvector_base(const allocator_type& __a)
     : _M_start(), _M_finish(), _M_end_of_storage(_STLP_CONVERT_ALLOCATOR(__a, __chunk_type),
-						 (__chunk_type*)0) {
+                                                 (__chunk_type*)0) 
+  {}
+  _Bvector_base(__move_source<_Self> src) 
+    : _M_start(src.get()._M_start), _M_finish(src.get()._M_finish), 
+      _M_end_of_storage(src.get()._M_end_of_storage) {
+    //Make the source destroyable
+    src.get()._M_start._M_p = 0;
   }
-  ~_Bvector_base() { _M_deallocate();
+
+  ~_Bvector_base() { 
+    _M_deallocate();
   }
 
 protected:
 
-  unsigned int* _M_bit_alloc(size_t __n) 
-    { return _M_end_of_storage.allocate((__n + __WORD_BIT - 1)/__WORD_BIT); }
+  unsigned int* _M_bit_alloc(size_t __n) {
+    return _M_end_of_storage.allocate((__n + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT); 
+  }
   void _M_deallocate() {
     if (_M_start._M_p)
       _M_end_of_storage.deallocate(_M_start._M_p,
-				   _M_end_of_storage._M_data - _M_start._M_p);
+                                   _M_end_of_storage._M_data - _M_start._M_p);
   }
 
   _Bit_iterator _M_start;
@@ -311,7 +343,10 @@ protected:
 
 
 __BVEC_TMPL_HEADER
-class __BVECTOR_QUALIFIED : public _Bvector_base<_Alloc >
+class __BVECTOR_QUALIFIED : public _Bvector_base<_Alloc > 
+#if !defined (_STLP_DEBUG) && defined (_STLP_USE_PARTIAL_SPEC_WORKAROUND)
+                          , public __stlport_class<__BVECTOR_QUALIFIED >
+#endif
 {
   typedef _Bvector_base<_Alloc > _Base;
   typedef __BVECTOR_QUALIFIED _Self;
@@ -357,7 +392,7 @@ protected:
 
   void _M_initialize(size_type __n) {
     unsigned int* __q = this->_M_bit_alloc(__n);
-    this->_M_end_of_storage._M_data = __q + (__n + __WORD_BIT - 1)/__WORD_BIT;
+    this->_M_end_of_storage._M_data = __q + (__n + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
     this->_M_start = iterator(__q, 0);
     this->_M_finish = this->_M_start + difference_type(__n);
   }
@@ -368,13 +403,13 @@ protected:
       ++this->_M_finish;
     }
     else {
-      size_type __len = size() ? 2 * size() : __WORD_BIT;
+      size_type __len = size() ? 2 * size() : _STLP_WORD_BIT;
       unsigned int* __q = this->_M_bit_alloc(__len);
       iterator __i = copy(begin(), __position, iterator(__q, 0));
       *__i++ = __x;
       this->_M_finish = copy(__position, end(), __i);
       this->_M_deallocate();
-      this->_M_end_of_storage._M_data = __q + (__len + __WORD_BIT - 1)/__WORD_BIT;
+      this->_M_end_of_storage._M_data = __q + (__len + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
       this->_M_start = iterator(__q, 0);
     }
   }
@@ -382,7 +417,7 @@ protected:
 #ifdef _STLP_MEMBER_TEMPLATES
   template <class _InputIterator>
   void _M_initialize_range(_InputIterator __first, _InputIterator __last,
-			const input_iterator_tag &) {
+                           const input_iterator_tag &) {
     this->_M_start = iterator();
     this->_M_finish = iterator();
     this->_M_end_of_storage._M_data = 0;
@@ -395,8 +430,7 @@ protected:
                            const forward_iterator_tag &) {
     size_type __n = distance(__first, __last);
     _M_initialize(__n);
-    //    copy(__first, __last, _M_start);
-    copy(__first, __last, this->_M_start); // dwa 12/22/99 -- resolving ambiguous reference.
+    copy(__first, __last, this->_M_start);
   }
 
   template <class _InputIterator>
@@ -427,7 +461,7 @@ protected:
         __i = copy(__first, __last, __i);
         this->_M_finish = copy(__position, end(), __i);
         this->_M_deallocate();
-        this->_M_end_of_storage._M_data = __q + (__len + __WORD_BIT - 1)/__WORD_BIT;
+        this->_M_end_of_storage._M_data = __q + (__len + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
         this->_M_start = iterator(__q, 0);
       }
     }
@@ -475,17 +509,14 @@ public:
     : _Bvector_base<_Alloc >(__a) {}
 
   __BVECTOR(size_type __n, bool __val,
-            const allocator_type& __a = 
-	    allocator_type())
-    : _Bvector_base<_Alloc >(__a)
-  {
+            const allocator_type& __a = allocator_type())
+    : _Bvector_base<_Alloc >(__a) {
     _M_initialize(__n);
     fill(this->_M_start._M_p, (__chunk_type*)(this->_M_end_of_storage._M_data), __val ? ~0 : 0);
   }
 
   explicit __BVECTOR(size_type __n)
-    : _Bvector_base<_Alloc >(allocator_type())
-  {
+    : _Bvector_base<_Alloc >(allocator_type()) {
     _M_initialize(__n);
     fill(this->_M_start._M_p, (__chunk_type*)(this->_M_end_of_storage._M_data), 0);
   }
@@ -511,8 +542,7 @@ public:
   // Check whether it's an integral type.  If so, it's not an iterator.
   template <class _InputIterator>
   __BVECTOR(_InputIterator __first, _InputIterator __last)
-    : _Base(allocator_type())
-  {
+    : _Base(allocator_type()) {
     typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
     _M_initialize_dispatch(__first, __last, _Integral());
   }
@@ -520,29 +550,30 @@ public:
   template <class _InputIterator>
   __BVECTOR(_InputIterator __first, _InputIterator __last,
             const allocator_type& __a _STLP_ALLOCATOR_TYPE_DFL)
-    : _Base(__a)
-  {
+    : _Base(__a) {
     typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
     _M_initialize_dispatch(__first, __last, _Integral());
   }
 #else /* _STLP_MEMBER_TEMPLATES */
   __BVECTOR(const_iterator __first, const_iterator __last,
             const allocator_type& __a = allocator_type())
-    : _Bvector_base<_Alloc >(__a)
-  {
+    : _Bvector_base<_Alloc >(__a) {
     size_type __n = distance(__first, __last);
     _M_initialize(__n);
     copy(__first, __last, this->_M_start);
   }
   __BVECTOR(const bool* __first, const bool* __last,
             const allocator_type& __a = allocator_type())
-    : _Bvector_base<_Alloc >(__a)
-  {
+    : _Bvector_base<_Alloc >(__a) {
     size_type __n = distance(__first, __last);
     _M_initialize(__n);
     copy(__first, __last, this->_M_start);
   }
 #endif /* _STLP_MEMBER_TEMPLATES */
+
+  __BVECTOR(__move_source<_Self> src)
+    : _Bvector_base<_Alloc >(__move_source<_Base>(src.get())) {
+  }
 
   ~__BVECTOR() { }
 
@@ -620,12 +651,14 @@ public:
 
   void reserve(size_type __n) {
     if (capacity() < __n) {
+      if (max_size() < __n)
+        __stl_throw_length_error("vector<bool>");
       unsigned int* __q = this->_M_bit_alloc(__n);
       _Bit_iterator __z(__q, 0);
       this->_M_finish = copy(begin(), end(), __z);
       this->_M_deallocate();
       this->_M_start = iterator(__q, 0);
-      this->_M_end_of_storage._M_data = __q + (__n + __WORD_BIT - 1)/__WORD_BIT;
+      this->_M_end_of_storage._M_data = __q + (__n + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
     }
   }
 
@@ -697,7 +730,7 @@ public:
       __i = copy(__first, __last, __i);
       this->_M_finish = copy(__position, end(), __i);
       this->_M_deallocate();
-      this->_M_end_of_storage._M_data = __q + (__len + __WORD_BIT - 1)/__WORD_BIT;
+      this->_M_end_of_storage._M_data = __q + (__len + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
       this->_M_start = iterator(__q, 0);
     }
   }
@@ -718,7 +751,7 @@ public:
       __i = copy(__first, __last, __i);
       this->_M_finish = copy(__position, end(), __i);
       this->_M_deallocate();
-      this->_M_end_of_storage._M_data = __q + (__len + __WORD_BIT - 1)/__WORD_BIT;
+      this->_M_end_of_storage._M_data = __q + (__len + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
       this->_M_start = iterator(__q, 0);
     }
   }
@@ -738,7 +771,7 @@ public:
       fill_n(__i, __n, __x);
       this->_M_finish = copy(__position, end(), __i + difference_type(__n));
       this->_M_deallocate();
-      this->_M_end_of_storage._M_data = __q + (__len + __WORD_BIT - 1)/__WORD_BIT;
+      this->_M_end_of_storage._M_data = __q + (__len + _STLP_WORD_BIT - 1)/_STLP_WORD_BIT;
       this->_M_start = iterator(__q, 0);
     }
   }
@@ -797,7 +830,7 @@ _STLP_END_NAMESPACE
 #undef __BVECTOR_QUALIFIED
 #undef __BVEC_TMPL_HEADER
 
-# undef __WORD_BIT
+# undef _STLP_WORD_BIT
 
 #endif /* _STLP_INTERNAL_BVECTOR_H */
 

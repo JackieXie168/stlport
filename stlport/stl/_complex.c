@@ -18,14 +18,18 @@
 #ifndef _STLP_COMPLEX_C
 #define _STLP_COMPLEX_C
 
-# ifndef _STLP_internal_complex_h
+#ifndef _STLP_INTERNAL_COMPLEX_H
 #  include <stl/_complex.h>
-# endif
+#endif
 
-#include <istream>
+#if !defined (_STLP_USE_NO_IOSTREAMS)
+#  include <istream>
 
-#ifdef _STLP_USE_NEW_IOSTREAMS
-# include <sstream>
+#  include <sstream>
+
+#  ifndef _STLP_STRING_IO_H
+#    include <stl/_string_io.h>
+#  endif
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -75,15 +79,13 @@ void complex<_Tp>::_div(const _Tp& __z1_r,
 }
 
 // I/O.
-
-#ifdef _STLP_USE_NEW_IOSTREAMS
+#if !defined (_STLP_USE_NO_IOSTREAMS)
 
 // Complex output, in the form (re,im).  We use a two-step process 
 // involving stringstream so that we get the padding right.  
 template <class _Tp, class _CharT, class _Traits>
 basic_ostream<_CharT, _Traits>& _STLP_CALL
-operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __z)
-{
+operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __z) {
   basic_ostringstream<_CharT, _Traits, allocator<_CharT> > __tmp;
   __tmp.flags(__os.flags());
   __tmp.imbue(__os.getloc());
@@ -98,17 +100,16 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __z)
 
 template <class _Tp, class _CharT, class _Traits>
 basic_istream<_CharT, _Traits>& _STLP_CALL
-operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __z)
-{
+operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __z) {
   _Tp  __re = 0;
   _Tp  __im = 0;
 
   // typedef ctype<_CharT> _Ctype;
   //  locale __loc = __is.getloc();
   //const _Ctype&  __c_type  = use_facet<_Ctype>(__loc);
-  const ctype<_CharT>& __c_type = *(const ctype<_CharT>*)__is._M_ctype_facet();
+  const ctype<_CharT>& __c_type = *__STATIC_CAST(const ctype<_CharT>*, __is._M_ctype_facet());
 
-  char   __punct[4] = "(,)";
+  const char __punct[4] = "(,)";
   _CharT __wpunct[3];
   __c_type.widen(__punct, __punct + 3, __wpunct);
 
@@ -132,38 +133,12 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __z)
   return __is;
 }
 
-
-#else /* _STLP_USE_NEW_IOSTREAMS */
-
-template <class _Tp>
-ostream& _STLP_CALL operator<<(ostream& s, const complex<_Tp>& __z)
-{
-  return s << "( " << __z._M_re <<", " << __z._M_im <<")";
-}
-
-template <class _Tp>
-istream& _STLP_CALL operator>>(istream& s, complex<_Tp>& a)
-{
-  _Tp re = 0, im = 0;
-  char 	c = 0;
-
-  s >> c;
-  if (c == '(') {
-    s >> re >> c;
-    if (c == ',') s >> im >> c;
-    if (c != ')') s.clear(ios::badbit);
-  }
-  else {
-    s.putback(c);
-    s >> re;
-  }
-
-  if (s) a = complex<_Tp>(re, im);
-  return s;
-}
-
-#endif /* _STLP_USE_NEW_IOSTREAMS */
+#endif /* _STLP_USE_NO_IOSTREAMS */
 
 _STLP_END_NAMESPACE
 
 #endif /* _STLP_COMPLEX_C */
+
+// Local Variables:
+// mode:C++
+// End:

@@ -39,7 +39,7 @@
 #  define __GIVE_UP_WITH_STL(message) void give_up() \
    { upgrade_the_compiler_to_use_STL;}
 
-/* distinguish real MSC from Metrowerks and Intel */
+/* distinguish real MSC from Metrowerks, Intel and Comeau */
 # if defined(_MSC_VER) && !defined(__MWERKS__) && !defined (__ICL) && !defined (__COMO__)
 #  define _STLP_MSVC _MSC_VER
 # endif
@@ -48,7 +48,7 @@
 /* AIX xlC, Visual Age C++ , OS-390 C++ */
 #  include <config/stl_ibm.h>
 # elif defined (__INTEL_COMPILER) && defined(__unix__)
-/* Check intel before gcc, since newer versions define GNUC */
+/* Check intel before gcc, since newer versions define __GNUC__ */
 #  include <config/stl_icc.h>
 # elif defined (__GNUC__ )
 #  include <config/stl_gcc.h>
@@ -59,8 +59,11 @@
 # elif (defined(__OS400__))
 /* AS/400 C++ */
 #  include <config/stl_as400.h>
+# elif defined(_MSC_VER) && (_MSC_VER >= 1200) && defined(UNDER_CE)
+/* Microsoft eMbedded Visual C++ 3.0, 4.0 (.NET) */
+#  include <config/stl_evc.h>
 # elif defined(_STLP_MSVC)
-/* Microsoft Visual C++ 4.0, 4.1, 4.2, 5.0 */
+/* Microsoft Visual C++ 6.0, 7.0, 7.1, 8.0 */
 #  include <config/stl_msvc.h>
 # elif defined ( __BORLANDC__ )
 /* Borland C++ ( 4.x - 5.x ) */
