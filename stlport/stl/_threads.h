@@ -131,6 +131,9 @@ using _STLP_VENDOR_CSTD::time_t;
 #  include <cassert>
 #  include <stdio.h>
 #  define _STLP_MUTEX_INITIALIZER = { 0 }
+#elif defined (_STLP_NWTHREADS)
+#  include <nwthread.h>
+#  include <nwsemaph.h>
 #elif defined(_STLP_OS2THREADS)
 #  ifdef __GNUC__
 #    define INCL_DOSSEMAPHORES
@@ -312,6 +315,18 @@ struct _STLP_CLASS_DECLSPEC _STLP_mutex_base {
     status_t t = release_sem(sem);
     assert(t == B_NO_ERROR);
   }
+#  elif defined(_STLP_NWTHREADS)
+  LONG _M_lock;
+  inline void _M_initialize() {
+    _M_lock = OpenLocalSemaphore(1);
+  }
+  inline void _M_destroy() {
+    CloseLocalSemaphore(_M_lock);
+  }
+  inline void _M_acquire_lock() {
+    WaitOnLocalSemaphore(_M_lock);
+  }
+  inline void _M_release_lock() { SignalLocalSemaphore(_M_lock); }
 #  else      //*ty 11/24/2001 - added configuration check
 #    error "Unknown thread facility configuration"
 #  endif
@@ -402,7 +417,7 @@ class _STLP_CLASS_DECLSPEC _Refcount_Base
 inline __stl_atomic_t _Atomic_swap(volatile __stl_atomic_t * __p, __stl_atomic_t __q) {
   return (__stl_atomic_t) _STLP_ATOMIC_EXCHANGE(__p,__q);
 }
-#  elif defined(_STLP_PTHREADS) || defined (_STLP_UITHREADS) || defined (_STLP_OS2THREADS) || defined(_STLP_USE_PTHREAD_SPINLOCK)
+#  elif defined(_STLP_PTHREADS) || defined (_STLP_UITHREADS) || defined (_STLP_OS2THREADS) || defined(_STLP_USE_PTHREAD_SPINLOCK) || defined(_STLP_NWTHREADS)
 // We use a template here only to get a unique initialized instance.
 template<int __dummy>
 struct _Swap_lock_struct {
@@ -432,7 +447,19 @@ _Atomic_swap(volatile __stl_atomic_t * __p, __stl_atomic_t __q) {
 
 inline void* _Atomic_swap_ptr(void* volatile* __p, void* __q) {
 #if defined (_STLP_THREADS) && defined (_STLP_ATOMIC_EXCHANGE_PTR)
+#  if defined (_STLP_MSVC)
+/* Here MSVC produces warning if 64 bits portability issue is activated.
+ * MSVC do not see that _STLP_ATOMIC_EXCHANGE_PTR is a macro which content
+ * is based on the platform, Win32 or Win64
+ */
+#    pragma warning (push)
+#    pragma warning (disable : 4311) // pointer truncation from void* to long
+#    pragma warning (disable : 4312) // conversion from long to void*  of greater size
+#  endif
   return _STLP_ATOMIC_EXCHANGE_PTR(__p,__q);
+#  if defined (_STLP_MSVC)
+#    pragma warning (pop)
+#  endif
 #else
   return (void*)_Atomic_swap((volatile __stl_atomic_t *)__p, (__stl_atomic_t)__q);
 #endif

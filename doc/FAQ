@@ -40,6 +40,9 @@ Q6.0 In STLport present files like locale.h, setjmp.h, stdlib.h, etc.,
 that do nothing except include native headers. Why this files present in STLport?
 Q6.1 Is STLport a replacement for headers and libraries that shipout
 with compiler?
+Q6.2 My tool detect memory leaks in application with STLport. Is this leak
+from STLport?
+
                            Answers
 
 ========================================================================
@@ -80,13 +83,136 @@ in most cases you need some runtime libraries from C++ compiler.
 Q2.2 Can I use containers and algorithms from STLport and iostreams from
 library that shipout with compiler?
 
-A2.2
+A2.2 This is a case of STL implementations mix. See A2.3 below.
 
 ========================================================================
 
 Q2.3 Can I mix STL implementations in my project?
 
-A2.3
+A2.3 The short answer is 'No'.
+
+Indeed co-existence of two implementations possible, but this required
+a lot of knowledge as about both implementations, as about compiler and
+linkage. This issues should be taken into account both within STL library and
+during library usage. In common you can't use both implementation
+in the same namespace. So you should separate STL implementations into
+different namespaces. But due to absent of compilers that has full-featured
+support of Argument Dependent Lookup (ADL) (aka Koenig Lookup), you has no
+possibilty to select one or another implementation.
+
+ADL problem.
+
+In wrapper mode, all std references are replaced, thanks a simple macro,
+by the stlp_std namespace. Everything from the native compiler std namespace
+is injected to the stlp_std namespace with many using std::* directives.
+
+The problem arise when you specialized a standard class for one of your
+user types. You do it within the std namespace that, in wrapper mode
+becomes the stlp_std namespace. Then this specialization is just invisible
+from the native std namespace and won't be used.
+
+Things are somewhat worse: the problem arises even without any explicit
+specializations. It is not a bug, but the fact that old compilers just
+did not tried to find functions in the namespaces where arguments' classes
+are defined (indeed no compilers with full-featured support of ADL yet).
+
+Mix imlementation via library.
+
+Let's reduce all the complexity of STLport to some very simple example:
+
+namespace std {
+
+class string
+{
+  public:
+    class iterator { };
+
+    iterator begin();
+    iterator end();
+};
+
+template<class I, class T>
+void find(I begin, I end, T value);
+
+} // namespace std
+
+
+namespace stlport {
+
+using std::string;
+
+template<class I, class T>
+void find(I begin, I end, T value);
+
+void gee()
+{
+  string s;
+  find(s.begin(), s.end(), 10);
+}
+
+} // namespace stlport
+
+
+When a compiler supporting ADL finds the call to `find' within gee() function
+it should examine both namespace `stlport' and namespace `std' for
+the presence of `find'. It is caused by the fact that s.begin() returns
+object of type `std::string::iterator' which obviously defined in namespace
+`std' and the heart of ADL is finding functions not only within namespaces
+where the call is being made but also in the namespaces where the classes
+of arguments are defined...
+
+So, in our example compiler ends with two templates satisfying the call
+`find(s.begin(), s.end(), 10)': `std::find' and `stlport::find'.
+Since compiler can not choose any one of them it reports ambiguity.
+
+There is another aspect of mix implementations.
+Let's consider following code:
+
+a.h:
+
+#include <string>
+
+class A {
+  public:
+    A() {}
+
+    void push( const string s );
+    
+    string _str;
+};
+
+a.cpp:
+
+#include "a.h"
+
+void A::push( const string s )
+{
+  _str = s;
+}
+
+
+b.cpp:
+
+#include "a.h"
+
+string s;
+A a;
+
+void gee()
+{
+   a.push( s );
+}
+
+Now build library from a.cpp with string implementation Impl1;
+than build application with b.cpp that use string implementation Impl2,
+and link with mentioned above library. Compiler will pass. Linker may be
+pass too. But you application will crash (or randomly carash) either on
+call a.push, or on assignment _str = s. This is evident here, but not
+evident in real applications.
+
+The conclusion is: "Using Wrapper mode is very hard and we remove support
+for it". If you still want to play in mine picker, do it at you own risk
+and don't disturb us.
 
 ========================================================================
 
@@ -121,7 +247,8 @@ Package maintainers can use any path by own taste---we can't satisfy
 variety of distributions/packages.
 
 So you can:
- - fix path in stlport sources (for you own needs)
+ - fix path in stlport administration config file stlport/stl/_site_config.h, 
+   see _STLP_NATIVE_INCLUDE_PATH macro and related.
  - make request to package maintainer
  - build and install compiler
 
@@ -220,3 +347,57 @@ A6.1 In general no. In any case C++ language support from compiler is required
 for STLport (operators new, delete, RTTI, exceptions support). STLport also
 use 'native' headers and libraries to take interface to system functions and
 variables.
+
+========================================================================
+
+Q6.2 My tool detect memory leaks in application with STLport. Is this leak
+from STLport?
+
+A6.2 In most cases this are 'pseudo memory leaks' that some tools wrongly
+supports.
+
+In the default compile of STLport, the node allocator is used to allocate
+internal memory. The node allocator works by pre-allocating a large chunk of
+memory and handing out small memory blocks out. The memory chunk is not freed
+during running an application that uses STLport (i.e. it don't returned to system,
+but reused inside application). See also http://www.sgi.com/tech/stl/alloc.html
+
+There are tools like BoundsChecker, Purify or Valgrind that check for memory
+leaks, for memory that isn't freed when no longer used. These tools may report
+false memory leaks when one uses STLport's node allocator. The memory chunk is
+normally freed at application end, but the memory checkers usually report memory
+leaks before that point. Another memory problem might be reported when you use a
+shared library (e.g. DLL, this problem specific for Windows DLL model) that
+uses STLport internally. After unloading the library the memory leak is still there.
+
+There are ways to remove the pseudo memory leaks (since the memory is properly
+freed at the end of the program, the leaks are just pseudo-ones). You could use
+another allocator that is used in STLport. Open the file
+"./stlport/stl/_site_config.h" and uncomment either one of the following:
+
+
+   _STLP_USE_NEWALLOC   enables a simple allocator that uses "new"
+   _STLP_USE_MALLOC     enables a simple allocator that uses "malloc"
+
+Alternatively you can define the following symbol, just uncomment it in
+"./stlport/stl/_site_config.h".
+
+   _STLP_LEAKS_PEDANTIC
+
+The symbol forces freeing all memory chunks. Also see the comments around the
+symbol in the config file.
+
+Note that you have to recompile STLport AND your application and all of your
+dependent libraries if you make any change to the file!
+
+There are also some defines that help in debugging memory problems in STLport.
+In _STLP_DEBUG mode, just also define the following symbols, either in
+"./stlport/stl_user_config.h" or in your project settings:
+
+   _STLP_DEBUG_ALLOC
+   _STLP_DEBUG_UNINITIALIZED
+
+You don't need to rebuild STLport for these options, but you have to rebuild
+your application and all of your dependent libraries if you make any change to
+the file.
+

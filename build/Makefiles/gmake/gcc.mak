@@ -6,7 +6,7 @@
 INCLUDES :=
 
 CXX := c++
-CC := gcc
+CC := gcc -ansi
 
 ifeq ($(OSNAME), cygming)
 RC := windres
@@ -17,13 +17,23 @@ CXX := ${TARGET_OS}-${CXX}
 CC := ${TARGET_OS}-${CC}
 endif
 
+ifeq ($(OSNAME), darwin)
+CXX_VERSION := $(shell ${CXX} -dumpversion)
+# TODO: ensure PANTHER's gcc compatibility...
+CXX_VERSION_MAJOR := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { print $1; }')
+CXX_VERSION_MINOR := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { print $2; }')
+CXX_VERSION_PATCH := $(shell ${CXX} -dumpversion | awk 'BEGIN { FS = "."; } { print $3; }')
+else
 CXX_VERSION := $(shell ${CXX} --version | grep ${CXX} | awk '{ print $$3; }')
+
 ifeq ($(CXX_VERSION),)
 CXX_VERSION := $(shell ${CXX} --version)
 endif
+
 CXX_VERSION_MAJOR := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$1; }')
 CXX_VERSION_MINOR := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$2; }')
 CXX_VERSION_PATCH := $(shell echo ${CXX_VERSION} | awk 'BEGIN { FS = "."; } { print $$3; }')
+endif
 
 DEFS ?=
 OPT ?=
@@ -37,9 +47,17 @@ release-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUI
 dbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=d -DBUILD_INFOS="-g" --output-format coff
 stldbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=stld -DBUILD_INFOS="-g -D_STLP_DEBUG" --output-format coff
 RC_OUTPUT_OPTION = -o $@
-CCFLAGS = $(OPT)
-CFLAGS = $(OPT)
-CXXFLAGS = -Wall -Wsign-promo -fexceptions -fident $(OPT)
+CXXFLAGS = -Wall -Wsign-promo -fexceptions -fident 
+ifeq ($(OSREALNAME), mingw)
+CCFLAGS += -mthreads
+CFLAGS += -mthreads
+CXXFLAGS += -mthreads
+else
+DEFS += -D_REENTRANT
+endif
+CCFLAGS += $(OPT)
+CFLAGS += $(OPT)
+CXXFLAGS += $(OPT)
 COMPILE.rc = $(RC) $(RCFLAGS)
 endif
 

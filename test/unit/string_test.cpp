@@ -2,7 +2,7 @@
 #include <deque>
 #include <string>
 #include <algorithm>
-#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
 #  include <sstream>
 #endif
 
@@ -47,7 +47,7 @@ class StringTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(short_string_optim_bug);
   CPPUNIT_TEST(compare);
   CPPUNIT_TEST(template_expresion);
-#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
   CPPUNIT_TEST(io);
 #endif
   CPPUNIT_TEST_SUITE_END();
@@ -68,7 +68,7 @@ protected:
   void short_string_optim_bug();
   void compare();
   void template_expresion();
-#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
   void io();
 #endif
 
@@ -507,8 +507,16 @@ void StringTest::find()
   CPPUNIT_ASSERT( s.find("one") == 0 );
   CPPUNIT_ASSERT( s.find('t') == 4 );
   CPPUNIT_ASSERT( s.find('t', 5) == 8 );
-  CPPUNIT_ASSERT( s.find("four") == string::npos );
-  CPPUNIT_ASSERT( s.find("one", string::npos) == string::npos );
+  //We are trying to get a const reference to the npos string static member to
+  //force the compiler to allocate memory for this variable. It used to reveal
+  //a bug of STLport which was simply declaring npos without instanciating it.
+#if !defined (STLPORT) || !defined (_STLP_STATIC_CONST_INIT_BUG)
+  string::size_type const& npos_local = string::npos;
+#else
+#  define npos_local string::npos
+#endif
+  CPPUNIT_ASSERT( s.find("four") == npos_local );
+  CPPUNIT_ASSERT( s.find("one", string::npos) == npos_local );
 
   CPPUNIT_ASSERT( s.rfind("two") == 18 );
   CPPUNIT_ASSERT( s.rfind("two", 0) == string::npos );
@@ -719,7 +727,7 @@ void StringTest::template_expresion()
   }
 }
 
-#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
 void StringTest::io()
 {
   string str("STLport");

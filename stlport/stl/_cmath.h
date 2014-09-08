@@ -127,9 +127,13 @@
 #  if defined (_STLP_WCE)
 #    pragma function (ceil, floor)
 #  endif
+#  define _STLP_RESTORE_FUNCTION_INTRINSIC
 #endif // _STLP_MSVC && _STLP_MSVC <= 1300 && !_STLP_WCE && _MSC_EXTENSIONS
 
-#if !defined (_STLP_MSVC) || (_STLP_MSVC < 1310)
+//MSVC starting with .Net 2003 has already all math functions in global namespace.
+//As Intel C++ compiler icl include MSVC headers it also have all math functions in ::
+// so we use _MSC_VER rather than _STLP_MSVC
+#if !defined (_MSC_VER) || (_MSC_VER < 1310)
 inline double abs(double __x) { return ::fabs(__x); }
 #  ifndef __MVS__
 _STLP_DEF_MATH_INLINE(abs,fabs)
@@ -155,27 +159,27 @@ _STLP_DEF_MATH_INLINE(log,log)
 _STLP_DEF_MATH_INLINE(log10,log10)
 _STLP_DEF_MATH_INLINE2P(modf,modf)
 
-#if 0 // Unknown OS, where float/long double modf missed
+#  if 0 // Unknown OS, where float/long double modf missed
 // fbp : float versions are not always available
 
 // Context of define of _STLP_VENDOR_LONG_DOUBLE_MATH should be changed:
 // many OS has *l math functions... -ptr
 
-# if !defined(_STLP_VENDOR_LONG_DOUBLE_MATH)  //*ty 11/25/2001 - 
+#    if !defined(_STLP_VENDOR_LONG_DOUBLE_MATH)  //*ty 11/25/2001 - 
 inline float modf (float __x, float* __y)     { 
   double __dd[2]; 
   double __res = ::modf((double)__x, __dd); 
   __y[0] = (float)__dd[0] ; __y[1] = (float)__dd[1]; 
   return (float)__res; 
 }
-#  else  //*ty 11/25/2001 - i.e. for apple SCpp
+#    else  //*ty 11/25/2001 - i.e. for apple SCpp
 inline float modf (float __x, float* __y)     { 
   long double __dd[2]; 
   long double __res = ::modfl(__STATIC_CAST(long double,__x), __dd); 
   __y[0] = __STATIC_CAST(float,__dd[0]); __y[1] = __STATIC_CAST(float,__dd[1]); 
   return __STATIC_CAST(float,__res);
 }
-# endif  //*ty 11/25/2001 - 
+#    endif  //*ty 11/25/2001 - 
 // fbp : long double versions are not available
 inline long double modf (long double __x, long double* __y) { 
   double __dd[2]; 
@@ -183,7 +187,7 @@ inline long double modf (long double __x, long double* __y) {
   __y[0] = (long double)__dd[0] ; __y[1] = (long double)__dd[1]; 
   return (long double)__res; 
 }
-#endif // 0
+#  endif // 0
 
 _STLP_DEF_MATH_INLINE2(pow,pow)
 
@@ -229,16 +233,17 @@ inline double hypot(double x, double y) { return sqrt(x*x + y*y); }
 _STLP_DEF_MATH_INLINE2(hypot,hypot)
 #endif
 
-#if defined (_STLP_WCE) || \
-   (defined(_STLP_MSVC) && (_STLP_MSVC <= 1300) && defined (_MSC_EXTENSIONS) /* && !defined(_STLP_WCE_NET) */)
+#if defined (_STLP_RESTORE_FUNCTION_INTRINSIC)
 //restoration of the default intrinsic status of those functions:
 #  pragma intrinsic (abs, acos, asin, atan, atan2, cos, cosh, exp, fabs, fmod, log, log10, sin, sinh, sqrt, tan, tanh)
 #  if defined (_STLP_WCE)
 #    pragma intrinsic (ceil, floor)
 #  endif
 #  pragma warning(pop)
+#  undef _STLP_RESTORE_FUNCTION_INTRINSIC
 #endif // _STLP_MSVC && _STLP_MSVC <= 1300 && !_STLP_WCE && _MSC_EXTENSIONS
 
+#if defined (_STLP_IMPORT_VENDOR_CSTD) && !defined (_STLP_NO_CSTD_FUNCTION_IMPORTS)
 _STLP_BEGIN_NAMESPACE
 using ::abs;
 using ::acos;
@@ -265,6 +270,7 @@ using ::sqrt;
 using ::tan;
 using ::tanh;
 _STLP_END_NAMESPACE
+#endif
 
 #endif /* CMATH_H */
 

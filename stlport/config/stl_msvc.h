@@ -33,6 +33,7 @@
 #endif
 
 #define _STLP_MINIMUM_IMPORT_STD
+#define _STLP_NO_VENDOR_STDLIB_L 1
 
 #if defined (_STLP_MSVC)
 
@@ -46,7 +47,6 @@
 
 #  define _STLP_DLLEXPORT_NEEDS_PREDECLARATION 1
 #  define _STLP_HAS_SPECIFIC_PROLOG_EPILOG 1
-#  define _STLP_NO_VENDOR_STDLIB_L 1
 
 // # ifndef __BUILDING_STLPORT
 // #  define _STLP_USE_TEMPLATE_EXPORT 1
@@ -60,8 +60,6 @@
 #  endif  //  (_STLP_MSVC >= 1310)
 
 #  if (_STLP_MSVC >= 1300)
-//Starting with MSVC 7.0 we assume that the new SDK is granted:
-#    define _STLP_NEW_PLATFORM_SDK 1
 #    undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
 #    if !defined (_STLP_DONT_USE_EXCEPTIONS)
 #      define _STLP_NOTHROW throw()
@@ -113,6 +111,22 @@
 #    define _STLP_DONT_RETURN_VOID 1
 #  endif
 
+/*
+ * MSVC6 is known to have many trouble with namespace management but
+ * MSVC .Net 2003 and 2005 also have a bug difficult to reproduce without
+ * STLport:
+ * namespace stlp_std {
+ *   typedef int foo_int;
+ * }
+ * #include <map>
+ * const foo_int bar = 0;
+ *
+ * As you can see foo is available without namespace specification as if 
+ * a using namespace stlp_std has been performed. Defining _STLP_USING_NAMESPACE_BUG
+ * restore the expected compilation error.
+ */
+#  define _STLP_USING_NAMESPACE_BUG 1
+
 #endif /* _STLP_MSVC */
 
 #if (_MSC_VER <= 1310) 
@@ -123,7 +137,14 @@
 #  define _STLP_NO_IEC559_SUPPORT 1
 #endif
 
-#if (_MSC_VER < 1300) || defined(UNDER_CE) // including MSVC 6.0
+#if (_MSC_VER >= 1300)
+/* Starting with MSVC 7.0 and compilers simulating it,
+ * we assume that the new SDK is granted:
+ */
+#  define _STLP_NEW_PLATFORM_SDK 1
+#endif
+
+#if (_MSC_VER < 1300) || defined (UNDER_CE) // including MSVC 6.0
 //  these work, as long they are inline
 #  define _STLP_INLINE_MEMBER_TEMPLATES 1
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
@@ -131,7 +152,6 @@
 #  define _STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE 1
 #  define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
 #  define _STLP_VENDOR_UNEXPECTED_STD 1
-#  define _STLP_USING_NAMESPACE_BUG 1
 #endif
 
 #if (_STLP_MSVC > 1100)
@@ -221,7 +241,9 @@ typedef char __stl_char;
 #  define _STLP_CLASS_IMPORT_DECLSPEC __declspec(dllimport)
 #endif
 
-#if defined (__DLL) || defined (_DLL) || defined (_WINDLL) || defined (_RTLDLL) || defined(_AFXDLL)
+//dums 12/05/2005: removed _WINDLL check, this macro means that the user is building a dll
+// but not what the user wants to be linked to.
+#if defined (__DLL) || defined (_DLL) || defined (_RTLDLL) || defined (_AFXDLL)
 #  if !defined (_STLP_USE_STATIC_LIB)
 #    if !defined (_STLP_USE_DYNAMIC_LIB)
 #      define _STLP_USE_DYNAMIC_LIB
@@ -270,7 +292,8 @@ typedef char __stl_char;
 #  undef _STLP_NO_CUSTOM_IO
 #endif
 
-#if !defined (__BUILDING_STLPORT) && !defined (_STLP_NO_IOSTREAMS) && !defined (_STLP_DONT_USE_AUTO_LINK)
+#if !defined (__BUILDING_STLPORT) && !defined (_STLP_DONT_USE_AUTO_LINK) && \
+    !defined (_STLP_NO_IOSTREAMS) && !defined (_STLP_USE_NO_IOSTREAMS)
 
 #  define _STLP_STRINGIZE(X) _STLP_STRINGIZE_AUX(X)
 #  define _STLP_STRINGIZE_AUX(X) #X

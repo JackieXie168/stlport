@@ -21,40 +21,40 @@
 #endif
 
 #ifdef _STLP_WCE
-# pragma message("eMbedded Visual C++ 3 and .NET don't have a errno.h header; STLport won't include native errno.h here")
-#else
-# if defined (errno)
-/* We are forced to undef errno otherwise the include of the native
- * errno.h file would fail with a message like:
- * unable to find file ../include/(errno_macro_replacement).h
- */
-#  define _STLP_ERRNO_ALREADY_DEFINED
-#  undef errno
-# endif
-
-# include _STLP_NATIVE_C_HEADER(errno.h)
-
-# if defined (errno) || defined (_STLP_ERRNO_ALREADY_DEFINED)
-#  if !defined (_STLP_ERRNO_ALREADY_DEFINED)
-/* If errno was already defined it means that STLport errno.h
- * has already been included and __stlp_errno define. We do not 
- * redefine it as the errno macro might not have been redefine
- * in the case of a non reentrant native errno.h file (a common 
- * case).
- */
-inline int* __stlp_errno() {
-  return &(errno);
-}
+// only show message when directly including this file in a non-library build
+#  if !defined(__BUILDING_STLPORT) && (_STLP_OUTERMOST_HEADER_ID == 0x205)
+#    pragma message("eMbedded Visual C++ 3 and .NET don't have a errno.h header; STLport won't include native errno.h here")
 #  endif
-#  undef errno
-#  define errno (*__stlp_errno())
-# else
+#else
+#  ifndef errno
+/* We define the following macro first to guaranty the header reentrancy: */
+#    define _STLP_NATIVE_ERRNO_H_INCLUDED
+#    include _STLP_NATIVE_C_HEADER(errno.h)
+#  endif /* errno */
+
+#  if !defined (_STLP_NATIVE_ERRNO_H_INCLUDED)
+/* If errno has been defined before inclusion of native errno.h including it from STLport errno.h
+ * becomes impossible because if:
+ * #define errno foo
+ * then
+ * #include _STLP_NATIVE_C_HEADER(errno.h)
+ * becomes:
+ * #include _STLP_NATIVE_C_HEADER(foo.h)
+ *
+ * To fix this problem you have to find where this definition comes from and include errno.h before it.
+ */
+#    error errno has been defined before inclusion of errno.h header.
+#  endif
+
+#  ifdef __cplusplus
+#   ifndef errno /* errno still not defined */
 _STLP_BEGIN_NAMESPACE
 using ::errno;
 _STLP_END_NAMESPACE
-# endif
-#endif // _STLP_WCE
+#   endif /* errno */
+#  endif /* __cplusplus */
 
+#endif
 
 #if (_STLP_OUTERMOST_HEADER_ID == 0x205)
 #  if ! defined (_STLP_DONT_POP_HEADER_ID)
@@ -64,6 +64,7 @@ _STLP_END_NAMESPACE
 #  undef  _STLP_DONT_POP_HEADER_ID
 #endif
 
-// Local Variables:
-// mode:C++
-// End:
+/* Local Variables:
+ * mode:C++
+ * End:
+ */

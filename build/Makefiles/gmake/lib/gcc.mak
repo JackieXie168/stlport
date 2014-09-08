@@ -148,6 +148,7 @@ COMPATIBILITY_VERSION := $(CURRENT_VERSION)
 dbg-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_DBGxx) -Wl ${LDSEARCH}
 stldbg-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_STLDBGxx) -Wl ${LDSEARCH}
 release-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAMExx) -Wl ${LDSEARCH}
+
 dbg-static:	LDFLAGS += -staticlib ${LDSEARCH}
 stldbg-static:	LDFLAGS += -staticlib ${LDSEARCH}
 release-static:	LDFLAGS += -staticlib ${LDSEARCH}

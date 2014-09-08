@@ -1,16 +1,19 @@
-# -*- Makefile -*- Time-stamp: <05/03/10 17:51:53 ptr>
+# -*- Makefile -*- Time-stamp: <05/05/14 14:04:12 ptr>
 # $Id$
 
 SRCROOT := ../..
 COMPILER_NAME := gcc
 
-ALL_TAGS := release-shared dbg-shared stldbg-shared
+ALL_TAGS := release-shared stldbg-shared
 STLPORT_DIR := ../../..
 include Makefile.inc
 include ${SRCROOT}/Makefiles/top.mak
 
 INCLUDES += -I${STLPORT_INCLUDE_DIR}
 DEFS += -D_STLP_NO_CUSTOM_IO -D_STLP_LEAKS_PEDANTIC
+
+dbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
+stldbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
 
 ifeq ($(OSNAME), cygming)
 release-shared:	DEFS += -D_STLP_USE_DYNAMIC_LIB
@@ -22,18 +25,17 @@ ifdef STLP_BUILD_BOOST_PATH
 INCLUDES += -I${STLP_BUILD_BOOST_PATH}
 endif
 
-ifndef TARGET_OS
-release-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-R${STLPORT_LIB_DIR}
-dbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-R${STLPORT_LIB_DIR}
-stldbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-R${STLPORT_LIB_DIR}
-else
 release-shared:	LDSEARCH = -L${STLPORT_LIB_DIR}
 dbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR}
 stldbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR}
-endif
 
-dbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
-stldbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
+ifndef TARGET_OS
+ifneq ($(OSNAME), cygming)
+release-shared:	LDSEARCH += -Wl,-R${STLPORT_LIB_DIR}
+dbg-shared:	LDSEARCH += -Wl,-R${STLPORT_LIB_DIR}
+stldbg-shared:	LDSEARCH += -Wl,-R${STLPORT_LIB_DIR}
+endif
+endif
 
 ifeq ($(OSNAME),cygming)
 LIB_VERSION = ${LIBMAJOR}${LIBMINOR}
@@ -52,3 +54,8 @@ stldbg-shared  : LDLIBS = -lstlportstlg -lrt
 dbg-shared     : LDLIBS = -lstlportg -lrt
 endif
 
+ifeq ($(OSNAME),darwin)
+release-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-L${STLPORT_LIB_DIR}
+dbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-L${STLPORT_LIB_DIR}
+stldbg-shared:	LDSEARCH = -L${STLPORT_LIB_DIR} -Wl,-L${STLPORT_LIB_DIR}
+endif
