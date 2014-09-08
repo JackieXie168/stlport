@@ -20,20 +20,17 @@
 
 # include "Prefix.h"
 # include "TestClass.h"
-# include "nc_alloc.h"
 
 struct ThrowCompare
 {
-	bool operator()( const TestClass& a, const TestClass& b ) const;
+	bool operator()( const TestClass& a, const TestClass& b ) const {
+	  simulate_possible_failure();
+	  return a < b;
+	}
 };
 
-inline bool ThrowCompare::operator()( const TestClass& a, const TestClass& b ) const
-{
-	simulate_possible_failure();
-	return a < b;
-}
 
-struct ThrowEqual : private ThrowCompare
+struct ThrowEqual
 {
 	inline bool operator()( const TestClass& a, const TestClass& b ) const
 	{
@@ -42,12 +39,12 @@ struct ThrowEqual : private ThrowCompare
 	}
 };
 
-struct ThrowHash : private ThrowCompare
+struct ThrowHash // : private ThrowCompare
 {
-	inline size_t operator()( const TestClass& a ) const
+	inline EH_CSTD::size_t operator()( const TestClass& a ) const
 	{
 		simulate_possible_failure();
-		return a.value();
+		return EH_CSTD::size_t(a.value());
 	}
 };
 

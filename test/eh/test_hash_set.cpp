@@ -37,7 +37,8 @@
 #include "ThrowCompare.h"
 #include "test_hash_resize.h"
 
-typedef EH_STD::hash_multiset<TestClass, ThrowHash, ThrowEqual> TestMultiSet;
+typedef EH_STD::__hash_multiset__<TestClass, ThrowHash, ThrowEqual,
+  eh_allocator(TestClass) > TestMultiSet;
 
 inline multiset_tag
 container_category(const TestMultiSet&)
@@ -50,7 +51,7 @@ void test_hash_multiset()
 # if !(defined (_MSC_VER) && (_MSC_VER < 1100))
 	TestMultiSet testMultiSet, testMultiSet2;
 	
-        const size_t hash_setSize = random_number(random_base);
+        const EH_STD::size_t hash_setSize = random_number(random_base);
 	
 	while ( testMultiSet.size() < hash_setSize )
 	{
@@ -65,7 +66,7 @@ void test_hash_multiset()
 #  endif
 	WeakCheck( testMultiSet, test_insert_value<TestMultiSet>(testMultiSet) );
 
-	size_t insCnt = random_number(random_base);
+	EH_STD::size_t insCnt = random_number(random_base);
 	TestMultiSet::value_type *insFirst = new TestMultiSet::value_type[1+insCnt];
 	WeakCheck( testMultiSet, insert_range_tester(testMultiSet, insFirst, insFirst+insCnt) );
 	ConstCheck( 0, test_construct_pointer_range<TestMultiSet>(insFirst, insFirst+insCnt) );
@@ -83,7 +84,7 @@ void test_hash_multiset()
 # endif
 }
 
-typedef EH_STD::hash_set<TestClass, ThrowHash, ThrowEqual> TestSet;
+typedef EH_STD::__hash_set__<TestClass, ThrowHash, ThrowEqual, eh_allocator(TestClass) > TestSet;
 
 inline set_tag
 container_category(const TestSet&)
@@ -96,7 +97,7 @@ void test_hash_set()
 # if !(defined (_MSC_VER) && (_MSC_VER < 1100))
 	TestSet testSet, testSet2;
 	
-        const size_t hash_setSize = random_number(random_base);
+        const EH_STD::size_t hash_setSize = random_number(random_base);
 
 	while ( testSet.size() < hash_setSize )
 	{
@@ -111,7 +112,7 @@ void test_hash_set()
 #  endif
 	WeakCheck( testSet, test_insert_value<TestSet>(testSet) );
 
-	size_t insCnt = random_number(random_base);
+	EH_STD::size_t insCnt = random_number(random_base);
 	TestSet::value_type *insFirst = new TestSet::value_type[1+insCnt];
 	WeakCheck( testSet, insert_range_tester(testSet, insFirst, insFirst+insCnt) );
 	ConstCheck( 0, test_construct_pointer_range<TestSet>(insFirst, insFirst+insCnt) );

@@ -19,7 +19,7 @@ OUTDIR=.
 INTDIR=.
 
 # set this directories 
-STL_INCL=../../stl
+STL_INCL=../../stlport
 VC_INCL=.
 # d:/vc41/msdev/include
 
@@ -30,22 +30,21 @@ test_slist.obj test_vector.obj test_string.obj test_bitset.obj test_valarray.obj
 
 LINK32=link.exe
 
-# 5.0 won't work with NO_NEW_IOSTREAMS.  
+CPP_PROJ=/nologo /Gr /MDd /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I. /D "__STL_DEBUG"
+# CPP_PROJ=/nologo /MTd /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I.
 
-CPP_PROJ=/nologo /W3 /GX /Zd /D "WIN32" \
-/D "_CONSOLE" /D "__STL_NO_NEW_IOSTREAMS" /D "__STL_USE_SGI_STRING" /I$(STL_INCL) /I.
+# linker finds proper STLport lib automatically, only path to the
+# library is needed
+CPP_LIBS = /link /libpath:"..\..\lib"
 
-CPP_PROJ=/nologo /MD /W3 /GX /D "WIN32"\ /D_REENTRANT /D__STL_NO_NEW_IOSTREAMS \
-/D "_CONSOLE"  /I$(STL_INCL) /I.
-
-CPP_PROJ=/nologo /MD /W3 /GX /D "WIN32" /D "_CONSOLE"   /I$(STL_INCL) /I.
-
-check: eh_test.out
-
-eh_test.out : $(Dep_stl)
-	$(CPP) $(CPP_PROJ) $(Dep_stl) -o eh_test.exe
-	eh_test
+check: eh_test.exe
+#  fbp : this is to locate DLL
+	cd ..\..\lib
+	..\test\eh\eh_test.exe -s 100
 	echo done
+
+eh_test.exe : $(Dep_stl)
+	$(CC) $(CPP_PROJ) $(Dep_stl) -o eh_test.exe $(CPP_LIBS)
 
 clean :
 	-@erase "$(INTDIR)\*.obj"

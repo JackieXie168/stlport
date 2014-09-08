@@ -27,7 +27,7 @@
 #include "test_insert.h"
 #include "test_push_front.h"
 
-typedef EH_STD::vector<TestClass> TestVector;
+typedef EH_STD::__vector__<TestClass, eh_allocator(TestClass) > TestVector;
 
 inline sequence_container_tag
 container_category(const TestVector&)
@@ -35,9 +35,9 @@ container_category(const TestVector&)
   return sequence_container_tag();
 }
 
-void prepare_insert_n( TestVector& c, size_t insCnt );
+void prepare_insert_n( TestVector& c, EH_STD::size_t insCnt );
 
-void prepare_insert_n( TestVector& c, size_t insCnt )
+void prepare_insert_n( TestVector& c, EH_STD::size_t insCnt )
 {
     if ( random_number(2) )
         c.reserve( c.size() + insCnt );
@@ -45,7 +45,7 @@ void prepare_insert_n( TestVector& c, size_t insCnt )
 
 struct test_reserve
 {
-    test_reserve( size_t n ) : fAmount(n) {
+    test_reserve( EH_STD::size_t n ) : fAmount(n) {
             gTestController.SetCurrentTestName("vector::reserve()");
     }
 	
@@ -54,14 +54,14 @@ struct test_reserve
         v.reserve( fAmount );
     }
 private:
-    size_t fAmount;
+    EH_STD::size_t fAmount;
 };
 
-inline void prepare_insert_range( TestVector& vec, size_t, TestClass* first, TestClass* last )
+inline void prepare_insert_range( TestVector& vec, EH_STD::size_t, TestClass* first, TestClass* last )
 {
     if ( random_number(2) )
     {
-        ptrdiff_t d = 0;
+        EH_STD::ptrdiff_t d = 0;
         EH_DISTANCE( first, last, d );
         vec.reserve( vec.size() + d );
     }
@@ -74,7 +74,7 @@ void test_vector()
    
     TestVector emptyVector;
     TestVector testVector, testVector2;
-    size_t vectorSize = random_number(random_base);
+    EH_STD::size_t vectorSize = random_number(random_base);
 	
     testVector.reserve(vectorSize*4);
     while ( testVector.size() < vectorSize )
@@ -84,7 +84,7 @@ void test_vector()
         testVector2.push_back( TestClass() );
     }
 	
-    size_t insCnt = random_number(random_base);
+    EH_STD::size_t insCnt = random_number(random_base);
     TestClass *insFirst = new TestVector::value_type[1+ insCnt];
 
     ConstCheck( 0, test_construct_pointer_range<TestVector>(insFirst, insFirst+insCnt) );
@@ -96,11 +96,11 @@ void test_vector()
 
     WeakCheck( testVector, test_insert_one<TestVector>(testVector) );
     WeakCheck( testVector, test_insert_one<TestVector>(testVector, 0) );
-    WeakCheck( testVector, test_insert_one<TestVector>(testVector, testVector.size()) );
+    WeakCheck( testVector, test_insert_one<TestVector>(testVector, (int)testVector.size()) );
 
     WeakCheck( testVector, test_insert_n<TestVector>(testVector, random_number(random_base) ) );
     WeakCheck( testVector, test_insert_n<TestVector>(testVector, random_number(random_base), 0 ) );
-    WeakCheck( testVector, test_insert_n<TestVector>(testVector, random_number(random_base), testVector.size() ) );
+    WeakCheck( testVector, test_insert_n<TestVector>(testVector, random_number(random_base), (int)testVector.size() ) );
 
     WeakCheck( testVector, insert_range_tester(testVector, testVector2.begin(), testVector2.end() ) );
 	

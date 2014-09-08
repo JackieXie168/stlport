@@ -17,7 +17,7 @@
 #if defined( EH_SLIST_IMPLEMENTED )
 #include "TestClass.h"
 #include "LeakCheck.h"
-# if defined (EH_NEW_HEADERS) && !__MSL__
+# if defined (EH_NEW_HEADERS) && defined (EH_USE_SGI_STL)
 #include <slist>
 #else
 #include <slist.h>
@@ -28,7 +28,7 @@
 #include "test_insert.h"
 #include "test_push_front.h"
 
-typedef EH_STD::slist<TestClass> TestSList;
+typedef EH_STD::__slist__<TestClass, eh_allocator(TestClass) > TestSList;
 
 inline sequence_container_tag
 container_category(const TestSList&)
@@ -53,7 +53,7 @@ struct test_slist_sort
 void test_slist()
 {
 	TestSList testSList, testSList2;
-	size_t slistSize = random_number(random_base);
+	EH_STD::size_t slistSize = random_number(random_base);
 	
 	while ( testSList.size() < slistSize )
 	{
@@ -64,13 +64,13 @@ void test_slist()
 
 	StrongCheck( testSList, test_insert_one<TestSList>(testSList) );
 	StrongCheck( testSList, test_insert_one<TestSList>(testSList, 0) );
-	StrongCheck( testSList, test_insert_one<TestSList>(testSList, testSList.size()) );
+	StrongCheck( testSList, test_insert_one<TestSList>(testSList, (int)testSList.size()) );
 
 	WeakCheck( testSList, test_insert_n<TestSList>(testSList, random_number(random_base) ) );
 	WeakCheck( testSList, test_insert_n<TestSList>(testSList, random_number(random_base), 0 ) );
-	WeakCheck( testSList, test_insert_n<TestSList>(testSList, random_number(random_base), testSList.size() ) );
+	WeakCheck( testSList, test_insert_n<TestSList>(testSList, random_number(random_base), (int)testSList.size() ) );
 
-	size_t insCnt = random_number(random_base);
+	EH_STD::size_t insCnt = random_number(random_base);
 	TestClass *insFirst = new TestSList::value_type[1+insCnt];
 	WeakCheck( testSList, insert_range_tester(testSList, insFirst, insFirst+insCnt) );
 

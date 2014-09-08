@@ -28,7 +28,13 @@ no
 #include "Prefix.h"
 #include "Tests.h"
 
-#ifdef macintosh
+#if defined (EH_NEW_IOSTREAMS)
+# include <iostream>
+# else
+# include <iostream.h>
+#endif
+
+#if defined(macintosh) || defined (_MAC) && defined(__MWERKS__)
 
 # include <console.h>
 # include <Types.h>
@@ -47,6 +53,7 @@ no
 # if defined ( EH_USE_SGI_STL ) 
 // Override assertion behavior
 #  include <cstdarg>
+//#  include <stldebug.h>
 void __stl_debug_message(const char * format_str, ...)
 {
 	std::va_list args;
@@ -92,12 +99,6 @@ extern "C"
 # include <string.h>
 #endif
 
-#if defined (EH_NEW_IOSTREAMS)
-# include <iostream>
-# else
-# include <iostream.h>
-#endif
-
 #include "TestClass.h"
 #include "LeakCheck.h"
 #include "test_construct.h"
@@ -105,7 +106,14 @@ extern "C"
 # include <except.h>
 #endif
 
-EH_USE_STD
+# if defined(EH_USE_NAMESPACES)
+namespace  // dwa 1/21/00 - must use unnamed namespace here to avoid conflict under gcc using native streams
+{
+using EH_STD::cerr;
+using EH_STD::endl;
+}
+# endif
+
 
 /*===================================================================================
 	usage  (file-static helper)
@@ -135,12 +143,15 @@ static void usage(const char* name)
 #  include <set.h>
 # endif
 
-int main(int argc, char** argv)
+int __STL_CALL main(int argc, char** argv)
 {
-#if __MWERKS__	// Get command line.
+#if defined( __MWERKS__ ) && defined( macintosh )	// Get command line.
 	argc = ccommand(&argv);
+	// Allow the i/o window to be repositioned.
+//	EH_STD::string s;
+//	getline(EH_STD::cin, s);
 #endif
-    int niters=2;
+    unsigned int niters=2;
     bool run_all=true;
     bool run_slist = false;
     bool run_list = false;
@@ -267,11 +278,14 @@ int main(int argc, char** argv)
             test_vector();
         }
 
+#if defined( EH_BIT_VECTOR_IMPLEMENTED )
         if (run_all || run_bit_vector) {
             gTestController.SetCurrentContainer("bit_vector");
            cerr << "EH test : bit_vector" << endl;
             test_bit_vector();
         }
+#endif
+
         if (run_all || run_list) {
             gTestController.SetCurrentContainer("list");
             cerr << "EH test : list" << endl;
@@ -367,3 +381,4 @@ int main(int argc, char** argv)
     cerr << "EH test : Done\n";
     return 0;
 }
+

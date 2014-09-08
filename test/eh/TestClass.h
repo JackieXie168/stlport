@@ -16,7 +16,7 @@
 			cause exceptions when it is constructed or copied.
 		
 ***********************************************************************************/
-#if !INCLUDED_MOTU_TestClass
+#ifndef INCLUDED_MOTU_TestClass
 #define INCLUDED_MOTU_TestClass 1
 
 # include "Prefix.h"
@@ -31,12 +31,8 @@
 #  include <limits.h>
 # endif
 
-# if defined (EH_NEW_IOSTREAMS)
-#  include <iosfwd>
-# else
-#  include <iostream.h>
-# endif
 
+#include <iosfwd>
 #include "random_number.h"
 #include "nc_alloc.h"
 
@@ -52,6 +48,12 @@ public:
     inline int value() const;
 	
     inline TestClass operator!() const;
+
+    inline bool operator==( const TestClass& rhs ) const
+  {
+    return value() == rhs.value();
+  }
+
 protected:
     static inline unsigned int get_random(unsigned range = UINT_MAX);
 private:
@@ -87,7 +89,7 @@ inline void TestClass::Init( int value )
 
 inline TestClass::TestClass()
 {
-	Init( get_random() );
+	Init( int(get_random()) );
 }
 
 inline TestClass::TestClass( int value )
@@ -152,11 +154,13 @@ inline bool operator<=( const TestClass& lhs, const TestClass& rhs ) {
     return !(rhs < lhs);
 }
 
+# if 0
 inline bool operator==( const TestClass& lhs, const TestClass& rhs )
 {
     return lhs.value() == rhs.value();
 }
-	
+# endif
+
 inline bool operator != ( const TestClass& lhs, const TestClass& rhs ) {
     return lhs.value() != rhs.value();
 }
@@ -164,7 +168,7 @@ inline bool operator != ( const TestClass& lhs, const TestClass& rhs ) {
 inline unsigned int TestClass::get_random( unsigned range )
 {
     return random_number( range );
-};
+}
 
 # ifdef EH_NEW_IOSTREAMS
 extern EH_STD::ostream& operator << ( EH_STD::ostream& s, const TestClass&);

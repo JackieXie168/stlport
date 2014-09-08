@@ -29,7 +29,8 @@
 #endif
 
 #if EH_USE_SGI_STL
-#define EH_ASSERT __stl_assert
+
+#define EH_ASSERT __STL_ASSERT
 
 //=========================================================================
 // SGI STL-specific #defines
@@ -38,7 +39,11 @@
 //=========================================================================
 
 // Just include something to get whatever configuration header we're using.
-# include <stl_config.h>
+# include <stl/_config.h>
+
+# ifndef __STL_CALL
+#  define __STL_CALL
+# endif
 
 # if defined(__STL_USE_NAMESPACES)
 #  define EH_USE_NAMESPACES __STL_USE_NAMESPACES
@@ -47,9 +52,7 @@
 # define EH_BEGIN_NAMESPACE __STL_BEGIN_NAMESPACE
 # define EH_END_NAMESPACE __STL_END_NAMESPACE
 
-# if defined (__STL_USE_NEW_STYLE_HEADERS)
 #  define EH_NEW_HEADERS 1
-# endif
 
 # if defined (__STL_USE_NEW_IOSTREAMS)
 #  define EH_NEW_IOSTREAMS 1
@@ -67,20 +70,17 @@
 #  define EH_MULTI_CONST_TEMPLATE_ARG_BUG __STL_MULTI_CONST_TEMPLATE_ARG_BUG
 # endif
 
-# if defined(__STD)
+# if defined (STLPORT)
+#  define EH_STD STLPORT
+# elif defined(__STD)
 #  define EH_STD __STD
 # endif
 
-# if defined(__STL_VENDOR_CSTD)
-#  define EH_CSTD __STL_VENDOR_CSTD
+// we want to be portable here, so std:: won't work.
+# if defined(STLPORT_CSTD)
+#  define EH_CSTD STLPORT_CSTD
 # else
 #  define EH_CSTD std
-# endif
-
-# if defined(__STL_CLASS_PARTIAL_SPECIALIZATION) && defined(__STL_BOOL_KEYWORD)
-#  define EH_BIT_VECTOR EH_STD::vector<bool>
-# else
-#  define EH_BIT_VECTOR EH_STD::bit_vector
 # endif
 
 
@@ -91,12 +91,31 @@
 # define EH_HASH_CONTAINERS_SUPPORT_ITERATOR_CONSTRUCTION 1
 # define EH_SLIST_IMPLEMENTED 1
 # define EH_SELECT1ST_HINT __select1st_hint
-# define EH_ROPE_IMPLEMENTED 1
+// fbp : DEC cxx is unable to compile it for some reason
+# if !( defined (__DECCXX)  || (defined (__GNUC__) && (__GNUC_MINOR__ < 8)))
+#  define EH_ROPE_IMPLEMENTED 1
+# endif
 # define EH_STRING_IMPLEMENTED 1
 // # define EH_BITSET_IMPLEMENTED 1
 //# define EH_VALARRAY_IMPLEMENTED 1	- we have no tests yet for valarray
 
 # define stl_destroy EH_STD::destroy
+
+# include <memory>
+
+# define eh_allocator(T) EH_STD::__allocator<T, EH_STD::__debug_alloc<EH_STD::__new_alloc> >
+
+# define EH_BIT_VECTOR_IMPLEMENTED
+
+# if defined(__STL_CLASS_PARTIAL_SPECIALIZATION) && !defined(__STL_NO_BOOL)
+#  define EH_BIT_VECTOR EH_STD::vector<bool, eh_allocator(bool) >
+# else
+#  ifdef __STL_NO_BOOL
+#  undef   EH_BIT_VECTOR_IMPLEMENTED
+#  else
+#   define EH_BIT_VECTOR EH_STD::__vector__<bool, eh_allocator(bool) >
+#  endif
+# endif
 
 #else // !USE_SGI_STL
 //=========================================================================
@@ -144,13 +163,27 @@
 #  define EH_USE_NOTHROW 1
 # endif // Metrowerks configuration
 
-#ifdef __SUNPRO_CC
+#if defined (__SUNPRO_CC)
 # define stl_destroy __RWSTD::__destroy
 # define EH_DISTANCE( a, b, result ) distance( a, b, result )
 # define EH_BIT_VECTOR EH_STD::vector<bool>
 # define EH_NEW_HEADERS 1
 # define EH_USE_NAMESPACES 1
 # define EH_NEW_IOSTREAMS 1
+# define EH_ASSERT assert
+# define EH_STRING_IMPLEMENTED 1
+# elif defined (__KCC)
+# define stl_destroy EH_STD::destroy
+# define EH_DISTANCE( a, b, result ) do { result = distance( a, b ); } while (0)
+# define EH_BIT_VECTOR EH_STD::vector<bool>
+# define EH_NEW_HEADERS 1
+# define EH_USE_NAMESPACES 1
+# define EH_NEW_IOSTREAMS 1
+# define EH_ASSERT assert
+# define EH_CSTD
+# define EH_STRING_IMPLEMENTED 1
+# define EH_MULTI_CONST_TEMPLATE_ARG_BUG 1
+# define EH_SELECT1ST_HINT select1st
 # else
 # define stl_destroy destroy
 #endif
@@ -159,19 +192,26 @@
 // Compiler-independent configuration
 //
 # ifdef EH_USE_NAMESPACES
-# ifdef __STD
-#  define EH_STD __STD
+# ifdef STLPORT
+#  define EH_STD STLPORT
+# else
+#  define EH_STD std
+# endif
+# ifdef STLPORT_CSTD
+#  define EH_STD STLPORT_CSTD
 # else
 #  define EH_STD std
 # endif
 #  define EH_BEGIN_NAMESPACE namespace EH_STD {
 #  define EH_END_NAMESPACE   }
-#  define EH_USE_STD using namespace EH_STD;
 # else
 #  define EH_BEGIN_NAMESPACE
 #  define EH_END_NAMESPACE
 #  define EH_STD
-#  define EH_USE_STD
+# endif
+
+# ifndef EH_CSTD
+#  define EH_CSTD EH_STD
 # endif
 
 #endif // !USE_SGI_STL
@@ -196,4 +236,12 @@ struct eh_select1st_hint : public unary_function<Pair, U> {
 # define EH_USE_STD
 #endif
 
+#if defined (EH_USE_NAMESPACES) && !defined(__STL_VENDOR_GLOBAL_CSTD)
+# define USING_CSTD_NAME(name) using EH_STD :: name;
+#else
+# define USING_CSTD_NAME(name)
+#endif
+
 #endif // INCLUDED_MOTU_Prefix
+
+

@@ -19,7 +19,7 @@
 #define test_assign_op_H_
 
 # include "Prefix.h"
-# if __STL_USE_NEW_STYLE_HEADERS
+# ifdef EH_NEW_HEADERS
 #  include <cassert>
 # else
 #  include <assert.h>

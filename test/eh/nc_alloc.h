@@ -99,6 +99,7 @@ private:
 	static void PrintTestName( bool err=false );
 	
     static long& Failure_threshold();
+	static long possible_failure_count;
     static const char* current_test;
     static const char* current_test_category;
     static const char* current_container;
@@ -141,7 +142,8 @@ inline bool TestController::TrackingEnabled()
 }
 
 inline void TestController::SetFailureCountdown(long count) {
-    Failure_threshold() = count+alloc_count+object_count;
+    Failure_threshold() = count;
+	possible_failure_count = 0;
 }
 
 inline void TestController::CancelFailureCountdown() {

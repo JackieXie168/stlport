@@ -43,7 +43,8 @@ template class hash_map<TestClass, TestClass, ThrowHash, ThrowEqual>;
 template class hash_multimap<TestClass, TestClass, ThrowHash, ThrowEqual>;
 */
 
-typedef EH_STD::hash_multimap<TestClass, TestClass, ThrowHash, ThrowEqual> TestMultiMap;
+typedef EH_STD::__hash_multimap__<TestClass, TestClass, ThrowHash, ThrowEqual,
+  eh_allocator(TestClass) > TestMultiMap;
 
 
 inline multimap_tag
@@ -57,7 +58,7 @@ void test_hash_multimap()
 # if !(defined (_MSC_VER) && (_MSC_VER < 1100))
 	TestMultiMap testMultiMap, testMultiMap2;
 	
-        const size_t hash_mapSize = random_number(random_base);
+        const EH_STD::size_t hash_mapSize = random_number(random_base);
 	
 	while ( testMultiMap.size() < hash_mapSize )
 	{
@@ -72,7 +73,7 @@ void test_hash_multimap()
 #  endif
 	WeakCheck( testMultiMap, test_insert_value<TestMultiMap>(testMultiMap) );
 
-	size_t insCnt = random_number(random_base);
+	EH_STD::size_t insCnt = random_number(random_base);
 	TestMultiMap::value_type *insFirst = new TestMultiMap::value_type[1+insCnt];
 	WeakCheck( testMultiMap, insert_range_tester(testMultiMap, insFirst, insFirst+insCnt) );
 	ConstCheck( 0, test_construct_pointer_range<TestMultiMap>(insFirst, insFirst+insCnt) );
@@ -90,8 +91,8 @@ void test_hash_multimap()
 # endif
 }
 
-typedef EH_STD::hash_map<TestClass, TestClass, ThrowHash, 
-  ThrowEqual> TestMap;
+typedef EH_STD::__hash_map__<TestClass, TestClass, ThrowHash, 
+  ThrowEqual, eh_allocator(TestClass) > TestMap;
 
 inline map_tag
 container_category(const TestMap&)
@@ -104,7 +105,7 @@ void test_hash_map()
 # if !(defined (_MSC_VER) && (_MSC_VER < 1100))
 	TestMap testMap, testMap2;
 	
-    const size_t hash_mapSize = random_number(random_base);
+    const EH_STD::size_t hash_mapSize = random_number(random_base);
 
 	while ( testMap.size() < hash_mapSize )
 	{
@@ -119,7 +120,7 @@ void test_hash_map()
 #endif
 	WeakCheck( testMap, test_insert_value<TestMap>(testMap) );
 
-	size_t insCnt = random_number(random_base);
+	EH_STD::size_t insCnt = random_number(random_base);
 	TestMap::value_type *insFirst = new TestMap::value_type[1+insCnt];
 	WeakCheck( testMap, insert_range_tester(testMap, insFirst, insFirst+insCnt) );
 	ConstCheck( 0, test_construct_pointer_range<TestMap>(insFirst, insFirst+insCnt) );

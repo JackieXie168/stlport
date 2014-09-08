@@ -23,7 +23,11 @@
 
 # ifdef EH_NEW_IOSTREAMS
 EH_STD::ostream& 
-operator << (EH_STD::ostream& s, const TestClass& t) { return s<<t.value(); } 
+operator << (EH_STD::ostream& s, 
+	     const TestClass& t) { 
+  return s<<t.value(); 
+} 
+
 # else
 ostream& 
 operator << (ostream& s, const TestClass& t) { return s<<t.value(); } 

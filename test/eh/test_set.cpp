@@ -31,7 +31,7 @@
 
 void test_multiset();
 
-typedef EH_STD::multiset<TestClass, ThrowCompare > TestMultiSet;
+typedef EH_STD::__multiset__<TestClass, ThrowCompare, eh_allocator(TestClass) > TestMultiSet;
 
 inline multiset_tag
 container_category(const TestMultiSet&)
@@ -43,7 +43,7 @@ void test_multiset()
 {
     TestMultiSet testMultiSet, testMultiSet2;
 	
-    const size_t setSize = random_number(random_base);
+    const EH_STD::size_t setSize = random_number(random_base);
 	
 	while ( testMultiSet.size() < setSize )
 	{
@@ -54,7 +54,7 @@ void test_multiset()
 
     StrongCheck( testMultiSet, test_insert_value<TestMultiSet>(testMultiSet) );
 
-    size_t insCnt = random_number(random_base);
+    EH_STD::size_t insCnt = random_number(random_base);
     TestMultiSet::value_type *insFirst = new TestMultiSet::value_type[1+insCnt];
     WeakCheck( testMultiSet, insert_range_tester(testMultiSet, insFirst, insFirst+insCnt) );
     ConstCheck( 0, test_construct_pointer_range<TestMultiSet>(insFirst, insFirst+insCnt) );
@@ -69,7 +69,7 @@ void test_multiset()
     WeakCheck( testMultiSet, test_assign_op<TestMultiSet>( testMultiSet2 ) );
 }
 
-typedef EH_STD::set<TestClass, ThrowCompare> TestSet;
+typedef EH_STD::__set__<TestClass, ThrowCompare, eh_allocator(TestClass) > TestSet;
 
 inline set_tag
 container_category(const TestSet&)
@@ -81,7 +81,7 @@ void test_set()
 {
     TestSet testSet, testSet2;
 	
-    const size_t setSize = random_number(random_base);
+    const EH_STD::size_t setSize = random_number(random_base);
 	
 	while ( testSet.size() < setSize )
 	{
@@ -91,7 +91,7 @@ void test_set()
 	}
     StrongCheck( testSet, test_insert_value<TestSet>(testSet) );
 
-    size_t insCnt = random_number(random_base);
+    EH_STD::size_t insCnt = random_number(random_base);
     TestSet::value_type *insFirst = new TestSet::value_type[1+insCnt];
 
     WeakCheck( testSet, insert_range_tester(testSet, insFirst, insFirst+insCnt) );

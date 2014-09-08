@@ -28,7 +28,7 @@
 #include "test_push_front.h"
 #include "nc_alloc.h"
 
-typedef EH_STD::list<TestClass> TestList;
+typedef EH_STD::__list__<TestClass, eh_allocator(TestClass) > TestList;
 
 inline sequence_container_tag
 container_category(const TestList&)
@@ -64,7 +64,7 @@ struct test_list_sort
 void test_list()
 {
     TestList testList, testList2;
-    size_t listSize = random_number(random_base);
+    EH_STD::size_t listSize = random_number(random_base);
 	
     while ( testList.size() < listSize )
     {
@@ -75,13 +75,13 @@ void test_list()
 
     StrongCheck( testList, test_insert_one<TestList>(testList) );
     StrongCheck( testList, test_insert_one<TestList>(testList, 0) );
-    StrongCheck( testList, test_insert_one<TestList>(testList, testList.size()) );
+    StrongCheck( testList, test_insert_one<TestList>(testList, (int)testList.size()) );
 
     WeakCheck( testList, test_insert_n<TestList>(testList, random_number(random_base) ) );
     WeakCheck( testList, test_insert_n<TestList>(testList, random_number(random_base), 0 ) );
-    WeakCheck( testList, test_insert_n<TestList>(testList, random_number(random_base), testList.size() ) );
+    WeakCheck( testList, test_insert_n<TestList>(testList, random_number(random_base), (int)testList.size() ) );
 	
-    size_t insCnt = random_number(random_base);
+    EH_STD::size_t insCnt = random_number(random_base);
     TestClass *insFirst = new TestList::value_type[1+insCnt];
 
     WeakCheck( testList, insert_range_tester(testList, insFirst, insFirst+insCnt) );

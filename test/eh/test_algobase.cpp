@@ -13,14 +13,19 @@
  * purpose.  It is provided "as is" without express or implied warranty.
 
 ***********************************************************************************/
-#include "Tests.h"
-#include "LeakCheck.h"
-#include "TestClass.h"
+
+# include "Prefix.h"
 # if defined (EH_NEW_HEADERS)
+# ifdef __SUNPRO_CC
+# include <stdio.h>
+# endif
 #include <algorithm>
 # else
 #include <algo.h>
 # endif
+#include "Tests.h"
+#include "LeakCheck.h"
+#include "TestClass.h"
 
 // EH_USE_STD
 

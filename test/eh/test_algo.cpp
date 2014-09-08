@@ -14,14 +14,6 @@
 
 ***********************************************************************************/
 #include "Tests.h"
-
-#if defined (EH_NEW_IOSTREAMS)
-# include <iosfwd>
-# include <iostream>
-#else
-# include <iostream.h>
-#endif
-
 #include "LeakCheck.h"
 #include "SortClass.h"
 
@@ -33,8 +25,12 @@
 # include <assert.h>
 #endif
 
+#if defined (EH_NEW_IOSTREAMS)
+# include <iostream>
+#else
+# include <iostream.h>
+#endif
 
-EH_USE_STD
 
 //
 // SortBuffer -- a buffer of SortClass objects that can be used to test sorting.
@@ -57,7 +53,19 @@ struct SortBuffer
         for ( SortClass* p = begin(); p != end(); p++ )
             p->ResetAddress();
     }
-	
+    
+  SortBuffer()
+  {
+    PrepareMerge();
+  }
+  
+  SortBuffer( const SortBuffer& rhs )
+  {
+    SortClass* q = begin();
+    for ( const SortClass* p = rhs.begin() ; p != rhs.end(); p++,q++ )
+      *q = *p;
+  }
+
 private:	
     SortClass items[kBufferSize];
 };
@@ -95,7 +103,7 @@ struct test_stable_partition
         // Prepare an array of counts of the occurrence of each value in
         // the legal range.
         unsigned counts[SortClass::kRange];
-        fill_n( counts, (int)SortClass::kRange, 0 );
+        EH_STD::fill_n( counts, (int)SortClass::kRange, 0 );
         for ( const SortClass *q = orig.begin(); q != orig.end(); q++ )
             counts[ q->value() ]++;
 			
@@ -139,7 +147,7 @@ void assert_sorted_version( const SortBuffer& orig, const SortBuffer& buf )
     // Prepare an array of counts of the occurrence of each value in
     // the legal range.
     unsigned counts[SortClass::kRange];
-    fill_n( counts, (int)SortClass::kRange, 0 );
+    EH_STD::fill_n( counts, (int)SortClass::kRange, 0 );
     for ( const SortClass *q = orig.begin(); q != orig.end(); q++ )
         counts[ q->value() ]++;
 	
@@ -188,8 +196,8 @@ struct test_stable_sort_2
 
     void operator()( SortBuffer& buf ) const
     {
-        EH_STD::stable_sort( buf.begin(), buf.end(), EH_STD::less<SortClass>() );
-        assert_sorted_version( orig, buf );
+      EH_STD::stable_sort( buf.begin(), buf.end(), EH_STD::less<SortClass>() );
+      assert_sorted_version( orig, buf );
     }
 	
 private:

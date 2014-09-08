@@ -24,22 +24,16 @@
 
 # include "Prefix.h"
 
-#include "nc_alloc.h"
-# if defined (EH_NEW_HEADERS)
-#  include <iterator>
-//#  if defined (EH_USE_NAMESPACES)
-//using namespace std;
-//#  endif
-# else
-#  include <iterator.h>
-# endif
+# include "nc_alloc.h"
 
 # if defined (EH_NEW_HEADERS)
 #  include <cstdio>
 #  include <cassert>
+#  include <iterator>
 # else
 #  include <stdio.h>
 #  include <assert.h>
+#  include <iterator.h>
 # endif
 
 # if defined (EH_NEW_IOSTREAMS)
@@ -51,7 +45,9 @@
 EH_BEGIN_NAMESPACE
 
 template <class T1, class T2>
-inline ostream& operator << ( ostream& s, const EH_STD::pair <T1, T2>& p) {
+inline ostream& operator << ( 
+ostream& s, 
+const pair <T1, T2>& p) {
     return s<<'['<<p.first<<":"<<p.second<<']';
 }
 EH_END_NAMESPACE
@@ -169,8 +165,10 @@ void StrongCheck( const Value& v, const Operation& op, long max_iters = 2000000 
     for ( long count = 0; !succeeded && !failed && count < max_iters; count++ )
     {
         gTestController.BeginLeakDetection();
+
         {
             Value dup = v;
+            {
 # ifndef EH_NO_EXCEPTIONS
             try
 # endif
@@ -189,24 +187,29 @@ void StrongCheck( const Value& v, const Operation& op, long max_iters = 2000000 
                 
                 if ( !unchanged )
                 {
+#if 0
                     typedef typename Value::value_type value_type;
                     EH_STD::ostream_iterator<value_type> o(EH_STD::cerr, " ");
-                    EH_STD::cerr<<"EH test FAILED:\nStrong guaranee failed, copy is:\n";
+                    EH_STD::cerr<<"EH test FAILED:\nStrong guaranee failed !\n";
                     EH_STD::copy(dup.begin(), dup.end(), o);
                     EH_STD::cerr<<"\nOriginal is:\n";
                     EH_STD::copy(v.begin(), v.end(), o);
                     EH_STD::cerr<<EH_STD::endl;
+#endif
                     failed = true;
                 }
             }	// Just try again.
 # endif
             CheckInvariant(v);
         }
-        bool leaked = gTestController.ReportLeaked();
-        EH_ASSERT( !leaked );
-        if ( leaked )
-        	failed = true;
-            
+
+        }
+
+	bool leaked = gTestController.ReportLeaked();
+	EH_ASSERT( !leaked );
+	if ( leaked )
+	  failed = true;
+    
         if ( succeeded )
 			gTestController.ReportSuccess(count);
     }

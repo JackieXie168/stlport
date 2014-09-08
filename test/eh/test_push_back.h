@@ -17,7 +17,7 @@
 ***********************************************************************************/
 #ifndef test_push_back_H_
 #define test_push_back_H_
-# if __STL_USE_NEW_STYLE_HEADERS
+# ifdef EH_NEW_HEADERS
 #  include <cassert>
 # else
 #  include <assert.h>

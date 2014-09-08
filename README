@@ -1,151 +1,62 @@
-*************************************************************
-*                 STLport 3.12.3 README file
-*                Last updated : April 18, 1999.
-*************************************************************
+**********************************************************************
+* 	README file for STLport 4.0 beta                             *
+*                                                                    *
+**********************************************************************
 
-Copyright (c) 1999 Boris Fomitchev
+This directory contains STLport-4.0 release.
 
-This material is provided "as is", with absolutely no warranty expressed
-or implied. Any use is at your own risk.
+What's inside :
 
-Permission to use or copy this software for any purpose is hereby granted 
-without fee, provided the above notices are retained on all copies.
-Permission to modify the code and to distribute modified code is granted,
-provided the above notices are retained, and a notice that the code was
-modified is included with the above copyright notice.
+README      -  this file
+INSTALL     - installation instructions
+TODO        - list of prospective changes
 
-STLport 3.12.2 corresponds to SGI STL public distribution
-v 3.13, which is:
+stlport     - main STLport include directory
+src         - source and makefiles for SGI iostreams implementation (optional)
+lib         - installation directory for STLport library (if you use SGI iostreams only)
+test/test   - regression test NOT using SGI iostream AND using old-style headers
+test/eh     - exception handling test using SGI iostreams and new-style headers
+test/nico   - examples from Nicolai Josuttis's last book "C++ Standard Library"
+test/standalone - integrity test for each standard header
 
-Copyright (c) 1994 Hewlett-Packard Company 
 
-Copyright (c) 1996-99 Silicon Graphics Computer Systems, Inc.
+IMPORTANT:
 
-The adaptation is also 
-Copyright (c) 1997 Moscow Center for SPARC Technology.
+Since STLport 4.0, SGI iostreams setting is on by default. 
+Please refer to INSTALL file for details.
 
-Look for corresponding permission notices at the end of this file.
+GETTING STLPORT
 
-*************************************************************
-Getting STLport
+To download the latest version of STLport, please be sure to visit
+http://www.stlport.org
 
-Download the latest STLport release from http://www.stlport.org.
+LEGALESE
 
-*************************************************************
-Installing STLport
+This software is being distributed under the following terms :
 
-Unpack the distribution. 
+ *
+ *
+ * Copyright (c) 1994
+ * Hewlett-Packard Company
+ *
+ * Copyright (c) 1996-1999
+ * Silicon Graphics Computer Systems, Inc.
+ *
+ * Copyright (c) 1997
+ * Moscow Center for SPARC Technology
+ *
+ * Copyright (c) 1999, 2000
+ * Boris Fomitchev
+ *
+ * This material is provided "as is", with absolutely no warranty expressed
+ * or implied. Any use is at your own risk.
+ *
+ * Permission to use or copy this software for any purpose is hereby granted 
+ * without fee, provided the above notices are retained on all copies.
+ * Permission to modify the code and to distribute modified code is granted,
+ * provided the above notices are retained, and a notice that the code was
+ * modified is included with the above copyright notice.
+ *
 
-What's in there :
-
-stl                     - header files 
-test                    - test suites
-export                  - file list
-
-If your compiler is listed below as "auto-recognized", 
-you are ready to use STLport. 
-Otherwise, run "config/configure" utility (if you are not on UNIX platform,
-get cygwin package from www.cygnus.com). 
-Make sure you included STLport directory into the search path 
-for your compiler.
-
-*************************************************************
-Abstract
-
-STLport provides a framework for easy porting of generic C++ 
-code among different compilers.
-For compilers with limited capabilities, the effort was to
-retain original SGI STL functionality as much as possible.
-It also features debug mode that helps you debug programs
-written with STL.
-
-*************************************************************
-Testing summary
-
-STLport has been successfully tested using bundled  test suites.
-STLport was reported to work with the following compilers:
-
-    SunPro C++ 4.0.1-5.0 (auto-recognized);
-
-    Visual C++ 4.x-6.0 (auto-recognized);
-
-    GCC 2.7.2, 2.8.1, egcs (auto-recognized);
-
-    Borland C++ 4.52-5.02 (auto-recognized);
-
-    SGI MIPSpro C++ 4.x, 7.x (auto-recognized);
-
-    AIX xlC 3.1.4.0 (auto-recognized);
-
-    KAI C++ 3.1c (configuring is necessary);
-
-    DEC C++ V5.5-004 on OSF 3.2/4.0 (configuring is necessary);
-
-    Watcom C++ 10.x-11.0 (auto-recognized);
-    
-    Tandem NCC was reported to work (configuring is necessary); 
-    
-    Visual Age C++ 3.0 (auto-recognized); 
-
-    Symantec C++ 7.x (auto-recognized); 
-
-    Metrowerks CodeWarrior Pro (auto-recognized);
-
-    HP aCC 1.06 (auto-recognized);
-
-    PowerSoft's Power++ (auto-recognized)
-
-    OS 390 CC 1.x-2.x compilers (auto-recognized).
-
-    Apple MRC compiler
-
-    IBM TPF C++ compiler
-
-*************************************************************
-Known problems
-
-Some compilers, altough supported, still have problems.
-Refer to ../html directory - it contains STLport documentation.
-Look for README.<your compiler version>.html.
-*************************************************************
-
-*************************************************************
-Acknowledgements
-
-Lots of appreciation goes to SGI STL development team (stl@sgi.com).
-Special thanks to :
-	Dave Abrahams <abrahams@motu.com>, for his help;
-	Matt Austern  <austern@mti.sgi.com>, for support of this effort;
-	Cay Horstmann <cay@horstmann.com>, for STL debug approach example
-
-Thanks to all contributors who have submitted bug reports, patches and suggestions.
-
-*************************************************************
-Legalese
-
-Permission to use, copy, modify, distribute and sell this software
-and its documentation for any purpose is hereby granted without fee,
-provided that the above copyright notice appear in all copies and
-that both that copyright notice and this permission notice appear
-in supporting documentation.  Hewlett-Packard Company makes no
-representations about the suitability of this software for any
-purpose.  It is provided "as is" without express or implied warranty.
-
-Permission to use, copy, modify, distribute and sell this software
-and its documentation for any purpose is hereby granted without fee,
-provided that the above copyright notice appear in all copies and
-that both that copyright notice and this permission notice appear
-in supporting documentation.  Silicon Graphics makes no
-representations about the suitability of this software for any
-purpose.  It is provided "as is" without express or implied warranty.
-
-Permission to use, copy, modify, distribute and sell this software
-and its documentation for any purpose is hereby granted without fee,
-provided that the above copyright notice appear in all copies and
-that both that copyright notice and this permission notice appear
-in supporting documentation.  Moscow Center for SPARC Technology makes no
-representations about the suitability of this software for any
-purpose.  It is provided "as is" without express or implied warranty.
-
-*************************************************************
+**********************************************************************
 

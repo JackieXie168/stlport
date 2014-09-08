@@ -27,7 +27,8 @@
 #  include <stdlib.h>
 # endif
 
-EH_USE_STD
+
+USING_CSTD_NAME(size_t)
 
 template <class T>
 struct test_copy_construct
@@ -91,7 +92,7 @@ struct test_construct_n_instance
 	void operator()( int ) const
 	{
         typedef typename T::value_type Value_type;
-		Value_type Val;
+		Value_type Val = 0;
 		T t( n, Val );
 		CheckInvariant(t);
 	}
@@ -141,3 +142,4 @@ struct test_construct_iter_range
 };
 
 #endif // test_construct_H_
+

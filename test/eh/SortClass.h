@@ -29,7 +29,7 @@ public:
 	enum { kRange = 100 };
 
 	SortClass( int v ) : TestClass( v ), addr(this) {}
-	SortClass() : TestClass( get_random(kRange) ), addr(this) {}
+	SortClass() : TestClass( (int)get_random(kRange) ), addr(this) {}
 	
 	bool operator<( const TestClass& rhs ) const
 	{

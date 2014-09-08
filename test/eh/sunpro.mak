@@ -6,9 +6,12 @@
 # srcdir = .
 # VPATH = .
 
+SHELL=/bin/sh
 
 # point this to proper location
-STL_INCL=-I../../stl/SC5 -I../../stl
+STL_INCL= -I../../stlport/SC5
+
+# STL_INCL= -DEH_NO_SGI_STL
 
 AUX_LIST=TestClass.cpp main.cpp nc_alloc.cpp random_number.cpp
 
@@ -18,9 +21,6 @@ test_bit_vector.cpp   test_vector.cpp \
 test_deque.cpp test_set.cpp test_map.cpp \
 test_hash_map.cpp  test_hash_set.cpp test_rope.cpp \
 test_string.cpp test_bitset.cpp test_valarray.cpp
-
-# TEST_LIST=test_deque.cpp
-
 
 LIST=${AUX_LIST} ${TEST_LIST}
 
@@ -33,22 +33,21 @@ TEST  = eh_test.out
 CC = CC
 CXX = $(CC)
 
-# CXXFLAGS = +w2 -O -xildoff ${STL_INCL} -D__STL_USE_NEWALLOC  -DNO_FAST_ALLOCATOR
+CXXFLAGS = +w2 -mt -features=rtti ${STL_INCL}
+# CXXFLAGS = +w2 ${STL_INCL}
 
-# CXXFLAGS = +w2 -xildoff ${STL_INCL}  -I. -D__STL_USE_NEWALLOC
-CXXFLAGS = +w2 -pta -xildoff ${STL_INCL} -D__STL_USE_NEWALLOC -DNO_FAST_ALLOCATOR
-# CXXFLAGS = +w2 -xildoff -D__STL_USE_NEWALLOC -DNO_FAST_ALLOCATOR -DEH_NO_SGI_STL -DEH_NEW_HEADERS
+
 
 LIBS = -lm 
-LIBSTDCXX = 
 
-all:
+LIBSTLPORT = -L../../lib -lstlport_sunpro
 
 check: $(TEST)
 
 $(TEST) : $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LIBS) -o $(TEST_EXE)
-	$(TEST_EXE)
+	echo 'Info: For CC 4.x, warnings from ld in the form "symbol `XXX' has differing sizes" are normal.'
+	$(CXX) $(CXXFLAGS) $(OBJECTS) ${LIBSTLPORT} $(LIBS) -o $(TEST_EXE)
+	LD_LIBRARY_PATH="../../lib:$(LD_LIBRARY_PATH)" $(TEST_EXE) -s 100
 
 SUFFIXES: .cpp.o.out.res
 
@@ -68,4 +67,10 @@ SUFFIXES: .cpp.o.out.res
 	$(CXX) $(CXXFLAGS) -O4 -S -pto $<  -o $@
 
 clean:
-	-rm -fr ${TEST_EXE} *.o *.rpo *.obj *.out core *~ Templates.DB
+	-rm -fr ${TEST_EXE} *.o *.rpo *.obj *.out core *~ Templates.DB SunWS_cache
+
+
+
+
+
+
