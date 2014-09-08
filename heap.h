@@ -31,10 +31,14 @@
 
 #ifdef __STL_USE_NAMESPACES
 
+# ifdef __STL_BROKEN_USING_DIRECTIVE
+using namespace std;
+# else
 using __STD::push_heap;
 using __STD::pop_heap;
 using __STD::make_heap;
 using __STD::sort_heap;
+# endif
 
 #endif /* __STL_USE_NAMESPACES */
 

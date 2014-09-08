@@ -30,9 +30,6 @@
 #ifndef __SGI_STL_INTERNAL_ALLOC_H
 #define __SGI_STL_INTERNAL_ALLOC_H
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-__STL_BEGIN_NAMESPACE
-# else 
 
 // This implements some standard node allocators.  These are
 // NOT the same as the allocators in the C++ draft standard or in
@@ -165,7 +162,11 @@ class __new_alloc {
 public:
     // this one is needed for proper simple_alloc wrapping
     typedef char value_type;
-    static void*  allocate(size_t n) { return 0 == n ? 0 : ::operator new(n);}
+    static void*  allocate(size_t n) { return 0 == n ? 0 : ::operator new(n
+    #if ( defined(__IBMCPP__) && defined(__DEBUG_ALLOC__) ) // Added
+     , __FILE__, __LINE__                                   // Added
+    #endif                                                  // Added
+    );}
     static void*  reallocate(void *p, size_t old_sz, size_t new_sz) {
         void* result = allocate(new_sz);
         size_t copy_sz = new_sz > old_sz? old_sz : new_sz;
@@ -173,8 +174,16 @@ public:
         deallocate(p, old_sz);
         return result;
     }
-    static void deallocate(void* p) { ::operator delete(p); }
-    static void deallocate(void* p, size_t) { ::operator delete(p); }
+    static void deallocate(void* p) { ::operator delete(p
+    #if ( defined(__IBMCPP__) && defined(__DEBUG_ALLOC__) ) // Added
+     , __FILE__, __LINE__                                   // Added
+    #endif                                                  // Added
+    ); }
+    static void deallocate(void* p, size_t) { ::operator delete(p
+    #if ( defined(__IBMCPP__) && defined(__DEBUG_ALLOC__) ) // Added
+     , __FILE__, __LINE__                                   // Added
+    #endif                                                  // Added
+    ); }
 };
 
 typedef __new_alloc<0> new_alloc;
@@ -223,10 +232,6 @@ public:
     
 };
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 // malloc_alloc out-of-memory handling
 # if ( __STL_STATIC_TEMPLATE_DATA > 0 )
 template <int inst>
@@ -314,9 +319,7 @@ void * __malloc_alloc<inst>::oom_realloc(void *p, size_t n)
 	if (result) return(result);
     }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 typedef __malloc_alloc<0> malloc_alloc;
 
 # if defined ( __STL_USE_NEWALLOC )
@@ -339,9 +342,7 @@ typedef malloc_alloc multithreaded_alloc;
 #  endif /* __STL_USE_MALLOC */
 #  endif /* __STL_USE_NEWALLOC */
 
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-__STL_END_NAMESPACE /* for both ONLY & not-ONLY */
+__STL_END_NAMESPACE
 
 # if ! defined (__STL_USE_MALLOC) && ! defined ( __STL_USE_NEWALLOC )
 // global-level stuff
@@ -418,8 +419,6 @@ __STL_END_NAMESPACE /* for both ONLY & not-ONLY */
 
 __STL_BEGIN_NAMESPACE
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 
 // Default node allocator.
 // With a reasonable compiler, this should be roughly as fast as the
@@ -431,7 +430,7 @@ __STL_BEGIN_NAMESPACE
 // 1. If the client request an object of size > __MAX_BYTES, the resulting
 //    object will be obtained directly from malloc.
 // 2. In all other cases, we allocate an object of size exactly
-//    ROUND_UP(requested_size).  Thus the client has enough size
+//    alloc_round_up(requested_size).  Thus the client has enough size
 //    information that we can return the object to the proper free list
 //    without permanently losing part of the object.
 //
@@ -475,8 +474,8 @@ __PRIVATE:
 
 
 private:
-  static size_t ROUND_UP(size_t bytes) {
- 	return ((bytes + __ALIGN-1) & ~(__ALIGN - 1));
+  static size_t alloc_round_up(size_t bytes) {
+	  return ((bytes + __ALIGN-1) & ~(__ALIGN - 1));
   }
 __PRIVATE:
   typedef __node_alloc_obj obj;
@@ -538,8 +537,10 @@ public:
   typedef char value_type;
 
   /* n must be > 0      */
+  inline
   static void * allocate(size_t n);
   /* p may not be 0 */
+  inline
   static void deallocate(void *p, size_t n);
   static void * reallocate(void *p, size_t old_sz, size_t new_sz);
 
@@ -554,15 +555,10 @@ typedef __alloc<__NODE_ALLOCATOR_THREADS, 0> node_alloc;
 typedef __alloc<false, 0> single_client_alloc;
 typedef __alloc<true, 0>  multithreaded_alloc;
 
-# endif /* !__STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <bool threads, int inst>
   /* n must be > 0      */
-# if  !defined (__STL_SEPARATE_TEMPLATE_BODY)
+
 inline 
-# endif /* __STL_SEPARATE_TEMPLATE_BODY */
 void * 
 __alloc<threads,inst>::allocate(size_t n)
 {
@@ -582,7 +578,7 @@ __alloc<threads,inst>::allocate(size_t n)
 #       endif
     result = *my_free_list;
     if (result == 0) {
-        void *r = refill(ROUND_UP(n));
+        void *r = refill(alloc_round_up(n));
         return r;
     }
     *my_free_list = result -> free_list_link;
@@ -590,9 +586,7 @@ __alloc<threads,inst>::allocate(size_t n)
 }
 
 template <bool threads, int inst>
-# if  !defined (__STL_SEPARATE_TEMPLATE_BODY)
 inline 
-# endif /* __STL_SEPARATE_TEMPLATE_BODY */
 void 
 __alloc<threads, inst>::deallocate(void *p, size_t n)
 {
@@ -637,7 +631,7 @@ __alloc<threads, inst>::chunk_alloc(size_t size, int& nobjs)
         start_free += total_bytes;
         return(result);
     } else {
-        size_t bytes_to_get = 2 * total_bytes + ROUND_UP(heap_size >> 4);
+        size_t bytes_to_get = 2 * total_bytes + alloc_round_up(heap_size >> 4);
         // Try to make use of the left-over piece.
         if (bytes_left > 0) {
             obj * __VOLATILE * my_free_list =
@@ -654,7 +648,7 @@ __alloc<threads, inst>::chunk_alloc(size_t size, int& nobjs)
             // Try to make do with what we have.  That can't
             // hurt.  We do not try smaller requests, since that tends
             // to result in disaster on multi-process machines.
-            for (i = size; i <= __MAX_BYTES; i += __ALIGN) {
+            for (i = size; i <=(size_t)__MAX_BYTES; i += __ALIGN) {
                 my_free_list = free_list + FREELIST_INDEX(i);
                 p = *my_free_list;
                 if (0 != p) {
@@ -723,7 +717,7 @@ __alloc<threads, inst>::reallocate(void *p,
     if (old_sz > (size_t) __MAX_BYTES && new_sz > (size_t) __MAX_BYTES) {
         return(malloc_alloc::reallocate(p, old_sz, new_sz));
     }
-    if (ROUND_UP(old_sz) == ROUND_UP(new_sz)) return(p);
+    if (alloc_round_up(old_sz) == alloc_round_up(new_sz)) return(p);
     result = allocate(new_sz);
     copy_sz = new_sz > old_sz? old_sz : new_sz;
     memcpy(result, p, copy_sz);
@@ -731,15 +725,11 @@ __alloc<threads, inst>::reallocate(void *p,
     return(result);
 }
 
-# endif /* SEPARATE */
-
 #ifdef __STL_SGI_THREADS
 __STL_END_NAMESPACE
 #include <mutex.h>
 #include <time.h>
 __STL_BEGIN_NAMESPACE
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 // Somewhat generic lock implementations.  We need only test-and-set
 // and some way to sleep.  These should work with both SGI pthreads
 // and sproc threads.  They may be useful on other systems.
@@ -791,9 +781,7 @@ __alloc<threads, inst>::__lock(volatile unsigned long *lock)
         nanosleep(&ts, 0);
     }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <bool threads, int inst>
 inline void
 __alloc<threads, inst>::__unlock(volatile unsigned long *lock)
@@ -809,11 +797,7 @@ __alloc<threads, inst>::__unlock(volatile unsigned long *lock)
         // writes to protected variables and the lock may be reordered.
 #   endif
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* SGITHREADS */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 
 # if ( __STL_STATIC_TEMPLATE_DATA > 0 )
 
@@ -927,7 +911,6 @@ __DECLARE_INSTANCE(mutex_t,
   static alloc __node_allocator_dummy_instance;
 # endif
 // #  endif /* ! __USE_MALLOC */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 __STL_END_NAMESPACE
 
 # endif /* ! __USE_MALLOC && ! __USE_NEWALLOC */

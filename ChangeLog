@@ -1,9 +1,45 @@
+Sat Feb 8 1998  Michael Carr <mcarr@redstonecom.com>
+	stl_hash_map.h:70 : fixed typo with "typename T"
+	stl_iterator : test for (*stream) changed to stream->good()
+	for more portability.
+	stl_alloc.h : ROUND_UP changed to stl_round_up due to
+	conflicts with a macro of the same name defined in vxworks.h
+	
+Sat Feb 8 1998 Boris Fomitchev <fbp@metabyte.com>
+        separate compilation : removed completely
+
+Sat Feb 8 1998 Stephan Schaefer <schaefer@graphics.cs.uni-bonn.de>
+        stlcomp.h:508 : fixed typo # __GIVE_UP_WITH_STL(CW_18)
+
+Mon Feb 2 1998 eyal.ben-david@aks.com
+	* stlcomp.h : __STL_USE_NEW_STYLE_HEADERS disabled for Watcom
+	
+Mon Feb 2 1998 kabatek@chemie.uni-halle.de 
+	* stl_config.h : included isynonym.hpp for VAC++
+	  VAC++ separate compilation : removed
+
+Thu Jan 08 1998  Simon-Pierre Cadieux <cadieux@formatek.com>
+
+        * stl_alloc.h : 657 : added cast to (size_t) for __MAX_BYTES
+
+Thu Jan 08 1998   "Bjorn Fahller" <bjorn@algonet.se>
+
+	* auto_ptr.h : changed to be FDIS-conformant
+	
+Tue Jan 06 1998  Alexander Samoilov <spike@gambit.msk.su>
+
+        * stl_algobase.h : #include <stdlib.h> for SUNPro
+	
 Fri Dec 26 1997  Boris Fomitchev  <fbp@metabyte.com>
 	
         * SGI STL version 3.0 changes merged in. 
+
         * Fixed minor problems with VC++ 5.0/rope, OS390 config
+
 	* additional config switch introduced : __STL_BROKEN_USING_DIRECTIVE
-	
+
+	* version 3.0 released
+
 Mon Oct 27 19:38:28 1997  Boris Fomitchev  <fbp@metabyte.com>
 	
 	* version 2.033 released

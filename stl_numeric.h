@@ -34,9 +34,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
 template <class InputIterator, class T>
 T accumulate(InputIterator first, InputIterator last, T init) {
     __stl_debug_check(__check_range(first, last));
@@ -186,23 +183,17 @@ T power(T x, Integer n, MonoidOperation op) {
     return result;
   }
 }
-# endif
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class T, class Integer>
 inline T power(T x, Integer n) {
   return power(x, n, multiplies<T>());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class ForwardIterator, class T>
 void iota(ForwardIterator first, ForwardIterator last, T value) {
   while (first != last) *first++ = value++;
 }
-# endif
+
 __STL_END_NAMESPACE
 
 #endif /* __SGI_STL_INTERNAL_NUMERIC_H */

@@ -54,17 +54,9 @@
 #pragma set woff 1209
 #endif
 
-# if defined (__STL_SEPARATE_TEMPLATE_BODY) && \
-! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-     // get forward declarations of algorithms
-#  include <algo_fwd.h>
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 __STL_BEGIN_NAMESPACE
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class T>
+template <class T>
 # if !(defined (__SUNPRO_CC) && (__SUNPRO_CC < 0x420 ))
 inline 
 # endif
@@ -224,8 +216,7 @@ ForwardIterator1 __search(ForwardIterator1 first1, ForwardIterator1 last1,
     }
   return first1;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY || ! __STL_SEPARATE_TEMPLATE_BODY */
-#if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator1, class ForwardIterator2>
 inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
                                ForwardIterator2 first2, ForwardIterator2 last2)
@@ -235,12 +226,8 @@ inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
   return __search(first1, last1, first2, last2, distance_type(first1),
 		  distance_type(first2));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
-     template <class ForwardIterator1, class ForwardIterator2,
+template <class ForwardIterator1, class ForwardIterator2,
   class BinaryPredicate, class Distance1, class Distance2>
 ForwardIterator1 __search(ForwardIterator1 first1, ForwardIterator1 last1,
                           ForwardIterator2 first2, ForwardIterator2 last2,
@@ -272,9 +259,6 @@ ForwardIterator1 __search(ForwardIterator1 first1, ForwardIterator1 last1,
   return first1;
 }
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator1, class ForwardIterator2,
 			    class BinaryPredicate>
 inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
@@ -285,12 +269,8 @@ inline ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
   return __search(first1, last1, first2, last2, binary_pred,
 		  distance_type(first1), distance_type(first2));
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
-     template <class ForwardIterator, class Integer, class T>
+template <class ForwardIterator, class Integer, class T>
 ForwardIterator search_n(ForwardIterator first, ForwardIterator last,
                          Integer count, const T& value) {
   if (count <= 0)
@@ -483,10 +463,9 @@ ForwardIterator __unique_copy(InputIterator first, InputIterator last,
     if (*result != *first) *++result = *first;
   return ++result;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG)
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class InputIterator, class BidirectionalIterator>
 inline BidirectionalIterator __unique_copy(InputIterator first, 
 					   InputIterator last,
@@ -502,12 +481,9 @@ inline RandomAccessIterator __unique_copy(InputIterator first,
 				   	  random_access_iterator_tag) {
   return __unique_copy(first, last, result, forward_iterator_tag());
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* __STL_NONTEMPL_BASE_MATCH_BUG */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator, class OutputIterator, class T>
+template <class InputIterator, class OutputIterator, class T>
 OutputIterator __unique_copy(InputIterator first, InputIterator last,
                              OutputIterator result, T*) {
   T value = *first;
@@ -519,9 +495,7 @@ OutputIterator __unique_copy(InputIterator first, InputIterator last,
     }
   return ++result;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class InputIterator, class OutputIterator>
 inline OutputIterator __unique_copy(InputIterator first, InputIterator last,
                                     OutputIterator result, 
@@ -536,11 +510,8 @@ inline OutputIterator unique_copy(InputIterator first, InputIterator last,
   if (first == last) return result;
   return __unique_copy(first, last, result, iterator_category(result));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator, class ForwardIterator, class BinaryPredicate>
+template <class InputIterator, class ForwardIterator, class BinaryPredicate>
 ForwardIterator __unique_copy(InputIterator first, InputIterator last,
                               ForwardIterator result, 
                               BinaryPredicate binary_pred,
@@ -550,10 +521,7 @@ ForwardIterator __unique_copy(InputIterator first, InputIterator last,
     if (!binary_pred(*result, *first)) *++result = *first;
   return ++result;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG)
-#  if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class InputIterator, class BidirectionalIterator,
 				class BinaryPredicate>
 inline BidirectionalIterator __unique_copy(InputIterator first, 
@@ -575,13 +543,10 @@ inline RandomAccessIterator __unique_copy(InputIterator first,
   return __unique_copy(first, last, result, binary_pred, 
 		       forward_iterator_tag());
 }
-#  endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* __STL_NONTEMPL_BASE_MATCH_BUG */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator, class OutputIterator, class BinaryPredicate,
-  class T>
+template <class InputIterator, class OutputIterator, class BinaryPredicate,
+					    class T>
 OutputIterator __unique_copy(InputIterator first, InputIterator last,
                              OutputIterator result,
                              BinaryPredicate binary_pred, T*) {
@@ -594,9 +559,7 @@ OutputIterator __unique_copy(InputIterator first, InputIterator last,
     }
   return ++result;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class InputIterator, class OutputIterator, class BinaryPredicate>
 inline OutputIterator __unique_copy(InputIterator first, InputIterator last,
                                     OutputIterator result,
@@ -614,11 +577,8 @@ inline OutputIterator unique_copy(InputIterator first, InputIterator last,
   return __unique_copy(first, last, result, binary_pred,
 		       iterator_category(result));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator>
+template <class ForwardIterator>
 ForwardIterator unique(ForwardIterator first, ForwardIterator last) {
   __stl_debug_check(__check_range(first, last));
   first = adjacent_find(first, last);
@@ -642,27 +602,19 @@ void __reverse(BidirectionalIterator first, BidirectionalIterator last,
     else
       iter_swap(first++, last);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator>
+template <class RandomAccessIterator>
 void __reverse(RandomAccessIterator first, RandomAccessIterator last,
                random_access_iterator_tag) {
   for (; first < last; ++first) iter_swap(first, --last);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class BidirectionalIterator>
 inline void reverse(BidirectionalIterator first, BidirectionalIterator last) {
   __reverse(first, last, iterator_category(first));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class BidirectionalIterator, class OutputIterator>
+template <class BidirectionalIterator, class OutputIterator>
 OutputIterator reverse_copy(BidirectionalIterator first,
                             BidirectionalIterator last,
                             OutputIterator result) {
@@ -737,9 +689,7 @@ void __rotate(RandomAccessIterator first, RandomAccessIterator middle,
     __rotate_cycle(first, last, first + n, middle - first,
                    value_type(first));
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator>
 inline void rotate(ForwardIterator first, ForwardIterator middle,
                    ForwardIterator last) {
@@ -748,11 +698,8 @@ inline void rotate(ForwardIterator first, ForwardIterator middle,
   __rotate(first, middle, last, distance_type(first),
 	   iterator_category(first));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class OutputIterator>
+template <class ForwardIterator, class OutputIterator>
 OutputIterator rotate_copy(ForwardIterator first, ForwardIterator middle,
                            ForwardIterator last, OutputIterator result) {
   __stl_debug_check(__check_range(middle, first, last));
@@ -766,20 +713,15 @@ void __random_shuffle(RandomAccessIterator first, RandomAccessIterator last,
   for (RandomAccessIterator i = first + 1; i != last; ++i)
     iter_swap(i, first + Distance(__rand() % ((i - first) + 1)));
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator>
 inline void random_shuffle(RandomAccessIterator first,
                            RandomAccessIterator last) {
   __stl_debug_check(__check_range(first, last));
   __random_shuffle(first, last, distance_type(first));
 }
-# endif /* !__STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class RandomNumberGenerator>
+template <class RandomAccessIterator, class RandomNumberGenerator>
 void random_shuffle(RandomAccessIterator first, RandomAccessIterator last,
                     RandomNumberGenerator& rand) {
   __stl_debug_check(__check_range(first, last));
@@ -876,9 +818,7 @@ RandomAccessIterator __random_sample(InputIterator first, InputIterator last,
 
   return out + m;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class InputIterator, class RandomAccessIterator>
 inline RandomAccessIterator
 random_sample(InputIterator first, InputIterator last,
@@ -898,11 +838,8 @@ random_sample(InputIterator first, InputIterator last,
   __stl_debug_check(__check_range(first, last));
   return __random_sample(first, last, out_first, rand, out_last - out_first);
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class BidirectionalIterator, class Predicate>
+template <class BidirectionalIterator, class Predicate>
 BidirectionalIterator partition(BidirectionalIterator first,
                                 BidirectionalIterator last, Predicate pred) {
   __stl_debug_check(__check_range(first, last));
@@ -985,9 +922,7 @@ ForwardIterator __stable_partition_adaptive(ForwardIterator first,
     return first_cut;
   }
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class Predicate, class T, class Distance>
 inline ForwardIterator __stable_partition_aux(ForwardIterator first,
                                               ForwardIterator last, 
@@ -1013,11 +948,8 @@ inline ForwardIterator stable_partition(ForwardIterator first,
     return __stable_partition_aux(first, last, pred,
                                   value_type(first), distance_type(first));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T>
+template <class RandomAccessIterator, class T>
 RandomAccessIterator __unguarded_partition(RandomAccessIterator first, 
                                            RandomAccessIterator last, 
                                            T pivot) {
@@ -1071,9 +1003,7 @@ void __unguarded_linear_insert(RandomAccessIterator last, T value,
   }
   *last = value;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator, class T>
 inline void __linear_insert(RandomAccessIterator first, 
                             RandomAccessIterator last, T*) {
@@ -1097,11 +1027,8 @@ inline void __linear_insert(RandomAccessIterator first,
   else
     __unguarded_linear_insert(last, value, comp);
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator>
+template <class RandomAccessIterator>
 void __insertion_sort(RandomAccessIterator first, RandomAccessIterator last) {
   if (first == last) return; 
   for (RandomAccessIterator i = first + 1; i != last; ++i)
@@ -1122,9 +1049,7 @@ void __unguarded_insertion_sort_aux(RandomAccessIterator first,
   for (RandomAccessIterator i = first; i != last; ++i)
     __unguarded_linear_insert(i, T(*i));
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator>
 inline void __unguarded_insertion_sort(RandomAccessIterator first, 
 				       RandomAccessIterator last) {
@@ -1145,11 +1070,8 @@ inline void __unguarded_insertion_sort(RandomAccessIterator first,
                                        Compare comp) {
   __unguarded_insertion_sort_aux(first, last, value_type(first), comp);
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator>
+template <class RandomAccessIterator>
 void __final_insertion_sort(RandomAccessIterator first, 
                             RandomAccessIterator last) {
   if (last - first > __stl_threshold) {
@@ -1213,9 +1135,7 @@ void __introsort_loop(RandomAccessIterator first,
     last = cut;
   }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator>
 inline void sort(RandomAccessIterator first, RandomAccessIterator last) {
   __stl_debug_check(__check_range(first, last));
@@ -1235,11 +1155,8 @@ inline void sort(RandomAccessIterator first, RandomAccessIterator last,
     __final_insertion_sort(first, last, comp);
   }
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator>
+template <class RandomAccessIterator>
 void __inplace_stable_sort(RandomAccessIterator first,
                            RandomAccessIterator last) {
   if (last - first < 15) {
@@ -1398,9 +1315,7 @@ void __stable_sort_adaptive(RandomAccessIterator first,
                    Distance(last - middle), buffer, buffer_size,
                    comp);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator, class T, class Distance>
 inline void __stable_sort_aux(RandomAccessIterator first,
                               RandomAccessIterator last, T*, Distance*) {
@@ -1437,11 +1352,8 @@ inline void stable_sort(RandomAccessIterator first,
   __stable_sort_aux(first, last, value_type(first), distance_type(first), 
 		    comp);
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T>
+template <class RandomAccessIterator, class T>
 void __partial_sort(RandomAccessIterator first, RandomAccessIterator middle,
                     RandomAccessIterator last, T*) {
   make_heap(first, middle);
@@ -1450,9 +1362,7 @@ void __partial_sort(RandomAccessIterator first, RandomAccessIterator middle,
       __pop_heap(first, middle, i, T(*i), distance_type(first));
   sort_heap(first, middle);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator>
 inline void partial_sort(RandomAccessIterator first,
                          RandomAccessIterator middle,
@@ -1460,11 +1370,8 @@ inline void partial_sort(RandomAccessIterator first,
   __stl_debug_check(__check_range(middle,first, last));
   __partial_sort(first, middle, last, value_type(first));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Compare>
+template <class RandomAccessIterator, class T, class Compare>
 void __partial_sort(RandomAccessIterator first, RandomAccessIterator middle,
                     RandomAccessIterator last, T*, Compare comp) {
   make_heap(first, middle, comp);
@@ -1473,8 +1380,7 @@ void __partial_sort(RandomAccessIterator first, RandomAccessIterator middle,
       __pop_heap(first, middle, i, T(*i), comp, distance_type(first));
   sort_heap(first, middle, comp);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class RandomAccessIterator, class Compare>
 inline void partial_sort(RandomAccessIterator first,
                          RandomAccessIterator middle,
@@ -1482,12 +1388,9 @@ inline void partial_sort(RandomAccessIterator first,
   __stl_debug_check(__check_range(middle,first, last));
   __partial_sort(first, middle, last, value_type(first), comp);
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator, class RandomAccessIterator, class Distance,
-  class T>
+template <class InputIterator, class RandomAccessIterator, class Distance,
+			   class T>
 RandomAccessIterator __partial_sort_copy(InputIterator first,
                                          InputIterator last,
                                          RandomAccessIterator result_first,
@@ -1510,8 +1413,7 @@ RandomAccessIterator __partial_sort_copy(InputIterator first,
   sort_heap(result_first, result_real_last);
   return result_real_last;
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class InputIterator, class RandomAccessIterator>
 inline RandomAccessIterator
 partial_sort_copy(InputIterator first, InputIterator last,
@@ -1522,11 +1424,8 @@ partial_sort_copy(InputIterator first, InputIterator last,
   return __partial_sort_copy(first, last, result_first, result_last, 
                              distance_type(result_first), value_type(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator, class RandomAccessIterator, class Compare,
+template <class InputIterator, class RandomAccessIterator, class Compare,
   class Distance, class T>
 RandomAccessIterator __partial_sort_copy(InputIterator first,
                                          InputIterator last,
@@ -1551,8 +1450,7 @@ RandomAccessIterator __partial_sort_copy(InputIterator first,
   sort_heap(result_first, result_real_last, comp);
   return result_real_last;
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class InputIterator, class RandomAccessIterator, class Compare>
 inline RandomAccessIterator
 partial_sort_copy(InputIterator first, InputIterator last,
@@ -1563,11 +1461,8 @@ partial_sort_copy(InputIterator first, InputIterator last,
   return __partial_sort_copy(first, last, result_first, result_last, comp,
                              distance_type(result_first), value_type(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T>
+template <class RandomAccessIterator, class T>
 void __nth_element(RandomAccessIterator first, RandomAccessIterator nth,
                    RandomAccessIterator last, T*) {
   while (last - first > 3) {
@@ -1581,19 +1476,15 @@ void __nth_element(RandomAccessIterator first, RandomAccessIterator nth,
   }
   __insertion_sort(first, last);
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class RandomAccessIterator>
 inline void nth_element(RandomAccessIterator first, RandomAccessIterator nth,
                         RandomAccessIterator last) {
   __stl_debug_check(__check_range(nth,first, last));
   __nth_element(first, nth, last, value_type(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Compare>
+template <class RandomAccessIterator, class T, class Compare>
 void __nth_element(RandomAccessIterator first, RandomAccessIterator nth,
 		   RandomAccessIterator last, T*, Compare comp) {
   while (last - first > 3) {
@@ -1607,20 +1498,17 @@ void __nth_element(RandomAccessIterator first, RandomAccessIterator nth,
   }
   __insertion_sort(first, last, comp);
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class RandomAccessIterator, class Compare>
 inline void nth_element(RandomAccessIterator first, RandomAccessIterator nth,
                         RandomAccessIterator last, Compare comp) {
   __stl_debug_check(__check_range(nth, first, last));
   __nth_element(first, nth, last, value_type(first), comp);
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
+
 
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Distance>
+template <class ForwardIterator, class T, class Distance>
 ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
                               const T& value, Distance*,
                               forward_iterator_tag) {
@@ -1643,9 +1531,7 @@ ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
   }
   return first;
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_NONTEMPL_BASE_MATCH_BUG) && ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Distance>
 inline ForwardIterator __lower_bound(ForwardIterator first,
 				     ForwardIterator last,
@@ -1654,12 +1540,9 @@ inline ForwardIterator __lower_bound(ForwardIterator first,
   return __lower_bound(first, last, value, (Distance*)0,
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Distance>
+template <class RandomAccessIterator, class T, class Distance>
 RandomAccessIterator __lower_bound(RandomAccessIterator first,
 				   RandomAccessIterator last, const T& value,
 				   Distance*, random_access_iterator_tag) {
@@ -1679,8 +1562,7 @@ RandomAccessIterator __lower_bound(RandomAccessIterator first,
   }
   return first;
 }
-# endif /*  __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator, class T>
 inline ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last,
                                    const T& value) {
@@ -1688,11 +1570,8 @@ inline ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last,
   return __lower_bound(first, last, value, distance_type(first),
                        iterator_category(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Compare, class Distance>
+template <class ForwardIterator, class T, class Compare, class Distance>
 ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
                               const T& value, Compare comp, Distance*,
                               forward_iterator_tag) {
@@ -1715,10 +1594,7 @@ ForwardIterator __lower_bound(ForwardIterator first, ForwardIterator last,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Compare, class Distance>
 inline ForwardIterator __lower_bound(ForwardIterator first,
 				     ForwardIterator last,
@@ -1727,12 +1603,8 @@ inline ForwardIterator __lower_bound(ForwardIterator first,
   return __lower_bound(first, last, value, comp, (Distance*)0,
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Compare, class Distance>
+template <class RandomAccessIterator, class T, class Compare, class Distance>
 RandomAccessIterator __lower_bound(RandomAccessIterator first,
                                    RandomAccessIterator last,
                                    const T& value, Compare comp, Distance*,
@@ -1753,8 +1625,7 @@ RandomAccessIterator __lower_bound(RandomAccessIterator first,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator, class T, class Compare>
 inline ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last,
                                    const T& value, Compare comp) {
@@ -1762,11 +1633,8 @@ inline ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last,
   return __lower_bound(first, last, value, comp, distance_type(first),
                        iterator_category(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Distance>
+template <class ForwardIterator, class T, class Distance>
 ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
 			      const T& value, Distance*,
 			      forward_iterator_tag) {
@@ -1789,10 +1657,7 @@ ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Distance>
 inline ForwardIterator __upper_bound(ForwardIterator first,
 				     ForwardIterator last,
@@ -1801,12 +1666,9 @@ inline ForwardIterator __upper_bound(ForwardIterator first,
   return __upper_bound(first, last, value, (Distance*)0,
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Distance>
+template <class RandomAccessIterator, class T, class Distance>
 RandomAccessIterator __upper_bound(RandomAccessIterator first,
 				   RandomAccessIterator last, const T& value,
 				   Distance*, random_access_iterator_tag) {
@@ -1826,8 +1688,7 @@ RandomAccessIterator __upper_bound(RandomAccessIterator first,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator, class T>
 inline ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last,
                                    const T& value) {
@@ -1835,11 +1696,8 @@ inline ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last,
   return __upper_bound(first, last, value, distance_type(first),
 		       iterator_category(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Compare, class Distance>
+template <class ForwardIterator, class T, class Compare, class Distance>
 ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
 			      const T& value, Compare comp, Distance*,
 			      forward_iterator_tag) {
@@ -1862,10 +1720,7 @@ ForwardIterator __upper_bound(ForwardIterator first, ForwardIterator last,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Compare, class Distance>
 inline ForwardIterator __upper_bound(ForwardIterator first,
 				     ForwardIterator last,
@@ -1874,12 +1729,9 @@ inline ForwardIterator __upper_bound(ForwardIterator first,
   return __upper_bound(first, last, value, comp, (Distance*)0,
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Compare, class Distance>
+template <class RandomAccessIterator, class T, class Compare, class Distance>
 RandomAccessIterator __upper_bound(RandomAccessIterator first,
 				   RandomAccessIterator last,
 				   const T& value, Compare comp, Distance*,
@@ -1900,8 +1752,7 @@ RandomAccessIterator __upper_bound(RandomAccessIterator first,
   }
   return first;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator, class T, class Compare>
 inline ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last,
                                    const T& value, Compare comp) {
@@ -1909,11 +1760,8 @@ inline ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last,
   return __upper_bound(first, last, value, comp, distance_type(first),
 		       iterator_category(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Distance>
+template <class ForwardIterator, class T, class Distance>
 pair<ForwardIterator, ForwardIterator>
 __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
 	      Distance*, forward_iterator_tag) {
@@ -1941,10 +1789,7 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
   }
   return pair<ForwardIterator, ForwardIterator>(first, first);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Distance>
 inline pair<ForwardIterator, ForwardIterator>
 __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
@@ -1952,12 +1797,9 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
   return __equal_range(first, last, value, (Distance*)0, 
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Distance>
+template <class RandomAccessIterator, class T, class Distance>
 pair<RandomAccessIterator, RandomAccessIterator>
 __equal_range(RandomAccessIterator first, RandomAccessIterator last,
 	      const T& value, Distance*, random_access_iterator_tag) {
@@ -1982,8 +1824,6 @@ __equal_range(RandomAccessIterator first, RandomAccessIterator last,
   }
   return pair<RandomAccessIterator, RandomAccessIterator>(first, first);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T>
 inline pair<ForwardIterator, ForwardIterator>
 equal_range(ForwardIterator first, ForwardIterator last, const T& value) {
@@ -1991,11 +1831,8 @@ equal_range(ForwardIterator first, ForwardIterator last, const T& value) {
   return __equal_range(first, last, value, distance_type(first),
 		       iterator_category(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T, class Compare, class Distance>
+template <class ForwardIterator, class T, class Compare, class Distance>
 pair<ForwardIterator, ForwardIterator>
 __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
 	      Compare comp, Distance*, forward_iterator_tag) {
@@ -2023,10 +1860,7 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
   }
   return pair<ForwardIterator, ForwardIterator>(first, first);
 }           
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # if defined (__STL_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class ForwardIterator, class T, class Compare, class Distance>
 inline pair<ForwardIterator, ForwardIterator>
 __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
@@ -2034,12 +1868,9 @@ __equal_range(ForwardIterator first, ForwardIterator last, const T& value,
   return __equal_range(first, last, value, comp, (Distance*)0, 
 		       forward_iterator_tag());
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 # endif /* OBSOLETE */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class T, class Compare, class Distance>
+template <class RandomAccessIterator, class T, class Compare, class Distance>
 pair<RandomAccessIterator, RandomAccessIterator>
 __equal_range(RandomAccessIterator first, RandomAccessIterator last,
 	      const T& value, Compare comp, Distance*,
@@ -2065,8 +1896,7 @@ __equal_range(RandomAccessIterator first, RandomAccessIterator last,
   }
   return pair<RandomAccessIterator, RandomAccessIterator>(first, first);
 }           
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class ForwardIterator, class T, class Compare>
 inline pair<ForwardIterator, ForwardIterator>
 equal_range(ForwardIterator first, ForwardIterator last, const T& value,
@@ -2075,11 +1905,8 @@ equal_range(ForwardIterator first, ForwardIterator last, const T& value,
   return __equal_range(first, last, value, comp, distance_type(first),
 		       iterator_category(first));
 }    
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator, class T>
+template <class ForwardIterator, class T>
 bool binary_search(ForwardIterator first, ForwardIterator last,
 		   const T& value) {
   ForwardIterator i = lower_bound(first, last, value);
@@ -2347,8 +2174,7 @@ void __merge_adaptive(BidirectionalIterator first,
 		     len2 - len22, buffer, buffer_size, comp);
   }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class BidirectionalIterator, class T, class Distance>
 inline void __inplace_merge_aux(BidirectionalIterator first,
 				BidirectionalIterator middle,
@@ -2404,11 +2230,8 @@ inline void inplace_merge(BidirectionalIterator first,
   __inplace_merge_aux(first, middle, last, value_type(first),
 		      distance_type(first), comp);
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class InputIterator1, class InputIterator2>
+template <class InputIterator1, class InputIterator2>
 bool includes(InputIterator1 first1, InputIterator1 last1,
               InputIterator2 first2, InputIterator2 last2) {
   __stl_debug_check(__check_range(first1, last1));
@@ -2776,10 +2599,6 @@ bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last,
   }
 }
 
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class InputIterator, class ForwardIterator>
 INLINE_LOOP 
 InputIterator find_first_of(InputIterator first1, InputIterator last1,
@@ -2804,12 +2623,8 @@ InputIterator find_first_of(InputIterator first1, InputIterator last1,
         return first1;
   return last1;
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     // Search [first2, last2) as a subsequence in [first1, last1).
-
+// Search [first2, last2) as a subsequence in [first1, last1).
 // find_end for forward iterators. 
 template <class ForwardIterator1, class ForwardIterator2>
 ForwardIterator1 __find_end(ForwardIterator1 first1, ForwardIterator1 last1,
@@ -2908,9 +2723,7 @@ __find_end(BidirectionalIterator1 first1, BidirectionalIterator1 last1,
   }
 }
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 // Dispatching functions.
 
 template <class ForwardIterator1, class ForwardIterator2>
@@ -2953,13 +2766,7 @@ find_end(ForwardIterator1 first1, ForwardIterator1 last1,
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 }
 
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
-     template <class RandomAccessIterator, class Distance>
+template <class RandomAccessIterator, class Distance>
 bool __is_heap(RandomAccessIterator first, RandomAccessIterator last,
                Distance*)
 {
@@ -2974,19 +2781,15 @@ bool __is_heap(RandomAccessIterator first, RandomAccessIterator last,
   }
   return true;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class RandomAccessIterator>
 inline bool is_heap(RandomAccessIterator first, RandomAccessIterator last)
 {
   __stl_debug_check(__check_range(first, last));
   return __is_heap(first, last, distance_type(first));
 }
-# endif /* ! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class RandomAccessIterator, class Distance, class StrictWeakOrdering>
+template <class RandomAccessIterator, class Distance, class StrictWeakOrdering>
 bool __is_heap(RandomAccessIterator first, RandomAccessIterator last,
                StrictWeakOrdering comp,
                Distance*)
@@ -3002,9 +2805,7 @@ bool __is_heap(RandomAccessIterator first, RandomAccessIterator last,
   }
   return true;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class RandomAccessIterator, class StrictWeakOrdering>
 inline bool is_heap(RandomAccessIterator first, RandomAccessIterator last,
                     StrictWeakOrdering comp)
@@ -3012,11 +2813,8 @@ inline bool is_heap(RandomAccessIterator first, RandomAccessIterator last,
   __stl_debug_check(__check_range(first, last));
   return __is_heap(first, last, comp, distance_type(first));
 }
-# endif /*! __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-! defined (__STL_SEPARATE_TEMPLATE_BODY)
-     template <class ForwardIterator>
+template <class ForwardIterator>
 bool is_sorted(ForwardIterator first, ForwardIterator last)
 {
   __stl_debug_check(__check_range(first, last));
@@ -3048,7 +2846,6 @@ bool is_sorted(ForwardIterator first, ForwardIterator last,
 
   return true;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1209

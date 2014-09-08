@@ -30,8 +30,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # ifndef __VOLATILE
 #  define __VOLATILE
 # endif
@@ -299,10 +297,6 @@ __safe_base::detach() {
 
 
 //============================================================
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_SEPARATE_TEMPLATE_BODY) && \
-     !defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
     
 // forward declaratioins
 template <class Iterator>
@@ -324,10 +318,7 @@ template <class Iterator>
 bool __check_same_owner( const Iterator& i1, const Iterator& i2);
 template <class Pointer, class Iterator>
 bool __check_if_owner( const Pointer* owner, const Iterator& it);
-# endif /* forward decl */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 // [ i1, i2)
 template <class Iterator>
 inline bool __in_range_aux(const Iterator& it, const Iterator& first,
@@ -337,7 +328,7 @@ inline bool __in_range_aux(const Iterator& it, const Iterator& first,
 }
 
 template <class Iterator1, class Iterator>
-# if defined (_MSC_VER) && (_MSC_VER > 1100)
+# if defined (_MSC_VER) && (_MSC_VER >= 1100)
 inline bool __in_range_aux(Iterator1 it, const Iterator& first,
 # else
 inline bool __in_range_aux(const Iterator1& it, const Iterator& first,
@@ -449,8 +440,6 @@ bool __check_if_owner( const Pointer* owner, const Iterator& it)
 }
 
 //============================================================
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 __STL_END_NAMESPACE
 

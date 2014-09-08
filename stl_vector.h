@@ -74,8 +74,6 @@ __STL_BEGIN_NAMESPACE
 #pragma set woff 1174
 #endif
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # if defined ( __STL_USE_ABBREVS )
 #  define  __vector_iterator       _V__It
 # endif
@@ -514,11 +512,6 @@ protected:
 #endif /* __STL_MEMBER_TEMPLATES */
 };
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
 # if defined (__STL_DEBUG)
 template <class T,  class Alloc, class Ref, class Ptr>
 bool __vector_iterator<T, Alloc, Ref, Ptr>::dereferenceable() const {
@@ -548,9 +541,6 @@ bool __vector_iterator<T, Alloc, Ref, Ptr>::nonsingular(const __safe_server* o) 
 
 # endif /* __STL_DEBUG */
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class T, class Alloc>
 inline bool operator==(const vector<T, Alloc>& x, const vector<T, Alloc>& y) {
     return x.size() == y.size() && equal(x.begin(), x.end(), y.begin());
@@ -560,10 +550,8 @@ template <class T, class Alloc>
 inline bool operator<(const vector<T, Alloc>& x, const vector<T, Alloc>& y) {
     return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
+
 template <class T, class Alloc>
 vector<T, Alloc>& vector<T, Alloc>::operator=(const vector<T, Alloc>& x) {
   if (&x != this) {
@@ -817,8 +805,6 @@ void vector<T, Alloc>::insert(__iterator__ position,
 
 #endif /* __STL_MEMBER_TEMPLATES */
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY || ! __STL_SEPARATE_TEMPLATE_BODY */
-
 // do a cleanup
 # undef  vector
 # undef  __iterator__
@@ -829,7 +815,6 @@ void vector<T, Alloc>::insert(__iterator__ position,
 # undef  __ptr
 # undef  __difference_type__
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 // provide a uniform way to access full funclionality
 #  define __vector__ __FULL_NAME(vector)
 
@@ -873,8 +858,6 @@ template <class T>
 template <class T, class Alloc>
     inline void swap(__vector__<T,Alloc>& a, __vector__<T,Alloc>& b) { a.swap(b); }
 # endif
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 // close std namespace
 __STL_END_NAMESPACE

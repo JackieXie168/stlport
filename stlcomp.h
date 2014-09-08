@@ -183,14 +183,12 @@
 // Visual Age C++ 3.x
 // OS-390 C++
 #if ( defined (__xlC__) && __xlC__ < 0x400 ) || \
-    (defined(_MVS__) && defined ( __IBMCPP__ ) && (__IBMCPP__ < 23000 )) || \
+    (defined(__MVS__) && defined ( __IBMCPP__ ) && (__IBMCPP__ < 23000 )) || \
     ( defined (  __IBMCPP__ ) && (  __IBMCPP__ < 400 ) )
 #  define __STL_RESERVED_BOOL_KEYWORD 1
 #  define __STL_UNINITIALIZABLE_PRIVATE 1
 #  define __STL_BASE_TYPEDEF_OUTSIDE_BUG 1
 #  define __STL_STATIC_ARRAY_BUG 1
-// VAC++ separate compilation ??
-#  define __STL_SEPARATE_TEMPLATE_BODY  1
 #  define __STL_TRIVIAL_DESTRUCTOR_BUG  1  // AIX xlC, Visual Age 3.0 for OS/2 and MS 
 #  if ( defined (__MULTI__) && defined (__WINDOWS__))
 #   define  __STL_WIN32THREADS 1          // Only Visual Age 3.5 for Windows
@@ -313,8 +311,9 @@
 #   endif
 #   if ( __SUNPRO_CC >= 0x420 )
 #    define __STL_FULL_SPEC_SYNTAX 1
-#    define __STL_SEPARATE_TEMPLATE_BODY 1
+// #    define __STL_SEPARATE_TEMPLATE_BODY 1
 #   endif
+// # define __STL_NONTEMPL_BASE_MATCH_BUG 1
 #  else
    // SUNPro C++ 4.0.1
 #   define __STL_BASE_MATCH_BUG          1
@@ -400,7 +399,8 @@
 
 # if defined (__WATCOM_CPLUSPLUS__)
 #   define __STL_BASE_TYPEDEF_OUTSIDE_BUG 1
-#   define __STL_USE_NEW_STYLE_HEADERS 1
+// eyal.ben-david@aks.com : disabled
+// #   define __STL_USE_NEW_STYLE_HEADERS 1
 #   define __STL_LONG_DOUBLE 1
 #   define __STL_NO_DEFAULT_NON_TYPE_PARAM 1
 #   define __STL_METHOD_SPECIALIZATION 1
@@ -505,7 +505,7 @@
 #   define __STL_DEFAULT_TEMPLATE_PARAM 1
 #  else								// Pre-1.9 bugs
 #   if __MWERKS__ < 0x1800
-#    __GIVE_UP_WITH_STL(CW_18)
+    __GIVE_UP_WITH_STL(CW_18)
 #   endif
 #   define __STL_BASE_TYPEDEF_BUG        1
 #   define __STL_BASE_MATCH_BUG   1

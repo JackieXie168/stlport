@@ -58,18 +58,22 @@
 #ifndef __TYPE_TRAITS_H_
 #include <type_traits.h>
 #endif
-// SUNPRO has non-inline declaration of placement new
-# if defined (__SUNPRO_CC) || (defined (__BORLANDC__) && __BORLANDC__ < 0x500 )
-   inline void* operator new(size_t, void* p) { return p; }
-# endif
-#  if defined (__STL_NEW_HEADER_NAMES) && defined (__STL_USE_NEW_STYLE_HEADERS)
-#   include <new>
-#  else
-#   include <new.h>
-#  endif
 
 # if defined ( __BORLANDC__ ) && defined ( __STL_NO_NAMESPACES )
 #  include <stdlib.h>
+# endif
+
+// SUNPRO has non-inline declaration of placement new
+# if defined (__SUNPRO_CC) || (defined (__BORLANDC__) && __BORLANDC__ < 0x500 )
+#  if defined (__SUNPRO_CC)
+#   include <stdlib.h>
+#  endif
+//   inline void* operator new(size_t, void* p) { return p; }
+# endif
+# if defined (__STL_NEW_HEADER_NAMES) && defined (__STL_USE_NEW_STYLE_HEADERS)
+#   include <new>
+# else
+#   include <new.h>
 # endif
 
 #include <string.h>

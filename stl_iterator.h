@@ -860,9 +860,11 @@ protected:
     T value;
     bool end_marker;
     void read() {
-        end_marker = (*stream) ? true : false;
+      //        end_marker = (*stream) ? true : false;
+        end_marker = stream->good();
         if (end_marker) *stream >> value;
-        end_marker = (*stream) ? true : false;
+	//        end_marker = (*stream) ? true : false;
+        end_marker = stream->good();
     }
 public:
     typedef input_iterator_tag iterator_category;

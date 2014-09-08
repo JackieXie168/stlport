@@ -65,10 +65,7 @@ iterators invalidated are those referring to the deleted node.
 
 */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-__STL_BEGIN_NAMESPACE
-# else 
-
+#include <stl_config.h>
 #include <stl_algobase.h>
 #include <stl_alloc.h>
 #include <stl_construct.h>
@@ -734,8 +731,6 @@ public:
   bool __rb_verify() const;
 };
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 // fbp: these defines are for outline methods definitions.
 // needed for definitions to be portable. Should not be used in method bodies.
 # if defined  ( __STL_NESTED_TYPE_PARAM_BUG )
@@ -756,7 +751,6 @@ public:
 #  define __key_type__        rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::key_type
 # endif
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 inline bool operator==(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& x, 
                        const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& y) {
@@ -768,10 +762,6 @@ inline bool operator<(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& x,
                       const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& y) {
     return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& 
@@ -979,9 +969,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(__const_iterator_
 }
 
 #endif /* __STL_MEMBER_TEMPLATES */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
-         
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
+
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 inline void
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(__iterator__ 
@@ -996,10 +984,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(__iterator__
   destroy_node(y);
   --node_count;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 __size_type__
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase(const __key_type__& x) {
@@ -1163,9 +1148,7 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::upper_bound(const __key_type__&
 
    return make_const_iterator(y);
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 inline pair<__iterator__,__iterator__>
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::equal_range(const __key_type__& k) {
@@ -1190,10 +1173,7 @@ inline int __black_count(__rb_tree_node_base* node, __rb_tree_node_base* root)
       return bc + __black_count(node->parent, root);
   }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 bool 
 rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__rb_verify() const
@@ -1229,8 +1209,6 @@ rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__rb_verify() const
 
   return true;
 }
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
 # undef __iterator__        
 # undef __const_iterator__  

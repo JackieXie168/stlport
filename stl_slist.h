@@ -34,8 +34,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # if defined ( __STL_USE_ABBREVS )
 #  define __slist_iterator         _L__It
 # endif
@@ -632,8 +630,6 @@ inline bool operator<(const slist<T, Alloc>& L1, const slist<T, Alloc>& L2)
   return lexicographical_compare(L1.begin(), L1.end(), L2.begin(), L2.end());
 }
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 
 # if defined (__STL_NESTED_TYPE_PARAM_BUG) 
 #  define iterator       __slist_iterator<T,T&,T*>
@@ -641,8 +637,7 @@ inline bool operator<(const slist<T, Alloc>& L1, const slist<T, Alloc>& L2)
 #  define size_type      size_t
 # endif
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
+
 template <class T, class Alloc>
 slist<T, Alloc>& slist<T,Alloc>::operator=(const slist<T, Alloc>& L)
 {
@@ -832,7 +827,6 @@ void slist<T,Alloc>::sort(StrictWeakOrdering comp)
 }
 
 #endif /* __STL_MEMBER_TEMPLATES */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
 # if defined ( __STL_NESTED_TYPE_PARAM_BUG )
 #  undef  iterator
@@ -843,7 +837,6 @@ void slist<T,Alloc>::sort(StrictWeakOrdering comp)
 // do a cleanup
 #  undef slist
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 #  define __slist__ __FULL_NAME(slist)
 
 # if defined (__STL_FUNC_PARTIAL_ORDERING )
@@ -883,7 +876,6 @@ inline bool operator<(const slist<T>& x, const slist<T>& y) {
 }
 #  endif
 # endif /*  __STL_DEFAULT_TEMPLATE_PARAM */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1174

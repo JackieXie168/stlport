@@ -31,10 +31,6 @@
 #ifndef __SGI_STL_INTERNAL_ROPE_H
 # define __SGI_STL_INTERNAL_ROPE_H
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-__STL_BEGIN_NAMESPACE
-# else /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 # ifdef __GC
 #   define __GC_CONST const
 # else
@@ -2278,12 +2274,7 @@ identity_element(__rope_concat_fn<charT,Alloc>) {
 
 __STL_END_NAMESPACE
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 # include <ropeimpl.h>
-# endif
 
 # endif /* __SGI_STL_INTERNAL_ROPE_H */
 

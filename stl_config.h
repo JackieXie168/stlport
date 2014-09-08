@@ -42,7 +42,7 @@
 // SGI basic release
 #   define __SGI_STL                                      0x300
 // Adaptation version
-#   define __SGI_STL_PORT                                 0x3000
+#   define __SGI_STL_PORT                                 0x3010
 
 # include <stlconf.h>
 
@@ -436,21 +436,42 @@
 #   undef max
 # endif
 
-# if defined(__STL_YVALS_H)
-#  include <yvals.h>
+# if defined (__IBMCPP__) && (__IBMCPP__ < 400)
+#  include <isynonym.hpp>
+#  typedef int bool;
 # else
-#  if ! defined(__STL_BOOL_KEYWORD)
-#   if defined (__STL_RESERVED_BOOL_KEYWORD)
-#    define bool int
-#   else
-     typedef int bool;
-#   endif
+#  if defined(__STL_YVALS_H)
+#   include <yvals.h>
+#  else
+#   if ! defined(__STL_BOOL_KEYWORD)
+#    if defined (__STL_RESERVED_BOOL_KEYWORD)
+#     define bool int
+#    else
+      typedef int bool;
+#    endif
 #    define true 1
 #    define false 0
-#  endif /* __STL_BOOL_KEYWORD */
-# endif
+#   endif /* __STL_BOOL_KEYWORD */
+#  endif
+# endif /* __IBMCPP__ */
 
-// # undef __STL_BOOL_KEYWORD
+#  ifdef _MSC_VER
+#   ifndef _CRTIMP
+#    ifdef  _DLL
+#     define _CRTIMP __declspec(dllimport)
+#    else 
+#     define _CRTIMP
+#    endif 
+#   endif
+#  endif
+
+# ifdef _CRTIMP
+#  define __STLIMP _CRTIMP
+# else
+#  define __STLIMP
+# endif 
+
+// some cleanup
 # undef __STL_RESERVED_BOOL_KEYWORD
 # undef __STL_YVALS_H
 # undef __STL_LOOP_INLINE_PROBLEMS

@@ -110,8 +110,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if !defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # if defined ( __STL_USE_ABBREVS )
 #  define __deque_iterator         _dQ__It
 # endif
@@ -745,11 +743,6 @@ public:
   }
 # endif
 };
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 
 # if defined (__STL_DEBUG)
 template <class T, class BufSize>
@@ -1603,7 +1596,6 @@ bool operator<(const deque<T, Alloc, BufSiz>& x,
 }
 
 #  endif /* __STL_NON_TYPE_TMPL_PARAM_BUG */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
 // do a cleanup
 # undef deque
@@ -1613,7 +1605,6 @@ bool operator<(const deque<T, Alloc, BufSiz>& x,
 # undef size_type
 # undef value_type
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 # if !defined ( __STL_DEFAULT_TYPE_PARAM) || defined (__STL_NO_DEFAULT_NON_TYPE_PARAM)
 // provide a "default" deque adaptor
 # if defined (__STL_DEFAULT_TYPE_PARAM)
@@ -1658,8 +1649,6 @@ operator<(const deque<T>& x, const deque<T>& y) {
 template <class T, class Alloc, size_t BufSiz>
 inline void swap(__deque__<T,Alloc,BufSiz>& a, __deque__<T,Alloc,BufSiz>& b) { a.swap(b); }
 # endif
-
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1174

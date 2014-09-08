@@ -52,8 +52,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # if defined ( __STL_USE_ABBREVS )
 #  define __list_iterator         _L__It
 # endif
@@ -492,9 +490,6 @@ inline bool operator<(const list<T, Alloc>& x, const list<T, Alloc>& y) {
     return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-
 # if defined (__STL_NESTED_TYPE_PARAM_BUG) 
 #  define __iterator__   __list_iterator<T, T&, T*>
 #  define iterator       __list_iterator<T, T&, T*>
@@ -504,8 +499,6 @@ inline bool operator<(const list<T, Alloc>& x, const list<T, Alloc>& y) {
 #  define __iterator__ list<T,Alloc>::iterator
 # endif
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 
 #ifdef __STL_MEMBER_TEMPLATES
 
@@ -738,7 +731,6 @@ void list<T, Alloc>::sort(StrictWeakOrdering comp) {
 }
 
 #endif /* __STL_MEMBER_TEMPLATES */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
 // do a cleanup
 # undef list
@@ -750,7 +742,6 @@ void list<T, Alloc>::sort(StrictWeakOrdering comp) {
 # endif
 # undef __iterator__
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 # if defined (__STL_FUNC_PARTIAL_ORDERING )
 template <class T, class Alloc>
 inline void swap(__list__<T,Alloc>& a, __list__<T,Alloc>& b) { a.swap(b); }
@@ -788,9 +779,6 @@ inline bool operator<(const list<T>& x, const list<T>& y) {
 }
 #  endif
 # endif /*  __STL_DEFAULT_TEMPLATE_PARAM */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
-
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1174

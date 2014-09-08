@@ -288,9 +288,6 @@ __uninitialized_copy_fill(InputIterator first1, InputIterator last1,
     uninitialized_fill(mid2, last2, x);
   }
   __STL_UNWIND(destroy(first2, mid2));
-# ifdef __STL_THROW_RETURN_BUG
-  return ForwardIterator();
-# endif
 }
 
 __STL_END_NAMESPACE

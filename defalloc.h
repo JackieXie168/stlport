@@ -107,7 +107,7 @@ bool operator==(const allocator<T>&, const allocator<T>&) { return true; }
 //bool operator!=(const allocator<T>&, const allocator<T>&) { return false; }
 
 __STL_FULL_SPECIALIZATION
-class allocator<void> {
+class __STLIMP allocator<void> {
 public:
     typedef void* pointer;
     typedef const void* const_pointer;

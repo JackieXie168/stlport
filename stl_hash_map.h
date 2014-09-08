@@ -366,7 +366,7 @@ public:
   typedef typename super::key_type key_type;
   typedef typename super::hasher hasher;
   typedef typename super::key_equal key_equal;
-  typedef typename T data_type;
+  typedef T data_type;
   typedef typename super::pointer pointer;
   typedef typename super::const_pointer const_pointer;
   hash_map() {}

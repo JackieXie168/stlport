@@ -71,7 +71,7 @@ private:
   obj* volatile free_list[NFREELISTS]; 
   __pthread_alloc<dummy>* next; 	// Free list link
 
-  static size_t ROUND_UP(size_t bytes) {
+  static size_t alloc_round_up(size_t bytes) {
 	return (((bytes) + ALIGN-1) & ~(ALIGN - 1));
   }
   static size_t FREELIST_INDEX(size_t bytes) {
@@ -138,7 +138,7 @@ public:
     my_free_list = a -> free_list + FREELIST_INDEX(n);
     result = *my_free_list;
     if (result == 0) {
-    	void *r = a -> refill(ROUND_UP(n));
+    	void *r = a -> refill(alloc_round_up(n));
 	return r;
     }
     *my_free_list = result -> free_list_link;
@@ -242,7 +242,7 @@ char *__pthread_alloc<dummy>
 	start_free += total_bytes;
 	return(result);
     } else {
-	size_t bytes_to_get = 2 * total_bytes + ROUND_UP(heap_size >> 4);
+	size_t bytes_to_get = 2 * total_bytes + alloc_round_up(heap_size >> 4);
 	// Try to make use of the left-over piece.
 	if (bytes_left > 0) {
 	    __pthread_alloc<dummy>* a = 
@@ -323,7 +323,7 @@ void *__pthread_alloc<dummy>
     if (old_sz > MAX_BYTES && new_sz > MAX_BYTES) {
 	return(realloc(p, new_sz));
     }
-    if (ROUND_UP(old_sz) == ROUND_UP(new_sz)) return(p);
+    if (alloc_round_up(old_sz) == alloc_round_up(new_sz)) return(p);
     result = allocate(new_sz);
     copy_sz = new_sz > old_sz? old_sz : new_sz;
     memcpy(result, p, copy_sz);

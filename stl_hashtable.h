@@ -59,8 +59,6 @@
 
 __STL_BEGIN_NAMESPACE
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
-
 # if defined ( __STL_USE_ABBREVS )
 #  define __hashtable_iterator         _hT__It
 #  define __hashtable_const_iterator   _hT__cIt
@@ -201,17 +199,17 @@ struct __hashtable_const_iterator
 
 // Note: assumes long is at least 32 bits.
 // fbp: try to avoid intances in every module
-enum { __stl_num_primes = 28 };
+# define __stl_num_primes  28
 
 #if ( __STL_STATIC_TEMPLATE_DATA > 0 )
 #  define __stl_prime_list __stl_prime<false>::list_
    template <bool dummy>
    struct __stl_prime {
    public:
-       static const unsigned long list_[];
+       static const unsigned long list_[__stl_num_primes];
    };
    template <bool dummy>
-   const unsigned long __stl_prime<dummy>::list_[] =
+   const unsigned long __stl_prime<dummy>::list_[__stl_num_primes] =
 #  else
 #  if ( __STL_WEAK_ATTRIBUTE > 0 )
       extern const unsigned long __stl_prime_list[__stl_num_primes] __attribute__((weak)) =
@@ -599,8 +597,6 @@ template <class V, class K, class HF, class ExK, class EqK, class A>
 bool operator== (const hashtable<V, K, HF, ExK, EqK, A>&, 
                  const hashtable<V, K, HF, ExK, EqK, A>&);
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
-
 // fbp: these defines are for outline methods definitions.
 // needed to definitions to be portable. Should not be used in method bodies.
 
@@ -624,8 +620,7 @@ bool operator== (const hashtable<V, K, HF, ExK, EqK, A>&,
 #  define __const_iterator__   hashtable<V, K, HF, ExK, EqK, A>::const_iterator
 # endif
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
+
 template <class V, class K, class HF, class ExK, class EqK, class A>
 __hashtable_iterator<V, K, HF, ExK, EqK, A>&
 __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++()
@@ -640,9 +635,7 @@ __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++()
   }
   return *this;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 inline __hashtable_iterator<V, K, HF, ExK, EqK, A>
 __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
@@ -651,10 +644,7 @@ __hashtable_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
   ++*this;
   return tmp;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 __hashtable_const_iterator<V, K, HF, ExK, EqK, A>&
 __hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++()
@@ -669,9 +659,7 @@ __hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++()
   }
   return *this;
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 inline __hashtable_const_iterator<V, K, HF, ExK, EqK, A>
 __hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++(int)
@@ -723,10 +711,7 @@ distance_type(const __hashtable_const_iterator<V, K, HF, ExK, EqK, A>&)
   return (__difference_type__*) 0;
 }
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 bool operator==(const hashtable<V, K, HF, ExK, EqK, A>& ht1,
                 const hashtable<V, K, HF, ExK, EqK, A>& ht2)
@@ -939,9 +924,7 @@ void hashtable<V, K, HF, ExK, EqK, A>::erase(__iterator__ first, __iterator__ la
       erase_bucket(l_bucket, last.cur);
   }
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
-# if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 inline void
 hashtable<V, K, HF, ExK, EqK, A>::erase(__const_iterator__ first,
@@ -960,10 +943,7 @@ hashtable<V, K, HF, ExK, EqK, A>::erase(const __const_iterator__& it)
   erase(iterator(__CONST_CAST(node*,it.cur),
                  __CONST_CAST(self*,it.ht)));
 }
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 template <class V, class K, class HF, class ExK, class EqK, class A>
 void hashtable<V, K, HF, ExK, EqK, A>::resize(__size_type__ num_elements_hint)
 {
@@ -1076,7 +1056,6 @@ void hashtable<V, K, HF, ExK, EqK, A>::copy_from(const hashtable<V, K, HF, ExK, 
   __STL_UNWIND(clear());
 }
 
-# endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY) || ! __STL_SEPARATE_TEMPLATE_BODY */
 
 # undef __iterator__ 
 # undef __const_iterator__ 
@@ -1085,6 +1064,7 @@ void hashtable<V, K, HF, ExK, EqK, A>::copy_from(const hashtable<V, K, HF, ExK, 
 # undef __value_type__      
 # undef __key_type__        
 # undef __node__            
+# undef __stl_num_primes
 
 __STL_END_NAMESPACE
 

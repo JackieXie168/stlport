@@ -29,9 +29,6 @@
 #  include <iostream.h>
 # endif
 
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
-
 # include <stdio.h> /* putchar(), printf() */
 
 __STL_BEGIN_NAMESPACE
@@ -39,9 +36,6 @@ __STL_BEGIN_NAMESPACE
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma set woff 1174
 #endif
-
-# if defined (__STL_COMPILE_TEMPLATE_BODY_ONLY) || \
-   ! defined (__STL_SEPARATE_TEMPLATE_BODY)
 
 template <class charT, class Alloc>
 void __rope_iterator_base<charT,Alloc>::setbuf
@@ -1610,12 +1604,11 @@ inline void rotate(__rope_iterator<wchar_t,__ALLOC> first,
 #   undef size_type
 # endif
 
-# endif
 __STL_END_NAMESPACE
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1174
 #endif
-# endif /* BODY_ONLY */
+
 # endif /* ROPEIMPL_H */
 
 // Local Variables:
