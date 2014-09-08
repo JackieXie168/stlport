@@ -2,21 +2,9 @@
 // It is internal STLport header - DO NOT include it directly
 // Microsoft Visual C++ 4.0, 4.1, 4.2, 5.0, 6.0, 7.0, 7.1, ICL
 
-
-// Common features for VC++ 4.0 and higher
 #if defined (_M_IA64)
-#  define _STLP_NATIVE_HEADER(x) <../crt/##x>
-#  define _STLP_NATIVE_C_HEADER(x) <../crt/##x>
-#  define _STLP_NATIVE_CPP_C_HEADER(x) <../crt/##x>
-#  define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../crt/##x>
-#  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../crt/##header>
+#  define _STLP_NATIVE_INCLUDE_PATH ../crt
 #  define _STLP_GLOBAL_NEW_HANDLER
-#else
-#  define _STLP_NATIVE_HEADER(x) <../include/##x>
-#  define _STLP_NATIVE_C_HEADER(x) <../include/##x>
-#  define _STLP_NATIVE_CPP_C_HEADER(x) <../include/##x>
-#  define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../include/##x>
-#  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../include/##header>
 #endif
 
 #define _STLP_CALL __cdecl
@@ -58,26 +46,27 @@
 
 #  define _STLP_DLLEXPORT_NEEDS_PREDECLARATION 1
 #  define _STLP_HAS_SPECIFIC_PROLOG_EPILOG 1
+#  define _STLP_NO_VENDOR_STDLIB_L 1
 
 // # ifndef __BUILDING_STLPORT
 // #  define _STLP_USE_TEMPLATE_EXPORT 1
 // # endif
 #  if (_STLP_MSVC <= 1400)
 #    define _STLP_STATIC_CONST_INIT_BUG   1
-#  endif	//	(_STLP_MSVC <= 1400)
+#  endif  //  (_STLP_MSVC <= 1400)
 
 #  if (_STLP_MSVC >= 1310)
 #    define _STLP_FULL_ADL_IMPLEMENTED 1
-#  endif	//	(_STLP_MSVC >= 1310)
+#  endif  //  (_STLP_MSVC >= 1310)
 
 #  if (_STLP_MSVC >= 1300)
-//Starting with MSVC 7.0 we concider that it is the new SDK that is granted:
+//Starting with MSVC 7.0 we assume that the new SDK is granted:
 #    define _STLP_NEW_PLATFORM_SDK 1
 #    undef _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
 #    if !defined (_STLP_DONT_USE_EXCEPTIONS)
 #      define _STLP_NOTHROW throw()
 #    endif
-#  endif	//	(_STLP_MSVC >= 1300)
+#  endif  //  (_STLP_MSVC >= 1300)
 
 #  if (_STLP_MSVC <= 1300) 
 #    define _STLP_NO_CLASS_PARTIAL_SPECIALIZATION 1
@@ -93,14 +82,13 @@
 #    define _STLP_NO_QUALIFIED_FRIENDS    1
 #    define _STLP_NO_FRIEND_TEMPLATES
 // fails to properly resolve call to sin() from within sin()
-#    define _STLP_SAME_FUNCTION_NAME_RESOLUTION_BUG
 #  endif /* _STLP_MSVC <= 1300 */
 
 #  if (_STLP_MSVC >= 1200)
 #    define _STLP_HAS_NATIVE_FLOAT_ABS 1
 #  endif
 
-#  if (_STLP_MSVC <= 1200)
+#  if (_STLP_MSVC < 1300)
 /*
  * dums: VC6 do not handle correctly member templates of class that are explicitely
  * instanciated to be exported. There is a workaround, seperate the non template methods
@@ -131,11 +119,11 @@
 #  define _STLP_VENDOR_GLOBAL_CSTD
 #endif /* (_MSC_VER <= 1310) */
 
-#if (_MSC_VER <= 1200)
+#if (_MSC_VER < 1300)
 #  define _STLP_NO_IEC559_SUPPORT 1
 #endif
 
-#if (_MSC_VER <= 1200) || defined(UNDER_CE) // including MSVC 6.0
+#if (_MSC_VER < 1300) || defined(UNDER_CE) // including MSVC 6.0
 //  these work, as long they are inline
 #  define _STLP_INLINE_MEMBER_TEMPLATES 1
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
@@ -144,7 +132,7 @@
 #  define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
 #  define _STLP_VENDOR_UNEXPECTED_STD 1
 #  define _STLP_USING_NAMESPACE_BUG 1
-#endif /* (_MSC_VER <= 1200) */
+#endif
 
 #if (_STLP_MSVC > 1100)
 typedef char __stl_char;
@@ -204,32 +192,31 @@ typedef char __stl_char;
 #  undef  _STLP_NO_AT_MEMBER_FUNCTION
 #  undef  _STLP_NO_MEMBER_TEMPLATES
 #  undef  _STLP_NO_MEMBER_TEMPLATE_CLASSES
-#  define  _STLP_HAS_NO_NAMESPACES 1
-#  define  _STLP_NO_AT_MEMBER_FUNCTION 1
-#  define  _STLP_NO_MEMBER_TEMPLATES 1
-#  define  _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
+#  define _STLP_HAS_NO_NAMESPACES 1
+#  define _STLP_NO_AT_MEMBER_FUNCTION 1
+#  define _STLP_NO_MEMBER_TEMPLATES 1
+#  define _STLP_NO_MEMBER_TEMPLATE_CLASSES 1
 #endif /* 1100 */
 
 // If we are under Windows CE, include appropriate config
-
-#if defined(UNDER_CE) && (_MSC_VER < 1200)
+#if defined (UNDER_CE) && (_MSC_VER < 1200)
     // Microsoft Visual C++ 5 with Windows CE Toolkit;
     // could also be Visual C++ 6 with toolkit, but we can't detect that.
     // the Windows CE Toolkit is obsolete, anyway
 #    include <config/stl_wince.h>
 #endif /* UNDER_CE */
 
-#if (_MSC_VER <= 1200) // including MSVC 6.0
+#if (_MSC_VER < 1300) // MSVC 6.0 and earlier
 // defined for DEBUG and NDEBUG too, to allow user mix own debug build with STLP release library
 #  define _STLP_USE_ABBREVS
 #endif
 
-#if !( defined(_STLP_WINCE) )
+#if !defined (_STLP_WINCE)
 #  define _STLP_EXPORT_DECLSPEC __declspec(dllexport)
 #  define _STLP_IMPORT_DECLSPEC __declspec(dllimport)
 #endif
 
-#if !( defined(_STLP_MSVC) && _STLP_MSVC < 1100)
+#if !(defined (_STLP_MSVC) && _STLP_MSVC < 1100)
 #  define _STLP_CLASS_EXPORT_DECLSPEC __declspec(dllexport)
 #  define _STLP_CLASS_IMPORT_DECLSPEC __declspec(dllimport)
 #endif
@@ -261,7 +248,7 @@ typedef char __stl_char;
 #if defined(_STLP_USE_DYNAMIC_LIB)
 #  undef  _STLP_USE_DECLSPEC
 #  define _STLP_USE_DECLSPEC 1
-#  if (_STLP_MSVC == 1200)
+#  if (_STLP_MSVC >= 1200) && (_STLP_MSVC < 1300)
 #    define _STLP_USE_MSVC6_MEM_T_BUG_WORKAROUND 1
 #  endif
 #endif

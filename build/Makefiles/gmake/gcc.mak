@@ -1,4 +1,4 @@
-# Time-stamp: <04/08/23 22:49:14 ptr>
+# Time-stamp: <05/03/21 10:42:37 ptr>
 # $Id$
 
 
@@ -37,6 +37,10 @@ release-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUI
 dbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=d -DBUILD_INFOS="-g" --output-format coff
 stldbg-shared : RCFLAGS = --include-dir=${STLPORT_INCLUDE_DIR} -DCOMP=gcc -DBUILD=stld -DBUILD_INFOS="-g -D_STLP_DEBUG" --output-format coff
 RC_OUTPUT_OPTION = -o $@
+CCFLAGS = $(OPT)
+CFLAGS = $(OPT)
+CXXFLAGS = -Wall -Wsign-promo -fexceptions -fident $(OPT)
+COMPILE.rc = $(RC) $(RCFLAGS)
 endif
 
 ifeq ($(OSNAME),sunos)
@@ -51,13 +55,6 @@ CCFLAGS = -pthread $(OPT)
 CFLAGS = -pthread $(OPT)
 # CXXFLAGS = -pthread -nostdinc++ -fexceptions -fident $(OPT)
 CXXFLAGS = -pthread -fexceptions -fident $(OPT)
-endif
-
-ifeq ($(OSNAME),cygming)
-CCFLAGS = $(OPT)
-CFLAGS = $(OPT)
-CXXFLAGS = -fexceptions -fident $(OPT)
-COMPILE.rc = $(RC) $(RCFLAGS)
 endif
 
 ifeq ($(OSNAME),openbsd)
@@ -105,6 +102,10 @@ endif
 #endif
 ifeq ($(CXX_VERSION_MAJOR),2)
 CXXFLAGS += -ftemplate-depth-32
+endif
+
+ifdef EXTRA_CXXFLAGS
+CXXFLAGS += ${EXTRA_CXXFLAGS}
 endif
 
 CDEPFLAGS = -E -M

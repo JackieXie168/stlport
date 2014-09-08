@@ -1,25 +1,26 @@
 #include <string>
-#include <sstream>
-#include <locale>
+#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#  include <sstream>
+#  include <locale>
 
-#include <cstdio>
+#  include <cstdio>
 
-#if defined(__unix) || defined(__unix__)
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <dirent.h>
-# include <unistd.h>
-# include <cstring>
-# include <iostream>
-#endif
+#  if defined(__unix) || defined(__unix__)
+#    include <sys/types.h>
+#    include <sys/stat.h>
+#    include <dirent.h>
+#    include <unistd.h>
+#    include <cstring>
+#    include <iostream>
+#  endif
 
-#include <map>
+#  include <map>
 
-#include "cppunit/cppunit_proxy.h"
+#  include "cppunit/cppunit_proxy.h"
 
-#if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
+#  if !defined (STLPORT) || defined(_STLP_USE_NAMESPACES)
 using namespace std;
-#endif
+#  endif
 
 
 class LColl {
@@ -35,7 +36,7 @@ class LColl {
 
 LColl::LColl( const char *loc_dir )
 {
-# if (defined(__unix) || defined(__unix__)) && !defined(__CYGWIN__)
+#  if (defined(__unix) || defined(__unix__)) && !defined(__CYGWIN__)
   /* Iterate through catalog that contain catalogs with locale definitions, installed on system
    * (this is expected /usr/lib/locale for most linuxes and /usr/share/locale for *BSD).
    * The names of catalogs here will give supported locales.
@@ -58,25 +59,27 @@ LColl::LColl( const char *loc_dir )
     }
   }
   closedir( d );
-#else
+#  else
+#    ifdef _MSC_VER
   //Avoids warning:
   (void*)loc_dir;
-#endif
-#if defined (WIN32) && !defined (_STLP_WCE)
+#    endif
+#  endif
+#  if defined (WIN32) && !defined (_STLP_WCE)
   // real list of installed locales should be here...
   _m[string("french")] = true;
-#endif
+#  endif
   // std::locale must at least support the C locale
   _m[string("C")] = true;
 }
 
-# if !defined(__GNUC__) || (__GNUC__ > 2)
-#  if defined(__FreeBSD__) || defined(__OpenBSD__)
+#  if !defined(__GNUC__) || (__GNUC__ > 2)
+#    if defined(__FreeBSD__) || defined(__OpenBSD__)
 static LColl loc_ent( "/usr/share/locale" );
-#  else
+#    else
 static LColl loc_ent( "/usr/lib/locale" );
-#  endif
-# endif // !__GNUC__ || __GNUC__ > 2
+#    endif
+#  endif // !__GNUC__ || __GNUC__ > 2
 
 struct ref_locale {
   const char *name;
@@ -316,13 +319,13 @@ void LocaleTest::_collate_facet( const locale& loc, const ref_locale&)
 
 template <class _Tp>
 void test_supported_locale(LocaleTest inst, _Tp __test) {
-# if defined(__GNUC__) && (__GNUC__ < 3) // workaround for gcc 2.95.x
-#  if defined(__FreeBSD__) || defined(__OpenBSD__)
+#  if defined(__GNUC__) && (__GNUC__ < 3) // workaround for gcc 2.95.x
+#    if defined(__FreeBSD__) || defined(__OpenBSD__)
    LColl loc_ent( "/usr/share/locale" );
-#  else
+#    else
    LColl loc_ent( "/usr/lib/locale" );
-#  endif
-# endif // __GNUC__ || __GNUC__ < 3
+#    endif
+#  endif // __GNUC__ || __GNUC__ < 3
 
   int n = sizeof(tested_locales) / sizeof(tested_locales[0]);
   for ( int i = 0; i < n; ++i ) {
@@ -336,7 +339,7 @@ void test_supported_locale(LocaleTest inst, _Tp __test) {
 }
 
 void LocaleTest::locale_by_name() {
-#if defined (_STLP_USE_EXCEPTIONS)
+#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   /*
    * Check of the 22.1.1.2.7 standard point. Construction of a locale
    * instance from a null pointer or an unknown name should result in 
@@ -361,7 +364,7 @@ void LocaleTest::locale_by_name() {
   catch (...) {
     CPPUNIT_ASSERT( false );
   }
-#endif
+#  endif
 }
 
 void LocaleTest::loc_has_facet() {
@@ -397,7 +400,14 @@ void LocaleTest::locale_init_problem()
 
 void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
 {
+#  if !defined (__FreeBSD__) || !defined(__GNUC__) || ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__> 3)))
   typedef codecvt<char,char,mbstate_t> my_facet;
+#  else
+// std::mbstate_t required for gcc 3.3.2 on FreeBSD...
+// I am not sure what key here---FreeBSD or 3.3.2...
+//      - ptr 2005-04-04
+  typedef codecvt<char,char,std::mbstate_t> my_facet;
+#  endif
 
   locale loc_ref;
   {
@@ -408,14 +418,14 @@ void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
     locale::global( gloc );
   }
 
-#if defined (_STLP_USE_EXCEPTIONS)
+#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   try {
-#endif
+#  endif
     ostringstream os("test") ;
     locale loc2( loc, new my_facet() );
     CPPUNIT_ASSERT( has_facet<my_facet>( loc2 ) );
     os.imbue( loc2 );
-#if defined (_STLP_USE_EXCEPTIONS)
+#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   }
   catch ( runtime_error& ) {
     CPPUNIT_ASSERT( false );
@@ -424,13 +434,13 @@ void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
   catch ( ... ) {
    CPPUNIT_ASSERT( false );
   }
-#endif
+#  endif
 
-#if defined (_STLP_USE_EXCEPTIONS)
+#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   try {
-#endif
+#  endif
     ostringstream os2("test2");
-#if defined (_STLP_USE_EXCEPTIONS)
+#  if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
   }
   catch ( runtime_error& ) {
     CPPUNIT_ASSERT( false );
@@ -438,6 +448,7 @@ void LocaleTest::_locale_init_problem( const locale& loc, const ref_locale&)
   catch ( ... ) {
     CPPUNIT_ASSERT( false );
   }
-#endif
+#  endif
 }
 
+#endif

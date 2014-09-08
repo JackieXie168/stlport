@@ -125,14 +125,12 @@ __match(_InIt& __first, _InIt& __last, _RAIt __name, _RAIt __name_end, _DiffType
   for (__i = 0; __i < _MAXNAMES; ++__i)
     __do_check[__i] = true;
 
-
-
   for (__i = 0; __i < _MAX_NAME_LENGTH; ++__i)
     __matching_name[__i] = __name_end;
 
   while (__first != __last) {
-    for (__i = 0; __i < __n; ++__i)
-      if (__do_check[__i])
+    for (__i = 0; __i < __n; ++__i) {
+      if (__do_check[__i]) {
         if (*__first == __name[__i][__pos]) {
           if (__pos == _DiffType(__name[__i].size()) - 1) {
             __do_check[__i] = 0;
@@ -140,8 +138,8 @@ __match(_InIt& __first, _InIt& __last, _RAIt __name, _RAIt __name_end, _DiffType
             --__check_count;
             if (__check_count == 0) {
               ++__first; 
-	      return __name + __i;
-	    }
+              return __name + __i;
+            }
           }
         }
         else {
@@ -150,6 +148,8 @@ __match(_InIt& __first, _InIt& __last, _RAIt __name, _RAIt __name_end, _DiffType
           if (__check_count == 0) 
             return __matching_name[__pos];
         }
+      }
+    }
 
     ++__first; ++__pos;
   }
@@ -190,7 +190,7 @@ __get_formatted_time _STLP_WEAK (_InIt1 __first,  _InIt1 __last,
                                  _InIt2 __format, _InIt2 __format_end,
                                  _Ch*, const _Time_Info& __table,
                                  ios_base::iostate& __err, tm* __t) {
-  while(__first != __last && __format != __format_end) {
+  while (__first != __last && __format != __format_end) {
     if (*__format == '%') {
       ++__format;
       char __c = *__format;
@@ -234,9 +234,9 @@ __get_formatted_time _STLP_WEAK (_InIt1 __first,  _InIt1 __last,
         case 'd': {
           bool __pr = __get_decimal_integer(__first, __last, __t->tm_mday, (_Ch*)0);
           if (!__pr || __t->tm_mday < 1 || __t->tm_mday > 31) {
-	          __err |= ios_base::failbit;
+            __err |= ios_base::failbit;
             return __format;
-	        }
+          }
           break;
         }
         
@@ -256,11 +256,11 @@ __get_formatted_time _STLP_WEAK (_InIt1 __first,  _InIt1 __last,
 
         case 'm': {
           bool __pr = __get_decimal_integer(__first, __last, __t->tm_mon, (_Ch*)0);
-	        --__t->tm_mon;
+          --__t->tm_mon;
           if (!__pr || __t->tm_mon < 0 || __t->tm_mon > 11) {
-	          __err |= ios_base::failbit;
+            __err |= ios_base::failbit;
             return __format;
-	        }
+          }
           break;
         }
 
@@ -288,15 +288,15 @@ __get_formatted_time _STLP_WEAK (_InIt1 __first,  _InIt1 __last,
           break;
         }
 
-	      case 'y': {
-	        bool __pr = __get_decimal_integer(__first, __last, __t->tm_year, (_Ch*)0);
-	        if (!__pr)
-	          return __format;
-	        break;
+        case 'y': {
+          bool __pr = __get_decimal_integer(__first, __last, __t->tm_year, (_Ch*)0);
+          if (!__pr)
+            return __format;
+          break;
         }
 
         case 'Y': {
-	        bool __pr = __get_decimal_integer(__first, __last, __t->tm_year, (_Ch*)0);
+          bool __pr = __get_decimal_integer(__first, __last, __t->tm_year, (_Ch*)0);
           __t->tm_year -= 1900;
           if (!__pr)
             return __format;
@@ -354,8 +354,8 @@ __put_time(char * __first, char * __last, _OuIt __out,
 template <class _Ch, class _InIt>
 _InIt
 time_get<_Ch, _InIt>::do_get_date(_InIt __s, _InIt  __end,
-                        				  ios_base&, ios_base::iostate&  __err,
-				                          tm* __t) const {
+                                  ios_base&, ios_base::iostate&  __err,
+                                  tm* __t) const {
   typedef string::const_iterator string_iterator;
 
   string_iterator __format
@@ -379,15 +379,15 @@ time_get<_Ch, _InIt>::do_get_date(_InIt __s, _InIt  __end,
 template <class _Ch, class _InIt>
 _InIt
 time_get<_Ch, _InIt>::do_get_time(_InIt __s, _InIt  __end,
-				  ios_base& /* __str */, ios_base::iostate&  __err,
-				  tm* __t) const {
+          ios_base& /* __str */, ios_base::iostate&  __err,
+          tm* __t) const {
   typedef string::const_iterator string_iterator;
   string_iterator __format = _M_timeinfo._M_time_format.begin();
   string_iterator __format_end = _M_timeinfo._M_time_format.end();
   
   string_iterator __result
     = __get_formatted_time(__s, __end, __format, __format_end,
-			                     (_Ch*)0, _M_timeinfo, __err, __t);
+                           (_Ch*)0, _M_timeinfo, __err, __t);
   __err = __result == __format_end ? ios_base::goodbit 
                                    : ios_base::failbit;
   if (__s == __end)
@@ -398,7 +398,7 @@ time_get<_Ch, _InIt>::do_get_time(_InIt __s, _InIt  __end,
 template <class _Ch, class _InIt>
 _InIt
 time_get<_Ch, _InIt>::do_get_year(_InIt __s, _InIt  __end,
-				                          ios_base&, ios_base::iostate&  __err,
+                                  ios_base&, ios_base::iostate&  __err,
                                   tm* __t) const {
   if (__s == __end) {
     __err = ios_base::failbit | ios_base::eofbit;
@@ -417,7 +417,7 @@ time_get<_Ch, _InIt>::do_get_year(_InIt __s, _InIt  __end,
 template <class _Ch, class _InIt>
 _InIt
 time_get<_Ch, _InIt>::do_get_weekday(_InIt __s, _InIt  __end,
-				                             ios_base&, ios_base::iostate&  __err,
+                                     ios_base&, ios_base::iostate&  __err,
                                      tm* __t) const {
     bool __result =
       __get_short_or_long_dayname(__s, __end, _M_timeinfo, __t);
@@ -434,7 +434,7 @@ time_get<_Ch, _InIt>::do_get_weekday(_InIt __s, _InIt  __end,
 template <class _Ch, class _InIt>
 _InIt
 time_get<_Ch, _InIt>::do_get_monthname(_InIt __s, _InIt  __end,
-				                               ios_base&, ios_base::iostate&  __err,
+                                       ios_base&, ios_base::iostate&  __err,
                                        tm* __t) const {
   bool __result =
     __get_short_or_long_monthname(__s, __end, _M_timeinfo, __t);
@@ -451,7 +451,7 @@ time_get<_Ch, _InIt>::do_get_monthname(_InIt __s, _InIt  __end,
 template<class _Ch, class _OutputIter>
 _OutputIter
 time_put<_Ch,_OutputIter>::put(_OutputIter __s, ios_base& __f, _Ch __fill,
-			                         const tm* __tmb, const _Ch* __pat, 
+                               const tm* __tmb, const _Ch* __pat, 
                                const _Ch* __pat_end) const {
   //  locale __loc = __f.getloc();
   //  const ctype<_Ch>& _Ct = use_facet<ctype<_Ch> >(__loc); 
@@ -477,11 +477,11 @@ time_put<_Ch,_OutputIter>::put(_OutputIter __s, ios_base& __f, _Ch __fill,
 template<class _Ch, class _OutputIter>
 _OutputIter
 time_put<_Ch,_OutputIter>::do_put(_OutputIter __s, ios_base& __f, _Ch /* __fill */,
-				                          const tm* __tmb, char __format, 
+                                  const tm* __tmb, char __format, 
                                   char __modifier ) const {
   char __buf[64];
   char * __iend = __write_formatted_time(__buf, __format, __modifier,
-					 _M_timeinfo, __tmb);
+           _M_timeinfo, __tmb);
   //  locale __loc = __f.getloc();
   return __put_time(__buf, __iend, __s, __f, _Ch());
 }

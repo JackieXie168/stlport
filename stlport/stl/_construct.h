@@ -30,22 +30,18 @@
 #ifndef _STLP_INTERNAL_CONSTRUCT_H
 #define _STLP_INTERNAL_CONSTRUCT_H
 
-# if defined (_STLP_DEBUG_UNINITIALIZED) && ! defined (_STLP_CSTRING)
-# include <cstring>
-# endif
+#if defined (_STLP_DEBUG_UNINITIALIZED) && ! defined (_STLP_CSTRING)
+#  include <cstring>
+#endif
 
-//# ifndef _STLP_INTERNAL_NEW_HEADER
-//#  include <stl/_new.h>
-//# endif
 #include <new>
 
-
 #ifndef _STLP_INTERNAL_ITERATOR_BASE_H
-# include <stl/_iterator_base.h>
+#  include <stl/_iterator_base.h>
 #endif
 
 #ifndef _STLP_MOVE_CONSTRUCT_FWK_H
-# include <stl/_move_construct_fwk.h>
+#  include <stl/_move_construct_fwk.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -111,8 +107,16 @@ _Construct_aux (__p, _HasDefaultZeroValue(__p)._Answer() );
 # endif /* _STLP_DEF_CONST_PLCT_NEW_BUG */
 }
 
+template <class _Tp>
+inline void _Copy_Construct(_Tp* __p, const _Tp& __val) {
+# ifdef _STLP_DEBUG_UNINITIALIZED
+  memset((char*)__p, _STLP_SHRED_BYTE, sizeof(_Tp));
+# endif
+  _STLP_PLACEMENT_NEW (__p) _Tp(__val);
+}
+
 template <class _T1, class _T2>
-inline void _Copy_Construct(_T1* __p, const _T2& __val) {
+inline void _Param_Construct(_T1* __p, const _T2& __val) {
 # ifdef _STLP_DEBUG_UNINITIALIZED
   memset((char*)__p, _STLP_SHRED_BYTE, sizeof(_T1));
 # endif
@@ -222,9 +226,9 @@ inline _Tp __default_constructed(_Tp* __p) {
 // Old names from the HP STL.
 
 template <class _T1, class _T2>
-inline void construct(_T1* __p, const _T2& __val) {_Copy_Construct(__p, __val); }
+inline void construct(_T1* __p, const _T2& __val) {_Param_Construct(__p, __val); }
 template <class _T1>
-inline void construct(_T1* __p) { _Construct(__p); }
+inline void construct(_T1* __p) { _STLP_STD::_Construct(__p); }
 template <class _Tp>
 inline void destroy(_Tp* __pointer) {  _STLP_STD::_Destroy(__pointer); }
 template <class _ForwardIterator>

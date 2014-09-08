@@ -22,34 +22,30 @@
 // Define char_traits
 
 #if !defined(_STLP_CSTDDEF)
-# include <cstddef>
+#  include <cstddef>
 #endif
 
 #if !defined(_STLP_CSTRING)
-# include <cstring>
+#  include <cstring>
 #endif
 
 #ifdef __unix
-# include <sys/types.h>          // For off_t
+#  include <sys/types.h>          // For off_t
 #endif /* __unix */
 
 #ifdef __BORLANDC__
-# include <mem.h>
-# include <string.h>
-# include <_stddef.h>
+#  include <mem.h>
+#  include <string.h>
+#  include <_stddef.h>
 // class mbstate_t;
 #endif
 
-/*#ifndef _STLP_TYPE_TRAITS_H
-# include <stl/type_traits.h>
-#endif*/
-
 #ifndef _STLP_INTERNAL_CONSTRUCT_H
-# include <stl/_construct.h>
+#  include <stl/_construct.h>
 #endif
 
 #if !defined (_STLP_CWCHAR)
-# include <stl/_cwchar.h>
+#  include <stl/_cwchar.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -61,47 +57,60 @@ template <class _Tp> class allocator;
 #if defined (__sgi) && defined (_STLP_HAS_NO_NEW_C_HEADERS) /* IRIX */
 typedef off64_t streamoff;
 #elif defined(_STLP_WCE)
-typedef long    streamoff;
-#elif defined (_M_AMD64) || defined (_M_IA64)
+typedef long streamoff;
+#elif defined (_STLP_WIN32)
+#  if defined (_STLP_LONG_LONG) && !defined (__CYGWIN__)
+//The Win32 file io API support 64 bits access so streamoff and streamsize 
+//has to reflect that. Do not change the stringbuf behavior.
+typedef _STLP_LONG_LONG streamoff;
+#  else
 typedef ptrdiff_t streamoff;
-#else // __unix, VC
-typedef off_t   streamoff;
+#  endif
+#else // __unix
+typedef off_t streamoff;
 #endif /* _STLP_HAS_NO_NEW_C_HEADERS */
 
+/* streamsize cannot be size_t because in this case we wouldn't
+ * be able to represent all offsets between 2 positions represented
+ * using streamsize with streamoff.
+ */
+#if defined (_STLP_WIN32)
+typedef streamoff streamsize;
+#else
 typedef ptrdiff_t streamsize;
+#endif
 
 // Class fpos, which represents a position within a file.  (The C++
 // standard calls for it to be defined in <ios>.  This implementation
 // moves it to <iosfwd>, which is included by <ios>.)
-template <class _StateT> class fpos
-{
+template <class _StateT> class fpos {
 public:                         // From table 88 of the C++ standard.
   fpos(streamoff __pos) : _M_pos(__pos), _M_st(_STLP_NULL_CHAR_INIT(_StateT)) {}
   fpos() : _M_pos(0), _M_st(_STLP_NULL_CHAR_INIT(_StateT)) {}
 
   operator streamoff() const { return _M_pos; }
 
-  bool  _STLP_CALL operator==(const fpos<_StateT>& __y) const
-    { return _M_pos == __y._M_pos; }
-  bool _STLP_CALL operator!=(const fpos<_StateT>& __y) const
-    { return _M_pos != __y._M_pos; }
+  bool operator==(const fpos& __y) const
+  { return _M_pos == __y._M_pos; }
+  bool operator!=(const fpos& __y) const
+  { return _M_pos != __y._M_pos; }
 
-  fpos<_StateT>& operator+=(streamoff __off) {
+  fpos& operator+=(streamoff __off) {
     _M_pos += __off;
     return *this;
   }
-  fpos<_StateT>& operator-=(streamoff __off) {
+  fpos& operator-=(streamoff __off) {
     _M_pos -= __off;
     return *this;
   }
 
-  fpos<_StateT> operator+(streamoff __off) {
-    fpos<_StateT> __tmp(*this);
+  fpos operator+(streamoff __off) {
+    fpos __tmp(*this);
     __tmp += __off;
     return __tmp;
   }
-  fpos<_StateT> operator-(streamoff __off) {
-    fpos<_StateT> __tmp(*this);
+  fpos operator-(streamoff __off) {
+    fpos __tmp(*this);
     __tmp -= __off;
     return __tmp;
   }
@@ -114,63 +123,62 @@ private:
   _StateT _M_st;
 };
 
-# ifndef _STLP_NO_MBSTATE_T
+#if !defined (_STLP_NO_MBSTATE_T)
 typedef fpos<mbstate_t> streampos;
 typedef fpos<mbstate_t> wstreampos;
-# endif
+#endif
 
 // Class __char_traits_base.
-
-template <class _CharT, class _IntT> class __char_traits_base {
+template <class _CharT, class _IntT>
+class __char_traits_base {
 public:
   typedef _CharT char_type;
   typedef _IntT int_type;
   typedef streamoff off_type;
   typedef streampos pos_type;
-# ifdef _STLP_NO_MBSTATE_T
+#if defined (_STLP_NO_MBSTATE_T)
   typedef char      state_type;
-# else
+#else
   typedef mbstate_t state_type;
-# endif
+#endif
 
   static void _STLP_CALL assign(char_type& __c1, const char_type& __c2) { __c1 = __c2; }
-  static bool _STLP_CALL eq(const _CharT& __c1, const _CharT& __c2) 
-    { return __c1 == __c2; }
-  static bool _STLP_CALL lt(const _CharT& __c1, const _CharT& __c2) 
-    { return __c1 < __c2; }
+  static bool _STLP_CALL eq(const char_type& __c1, const char_type& __c2) 
+  { return __c1 == __c2; }
+  static bool _STLP_CALL lt(const char_type& __c1, const char_type& __c2) 
+  { return __c1 < __c2; }
 
-  static int _STLP_CALL compare(const _CharT* __s1, const _CharT* __s2, size_t __n) {
+  static int _STLP_CALL compare(const char_type* __s1, const char_type* __s2, size_t __n) {
     for (size_t __i = 0; __i < __n; ++__i)
       if (!eq(__s1[__i], __s2[__i]))
         return __s1[__i] < __s2[__i] ? -1 : 1;
     return 0;
   }
 
-  static size_t _STLP_CALL length(const _CharT* __s) {
-    const _CharT _NullChar = _STLP_DEFAULT_CONSTRUCTED(_CharT);
+  static size_t _STLP_CALL length(const char_type* __s) {
+    const char_type _NullChar = _STLP_DEFAULT_CONSTRUCTED(char_type);
     size_t __i(0);
     for (; !eq(__s[__i], _NullChar); ++__i) {}
     return __i;
   }
 
-  static const _CharT* _STLP_CALL find(const _CharT* __s, size_t __n, const _CharT& __c) {
+  static const char_type* _STLP_CALL find(const char_type* __s, size_t __n, const char_type& __c) {
     for ( ; __n > 0 ; ++__s, --__n)
       if (eq(*__s, __c))
         return __s;
     return 0;
   }
 
-
-  static _CharT* _STLP_CALL move(_CharT* __s1, const _CharT* __s2, size_t _Sz) {    
-    return (_Sz == 0 ? __s1 : (_CharT*)memmove(__s1, __s2, _Sz * sizeof(_CharT)));
+  static char_type* _STLP_CALL move(char_type* __s1, const char_type* __s2, size_t _Sz) {    
+    return (_Sz == 0 ? __s1 : (char_type*)memmove(__s1, __s2, _Sz * sizeof(char_type)));
   }
   
-  static _CharT* _STLP_CALL copy(_CharT* __s1, const _CharT* __s2, size_t __n) {
+  static char_type* _STLP_CALL copy(char_type* __s1, const char_type* __s2, size_t __n) {
     return (__n == 0 ? __s1 :
-      (_CharT*)memcpy(__s1, __s2, __n * sizeof(_CharT)));
-    } 
+      (char_type*)memcpy(__s1, __s2, __n * sizeof(char_type)));
+  } 
 
-  static _CharT* _STLP_CALL assign(_CharT* __s, size_t __n, _CharT __c) {
+  static char_type* _STLP_CALL assign(char_type* __s, size_t __n, char_type __c) {
     for (size_t __i = 0; __i < __n; ++__i)
       __s[__i] = __c;
     return __s;
@@ -216,10 +224,10 @@ public:
   typedef char char_type;
   typedef int int_type;
   typedef streamoff off_type;
-# ifndef _STLP_NO_MBSTATE_T
+#if !defined (_STLP_NO_MBSTATE_T)
   typedef streampos pos_type;
   typedef mbstate_t state_type;
-# endif
+#endif
 
   static char _STLP_CALL to_char_type(const int& __c) {
     return (char)(unsigned char)__c;
@@ -247,13 +255,13 @@ public:
   }
 };
 
-# if defined (_STLP_HAS_WCHAR_T)
+#if defined (_STLP_HAS_WCHAR_T)
 // Specialization for wchar_t.
 _STLP_TEMPLATE_NULL 
 class _STLP_CLASS_DECLSPEC char_traits<wchar_t>
   : public __char_traits_base<wchar_t, wint_t> {  
-# if !defined(_STLP_NO_NATIVE_WIDE_FUNCTIONS) && \
-     !defined(_STLP_WCHAR_HPACC_EXCLUDE) && !defined(_STLP_WCHAR_BORLAND_EXCLUDE)
+#  if !defined(_STLP_NO_NATIVE_WIDE_FUNCTIONS) && \
+      !defined(_STLP_WCHAR_HPACC_EXCLUDE) && !defined(_STLP_WCHAR_BORLAND_EXCLUDE)
 public:
   static wchar_t* _STLP_CALL move(wchar_t* __dest, const wchar_t* __src, size_t __n) {    
     return wmemmove(__dest, __src, __n);
@@ -263,15 +271,15 @@ public:
     return wmemcpy(__dest, __src, __n);
   } 
 
-#  ifndef __DMC__
+#    if !defined (__DMC__)
   static int _STLP_CALL compare(const wchar_t* __s1, const wchar_t* __s2, size_t __n) {
     return wmemcmp(__s1, __s2, __n); 
   }
-#  else
+#    else
   static int _STLP_CALL compare(const wchar_t* __s1, const wchar_t* __s2, size_t __n) {
     return __char_traits_base<wchar_t, wint_t>::compare(__s1, __s2, __n);
   }
-#  endif
+#    endif
   
   static size_t _STLP_CALL length(const wchar_t* __s) {
     return wcslen(__s);
@@ -284,9 +292,9 @@ public:
   static wchar_t* _STLP_CALL assign(wchar_t* __s, size_t __n, wchar_t __c) {
     return wmemset(__s, __c, __n);
   }
-# endif
+#  endif
 };
-# endif
+#endif
 
 _STLP_END_NAMESPACE
 
@@ -295,4 +303,3 @@ _STLP_END_NAMESPACE
 // Local Variables:
 // mode:C++
 // End:
-

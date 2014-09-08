@@ -1,7 +1,514 @@
+2005-04-08  Francois Dumont  <dums@stlport...>
+
+	* test/unit/locale_test.cpp: Add __FreeBSD__ macro check for the wordaround
+	announced as Free BSD specific by the comment next to it.
+	
+	* stlport/stl/_config.h: Add undef of _STLP_USE_DYNAMIC_LIB when in NO_IOSTREAMS
+	mode, this macro was generating buggy code in this case for some commpilers
+	(gcc mingwin).
+	
+2005-04-07  Francois Dumont  <dums@stlport...>
+
+	* build/lib/nmake-vc-common.mak: Removed useless add of STLport/lib to 
+	library paths when building STLport lib.
+	
+	* build/Makefiles/nmake/*: Removed useless specification of the MSVC default
+	install	directory, all the job is done by the vcvcars32.bat script that sets
+	the LIB env variable to the real MSVC install directory.
+	
+	* test/unit/unordered_test.cpp, locale_test.cpp: Removed gcc mingw warnings.
+	
+	* build/Makefiles/nmake/icl.mak, app/icl.mak, lib/icl.mak: Removed the
+	whole program optimization option, looks like it is confusing icl.
+	
+	* stlport/stl/debug/*.h: Removed useless _Get_base non-const overload. 
+	In addition to being useless Intel compiler emit compilation error about it.
+
+2005-04-06  Petr Ovtchenkov  <ptr@island...>
+
+	* test/unit/cppunit/test_main.cpp: windows.h required here
+	[see 2005-04-04; patch by Michael Fink].
+
+	* stlport/stl/_istream.h: __is replaced by __istr, due
+	to MS privatize __is.
+
+	* stlport/stl/_num_get.h: __in replaced by __ii, due to MS
+	privatize __in too.
+
+	* stlport/stl/_config.h: Visual C++ 8 uses _M_AMD64 to identify
+	EM64T and AMD64 platforms [thanks Mike Roberts].
+
+2005-04-05  Francois Dumont  <dums@stlport...>
+
+	* stlport/config/stl_evc.h: apply patch from Michael Fink to add support for
+	various EVC SDK.
+	
+	* stlport/stl/_cmath.h: An other adaptation to the Intel C++ compiler.
+	
+	* build/lib/nmake-vc-common.mak, test/unit/nmake-vc-common.mak: Removed check
+	of STLP_BUILD_FORCE_[STATIC,DYNAMIC]_RUNTIME environment variables,
+	moved in a common build system file.
+	
+	* build/Makefiles/nmake/vc-common.mak: Add checks of 
+	STLP_BUILD_FORCE_[STATIC,DYNAMIC]_RUNTIME variables.
+	
+	* build/lib/configure.bat: Add a clean option to remove the hidden 
+	Makefiles/config.mak file.
+	
+	* stlport/stdexcept: Disable 'non dll-interface class used as base' warning
+	when building STLport dll linked with the static runtime.
+	
+2005-04-04  Francois Dumont  <dums@stlport...>
+
+	* test/unit/mfunptr_test.cpp: Add necessary macro checks for a test
+	that require partial template specialization compiler support.
+
+2005-04-04  Petr Ovtchenkov  <ptr@island...>
+
+	* errno.h, time.h, test_errno.cpp: evc3 and evc4 has no errno.h
+	and time.h headers [patch by Michael Fink].
+
+	* stl_evc.h, _windows.h, test_main.cpp: workaround to not include
+	<windows.h> in STLport headers (it is still needed for building
+	the lib and the unit tests, but that should be no problem).
+	Occurences of GetCurrentProcess() used in _STLP_ABORT were replaced
+	with the result of the inline function, which returns a pseudo-
+	HANDLE value. [patch by Michael Fink]
+
+	* cwchar, wchar.h, stl/_cwchar.h: fix access to mbstate and wint_t
+	for FreeBSD.
+
+	* build/Makefiles/gmake/sysid.mak, app/gcc.mak, lib/gcc.mak:
+	FreeBSD before 5.3 require linkage with libc_r, while 5.3 and
+	later use libpthread.
+
+	* test/unit/locale_test.cpp: add std:: namespace qualifier for
+	gcc 3.3.2 and/or FreeBSD.
+
+	* libstlport, test/unit: library build and most tests pass for
+	FreeBSD 5.3 and FreeBSD 4.10.
+
+2005-04-02  Francois Dumont  <dums@stlport...>
+
+	* stlport/cstdlib: Fix missing div taking long definition for VC71.
+
+2005-04-01  Francois Dumont  <dums@stlport...>
+
+	* stlport/errno.h: Add comments to explain the file code.
+	
+	* stlport/stl/_string_io.h: Yet an other fix to the i/o basic_string
+	operators that was not right under cygwin/mingwin.
+
+	* build/Makefiles/gmake/gcc.mak: Merge the 2 distinct cygmin blocks
+	in one and add -Wall and -Wsign-promo warnings.
+	
+2005-04-01  Petr Ovtchenkov  <ptr@island...>
+
+	* test/unit/test_errno.cpp: fix test, errno may be non-zero without
+	any error, but it reflect error code after some function fail.
+	This not the same.
+
+	* test/unit/mfunptr_test.cpp: add step-by-step test how compiler
+	recognize bind of member function for find_if. Not all compilers may
+	understand this. Thanks Markus for test idea.
+
+2005-03-31  Francois Dumont  <dums@stlport...>
+
+	* stlport/errno.h: Fixed for MSVC compilers, should still be fine for
+	others.
+	
+	* test/unit/test_errno.cpp: Modified to be a real unit test. Also test
+	errno assignment.
+	
+2005-03-30  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_fstream.c: Try to fix ambiguous type deduction in a max
+	call under WinCE.
+	
+	* stlport/stl/_cmath.h: Fix missing non Standard hypot function under
+	WinCE thanks Michael Fink.
+	
+	* stlport/stl/_cmath.h: Attempt to fix the WinCE math function support
+	where neither *f nor *l functions are present even if the compiler
+	support the long double type.
+	
+2005-03-30  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/assert.h, float.h, iso646.h, limits.h, errno.h:
+	added in accordance with Standard D.5 [compatibility with standard
+	C library] to prevent wrong std interpretation in ill-formed native
+	headers [definition of namespace std in C headers].
+
+	* test/unit/test_errno.cpp: check correct processing of errno.h
+	header.
+
+	* build/test/eh: build eh tests again.
+
+	* test/eh/LeakCheck.h, TestClass.cpp, TestClass.h: fix and clear.
+
+	* test/eh/test_hash_map.cpp, test_hash_set.cpp: mutiset/multimap
+	has no == operator [no container equality]; this fix is quick-and-dirty
+
+2005-03-29  Petr Ovtchenkov  <ptr@island...>
+
+	* build/Makefiles/gmake/app/rules.mak, freebsd/rules-so.mak,
+	linux/rules-so.mak, openbsd/rules-so.mak, sunos/rules-so.mak:
+	fix link sequence---the end objects should be really last, i.e. after libs.
+	This affected by linkage without libstdc++.
+
+	* stlport/stl/_cwchar.h, stlport/wchar.h: workarounds for FreeBSD.
+
+	* due to change in link sequence most tests [including exceptions] pass
+	for uClibc.
+
+	* stlport/mmemory.h: garbage, removed.
+
+	* stlport/export: ditto.
+
+2005-03-28  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_istream.h, _ostream.h: Fix assignment operators prototypes
+	for the sentry struct. Thanks -Weffc++ feature of gcc.
+
+	* build/Makefiles/gmake/cygmin/rules-install-so.mak: Add missing folder
+	creation in the install process thanks Charlemagne report.
+
+	* build/Makefiles/nmake/icl.mak: Fix Intel compiler build system under
+	Windows.
+	
+2005-03-28  Petr Ovtchenkov  <ptr@island...>
+
+	* src/num_put_float.cpp: in FreeBSD no *cvt* functions now, use sprintf;
+
+	* stlport/config/stl_gcc.h: in FreeBSD no math *l functions and llabs.
+
+	* test/unit/string_test.cpp: more test with assignment.
+
+2005-03-25  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/stddef.h: fix typo in header id---this mistake prevent
+	inclusion _epilog.h.
+
+	* test/unit/epilog_test.cpp: regression test for bug above.
+
+	* stlport/cstdio: fix header id to avoid possible errors.
+
+2005-03-24  Petr Ovtchenkov  <ptr@island...>
+
+	* build/Makefiles/gmake/lib/gcc.mak, build/Makefiles/gmake/app/gcc.mak:
+	code reorganization to simplify platform configuration with or without
+	-nostdlib [avoid link with libstdc++ or libestdc++]; now link without
+	libstdc++/libestdc++ supported on Linux and OpenBSD.
+
+	* build/Makefiles/gmake/openbsd/rules-so.mak: idem.
+
+	* build/Makefiles/gmake/freebsd/rules-so.mak: idem.
+
+	* src/num_put_float.cpp: clean float convertions for OpenBSD and FreeBSD;
+	OpenBSD and FreeBSD use STLport code instead of sprintf now.
+
+	* stlport/stl/_cwchar.h: allow masquarade to use mbstate_t from native
+	cwchar header on OpenBSD.
+
+	* stlport/config/slt_gcc.h: llabs and *l math functions absent in OpenBSD;
+	define __unix, that missed in OpenBSD.
+
+2005-03-23  Petr Ovtchenkov  <ptr@island...>
+
+	* build/Makefiles/gmake/app/gcc.mak, build/Makefiles/gmake/lib/gcc.mak:
+	incorporate gcc language support library into libstlport.so
+	[add ~100k to library],	but libsupc++ don't required more in link stage
+	for applications and libraries that use stlport, as in case with
+	libstdc++.
+
+2005-03-22  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_string_io.c: Fix basic_string stream output operator 
+	implementation for cygwin.
+	
+	* stlport/stl/_cmath.h: Add fixes for cygwin support that handle long double
+	but do not have *l maths function per default.
+	
+	* src/complex_exp.cpp: Fix call to logl, replaced by call to log.
+	
+	* src/complex_trig.cpp: Fix mingw support by checking M_LN2l existence
+	before using it.
+
+	* test/unit/copy_test.cpp: Change test cases to avoid use of iostreams.
+
+	* test/unit/string_test.cpp: Add a small check to test use of istream width
+	in the input operator.
+
+	* stlport/cstdlib, stlport/config/stl_msvc.h, stl_gcc.h: Creation of the
+	_STLP_NO_VENDOR_STDLIB_L macro to report support of the llabs and lldiv
+	function.
+
+2005-03-21  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/stl/_cmath.h: removed logf, expf, sinf, cosf; option
+	-fno-builtin passed to gcc compiler solve the problem with uClibc;
+	this imply same option in building uClibc, as it is in normal uClibc build.
+	This is partial	rollback of changes 2005-03-16.
+
+	* build/lib/configure, build/Makefiles/gmake/gcc.mak: add ability to pass
+	extra flags to C++ compiler
+
+2005-03-18  Francois Dumont  <dums@stlport...>
+
+	* test/unit: Modified some test in order to check the _STLP_NO_IOSTREAMS
+	mode. This new mode of tests reveals the following bugs:
+	
+	* stlport/stl/_rope.c: Add check of _STLP_USE_NO_IOSTREAMS macro before
+	include of iostream header.
+	
+	* src/dll_main.cpp, stlport/stl/_string_fwd.h: Removed implementation 
+	of __get_c_string, moved to _string.h header, once string has been defined,
+	as an inline function.
+	
+2005-03-18  Petr Ovtchenkov  <ptr@island...>
+
+	* src/complex_trig.cpp: avoid call log functions during static
+	initialization, if possible.
+
+2005-03-17  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_string_io.h: Fix implementation that used to think that
+	size_t and streamsize was simply aliases. Thanks Jay Amin report.
+	
+	* stlport/config/_prolog.h: Add comment about the reason of alignment
+	specification when using MSVC compilers. Fix alignment for Win64 platform.
+	
+	* stlport/stl/_alloc.h: Fix _ALIGN enum definition for _Win64 platform.
+	
+	* src/string_w.cpp: Fix wrong class export under debug mode thanks
+	Charlemagne report.
+	
+	* build/Makefiles/nmake: Preparation of the build system for icl (Intel cl
+	compiler (mimic cl compiler from Microsoft).
+	
+2005-03-16  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/stl/_cmath.h: added logf, expf, sinf, cosf---this fix
+	uClibc 0.9.27/gcc problem. Fix one macro for declaration math
+	functions in case of absent *f functions.
+
+2005-03-16  Francois Dumont  <dums@stlport...>
+
+	* stlport/config/*: Clean native header include path macro definition. 
+	Removed many useless definition simply recreating the default behavior. 
+	Removed the unreferenced _STLP_NATIVE_OLD_STREAMS_INCLUDE_PATH macro.
+	
+	* stlport/stl/_site_config.h: Update relative path headers macros 
+	documentation to reflect more accurately default behavior and add 
+	the unreference	_STLP_NATIVE_CPP_RUNTIME_INCLUDE_PATH macro.
+
+2005-03-15  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_fstream.h: Fix _Noconv_input helper class default implementation.
+	Returns traits::eof() rather than 0.
+
+2005-03-15  Petr Ovtchenkov  <ptr@island...>
+
+	* src/complex.cpp, complex_exp.cpp, complex_io.cpp, complex_trig.cpp:
+	use achievements in _cmath.h---use overloaded funcs; mascarade from
+	complex_impl.h not required more.
+
+	* src/complex_impl.h: deleted.
+
+	* test/unit/cmath_test.cpp: check nested sqrt(sqrt)---possible problem with macro
+
+2005-03-14  Francois Dumont  <dums@stlport...>
+
+	* stlport/config/stl_msvc.h: _STLP_SAME_FUNCTION_NAME_RESOLUTION_BUG notion
+	removed, impossible to reproduce, maybe fixed by the #pragma intrinsic/function
+	directives.
+	
+	* stlport/stl/_cmath.h, cstdlib: Fix .Net 2003 and .Net 2005 beta support.
+	
+	* stlport/stl/_cmath.h: Removed _STLP_SAME_FUNCTION_NAME_RESOLUTION_BUG notion,
+	no more _STLP_DO_* macros.
+	
+	* test/unit/valarray_test.cpp: New tests to check right compilation of 
+	transcendentals valarray functions.
+	
+	* stlport/stl/_valarray.h: Replaced all the _STLP_DO_* macros by real 
+	function calls.
+	
+	* src/fstream.cpp: Add INVALID_SET_FILE_POINTER definition when missing for
+	Win32 IO implementation thanks Michael Fink report. Add compilation check 
+	of right STLport file descriptor definition.
+	
+2005-03-12  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_tree.h: Fix equal_range_unique bug thanks Gunter.
+	
+	* test/unit/map_test.cpp: Add of the test to reproduce the bug
+	above.
+	
+2005-03-11  Petr Ovtchenkov  <ptr@island...>
+
+	* build/test/unit/gcc.mak: don't write runtime path to libstlport
+	in case of crosscompilation.
+
+	* stlport/stl/_cmath.h: exclude *f and *l variants of math functions
+	if ones absent in system; add missed hypot function; few workarounds
+	for uClibc and for VC.
+
+	* src/complex.cpp, complex_exp.cpp, complex_trig.cpp: workaround
+	for systems without *f and *l variants of math functions.
+
+	* test/unit/resolve_name.cpp: exclude test line that confuse VC.
+
+	* stlport/cstdlib: div isn't intrinsic for VC.
+
+	* stlport/config/stl_gcc.h: don't use *f and *l math functions in
+	case of uClibc.
+
+2005-03-09  Petr Ovtchenkov  <ptr@island...>
+
+	* doc/FAQ: FAQ was established.
+
+2005-03-07  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_bitset.h, _bitset.c: Avoid include of istream when
+	NO_IOSTREAMS mode thanks Bruno report.
+
+	* stlport/stl/char_traits.h: Modification of the streamoff and streamsize
+	definition to take into account the 64 bits file access support.
+
+	* test/unit/fstream.cpp: New test for big files ( > 2Go) unactivated by
+	default. 
+
+2005-03-06  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/cstdlib, stlport/cmath, stlport/stl/_cmath.h: define
+	overloaded functions in the scope of global namespace and then import
+	all in stlp_std with 'using' directive. This is better than
+	solution from 2005-03-04 below.
+
+	* stlport/cmath: include cstdlib, due to declarations of abs
+	with integer types required in overload and when 'using'.
+
+	* src/complex.cpp, src/complex_exp.cpp, src/complex_trig.cpp: replace
+	macros that possibly will be removed.
+
+2005-03-05  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_construct.h: Simplification of the _Copy_Construct
+	function, now only takes a single template parameter and only call
+	the strict copy constructor. Creation of the _Param_Construct function
+	that replace the former _Copy_Construct implementation.
+
+	* cstdlib: Fix abs definition for MSVC compilers.
+
+	* test/unit: Fixing 64 bits warnings in many tests.
+
+	* src/c_locale_win32/c_locale_win32.c: Fixing 64 bits warnings.
+	
+	* src/fstream.cpp: Creation of the INVALID_STLP_FD constant to represent
+	a portable invalid file descriptor.
+
+	* stlport/stl/_streambuf.c: Explicit instanciation of basic_streambuf
+	for wchar_t removed, already exists in _streambuf.h thanks
+	Charlemagne report.
+
+	* stlport/stl/char_traits.h: Setup modification, Windows platform now
+	use ptrdiff_t to define streamoff, make the code more portable.
+
+2005-03-04  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/stl/_cmath.h: removed recursive include of cmath header
+	
+	* src/complex_impl.h: include cmath instead of stl/_cmath.h
+
+	* stlport/stl/_complex.h: idem.
+
+	* stlport/stl/_valarray.h: idem.
+
+	* test/unit/unary.h: workaround for namespace resolution.
+
+	* test/unit/resolve_name.cpp: test to show problem with namespace resolution.
+
+	* stlport/cmath, stlport/stl/_cmath.h: standard require overloaded math
+	functions for double and float arguments. Import with 'using' directive
+	can't provide such overload. Removed import with 'using', used direct
+	inline wrappers in namespace stlp_std instead. Cleaning code.
+
+	* stlport/cstdlib: complement to cmath---the same as above for abs.
+
+	* stlport/stl/_config.h: uClibc declare pthread_spin... but ones absent
+	in the library indeed.
+
+2005-03-02  Petr Ovtchenkov  <ptr@island...>
+
+	* build/Makefiles/top.mak: move .PHONY target to the bottom, it work here
+	as expected
+
+	* build/Makefiles/gmake/depend.mak, targetdirs.mak: reduce amount of dummy
+	targets; fix creation of directories for install.
+
+	* build/Makefiles/gmake/linux/rules-install-so.mak: ditto.
+
+	* stlport/stl/_config.h, stlport/config/stl_gcc.h: support of gcc/linux/uClibc
+
+	* src/_stdio_file.h, num_put_float.cpp, stdio_streambuf.cpp: uClibc support
+
+	* stlport/cwchar: ditto.
+
+2005-03-01  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_threads.h, _windows.h, _rope.c: Fix of a 64 bits portage issue
+	in the rope implementation under Win64 thanks Patrick Bergeron report.
+
+2005-02-28  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_hashtable.c: hashtable::erase fix thanks Patrick Bergeron.
+
+2005-02-27  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_algobase.h, _algobase.c: Fix find algo overload for
+	char* and const char*. Now the overload is on the __find underlying
+	function.
+
+	* test/unit/alg_test.cpp: Add a test case for the search_n algo.
+
+	* stlport/stl/_algo.c: Integration of the search_n algo implementation
+	for the random access iterator from Jim Xochellis.
+
+2005-02-25  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/_slist.h: Fix _M_splice_after method.
+
+	* stlport/stl/debug/_slist.h: Add of many missing checks for the special
+	slist before_begin iterator which returns true to the _Dereferenceable
+	function call but is not dereferenceable in reality. Passing this
+	iterator to method like erase or insert was invalid but was not detected
+	by the _Dereferenceable function.
+
+	* test/unit/slist_test.cpp: Add checks for insert, insert_after, splice
+	splice_after methods.
+
+	* Patch from Ulrich Eckhardt:
+	- Fix macro _MSC_VER macro checks, VC6 should be found using _MSC_VER < 1300
+	check rather than _MSC_VER == 1200 to take into account compilers like 
+	EVC4 that is a VC6 based compiler with _MSC_VER == 1202.
+
+2005-02-25  Petr Ovtchenkov  <ptr@island...>
+
+	* stlport/stl/_algobase.h: wrong parameters order in call to memchr,
+	thanks Patrick Bergeron.
+
+2005-02-24  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/char_traits.h: Patch from Ulrich Eckhardt fixing a wrong
+	_STLP_CALL specification on member operators and some cosmetic changes.
+
 2005-02-22  Petr Ovtchenkov  <ptr@island...>
 
 	* test/unit/limits_test.cpp: wchar_t is treated as signed, except when it
 	equiv to unsigned short on Wins systems.
+
+	* Repository: STLport 5.0 RC2
 
 2005-02-20  Francois Dumont  <dums@stlport...>
 

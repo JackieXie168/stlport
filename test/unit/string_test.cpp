@@ -2,20 +2,22 @@
 #include <deque>
 #include <string>
 #include <algorithm>
-//#include <sstream>
+#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+#  include <sstream>
+#endif
 
-#if defined (_STLP_USE_EXCEPTIONS)
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
 #  include <stdexcept>
 #endif
 
-#ifdef _STLP_THREADS
-# ifdef _STLP_PTHREADS
-#  include <pthread.h>
-# endif
+#if defined (STLPORT) && defined (_STLP_THREADS)
+#  ifdef _STLP_PTHREADS
+#    include <pthread.h>
+#  endif
 
-# ifdef _STLP_WIN32THREADS
-#  include <windows.h>
-# endif
+#  ifdef _STLP_WIN32THREADS
+#    include <windows.h>
+#  endif
 #endif
 
 #include "cppunit/cppunit_proxy.h"
@@ -30,6 +32,7 @@ using namespace std;
 class StringTest : public CPPUNIT_NS::TestCase
 {
   CPPUNIT_TEST_SUITE(StringTest);
+  CPPUNIT_TEST(assign);
   CPPUNIT_TEST(erase);
   CPPUNIT_TEST(data);
   CPPUNIT_TEST(c_str);
@@ -38,13 +41,15 @@ class StringTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(resize);
   CPPUNIT_TEST(short_string);
   CPPUNIT_TEST(find);
-  CPPUNIT_TEST(assign);
-#ifdef _STLP_THREADS
+#if defined (STLPORT) && defined (_STLP_THREADS)
   CPPUNIT_TEST(mt);
 #endif
   CPPUNIT_TEST(short_string_optim_bug);
   CPPUNIT_TEST(compare);
   CPPUNIT_TEST(template_expresion);
+#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+  CPPUNIT_TEST(io);
+#endif
   CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -57,21 +62,22 @@ protected:
   void short_string();
   void find();
   void assign();
-#ifdef _STLP_THREADS
+#if defined (STLPORT) && defined (_STLP_THREADS)
   void mt();
 #endif
   void short_string_optim_bug();
   void compare();
   void template_expresion();
+#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+  void io();
+#endif
 
-  static string func( const string& par )
-  {
+  static string func(const string& par) {
     string tmp( par );
-
     return tmp;
   }
 
-#if defined (_STLP_THREADS)
+#if defined (STLPORT) && defined (_STLP_THREADS)
 #  if defined (_STLP_PTHREADS)
   static void* f(void*)
 #  elif defined (_STLP_WIN32THREADS)
@@ -97,7 +103,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(StringTest);
 //
 // tests implementation
 //
-#ifdef _STLP_THREADS
+#if defined (STLPORT) && defined (_STLP_THREADS)
 void StringTest::mt()
 {
   const int nth = 2;
@@ -527,6 +533,17 @@ void StringTest::assign()
   string s2("other test string");
   s.assign(s2);
   CPPUNIT_ASSERT( s == s2 );
+
+  static std::string str1;
+  static std::string str2;
+
+  // short string optim:
+  str1 = "123456";
+  // longer than short string:
+  str2 = "1234567890123456789012345678901234567890";
+
+  CPPUNIT_ASSERT(str1[5] == '6');
+  CPPUNIT_ASSERT(str2[29] == '0'); 
 }
 
 /* This test is to check if std::string properly supports the short string
@@ -683,7 +700,7 @@ void StringTest::template_expresion()
     result = (one + ' ' + two).at(3);
     CPPUNIT_CHECK( result == ' ' );
 
-#ifdef _STLP_USE_EXCEPTIONS
+#if !defined (STLPORT) || defined (_STLP_USE_EXCEPTIONS)
     for (;;) {
       try {
         result = (one + ' ' + two).at(10);
@@ -701,3 +718,31 @@ void StringTest::template_expresion()
 #endif
   }
 }
+
+#if !defined (STLPORT) || !defined (_STLP_NO_IOSTREAMS)
+void StringTest::io()
+{
+  string str("STLport");
+  {
+    ostringstream ostr;
+    ostr << str;
+    CPPUNIT_ASSERT( ostr.good() );
+    CPPUNIT_ASSERT( ostr.str() == str );
+  }
+  {
+    istringstream istr(str);
+    string istr_content;
+    istr >> istr_content;
+    CPPUNIT_ASSERT( !istr.fail() && istr.eof() );
+    CPPUNIT_ASSERT( istr_content == str );
+  }
+  {
+    istringstream istr(str);
+    istr.width(3);
+    string istr_content;
+    istr >> istr_content;
+    CPPUNIT_ASSERT( !istr.fail() && !istr.eof() );
+    CPPUNIT_ASSERT( istr_content == "STL" );
+  }
+}
+#endif

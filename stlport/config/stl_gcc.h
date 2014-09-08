@@ -3,11 +3,26 @@
  */
 
 /* Systems having GLIBC installed have different traits */
-#if ! defined (_STLP_USE_GLIBC) && (defined (__linux__) || defined(__CYGWIN__))
-#  define _STLP_USE_GLIBC
+#if defined (__linux__) || defined(__CYGWIN__)
+#  ifndef _STLP_USE_GLIBC
+#    define _STLP_USE_GLIBC 1
+//#  ifdef _GLIBCPP_USE_NAMESPACES
+//#   undef _GLIBCPP_USE_NAMESPACES
+//#  endif
+#  endif
+#  if defined(__UCLIBC__) && !defined(_STLP_USE_UCLIBC)
+#    define _STLP_USE_UCLIBC 1
+#  endif
 #endif
 
-#if (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ <= 3))
+#if defined (__CYGWIN__)
+#  if (__GNUC__ >= 3) && (__GNUC_MINOR__ >= 3) && !defined (_GLIBCPP_USE_C99)
+#    define _STLP_NO_VENDOR_MATH_L
+#    define _STLP_NO_VENDOR_STDLIB_L
+#  endif
+#endif
+
+#if (__GNUC__ < 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ < 4))
 //define for gcc versions before 3.4.0.
 #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD
 #endif
@@ -60,34 +75,26 @@
 #endif // (__FreeBSD__ && _THREAD_SAFE) || (__OpenBSD__ && _POSIX_THREADS) || (__MINGW32__ && _MT)
 
 #if defined(__DJGPP)
-#  define _STLP_RAND48		1
-#  define _NOTHREADS		1
+#  define _STLP_RAND48    1
+#  define _NOTHREADS    1
 #  undef  _PTHREADS
 #  define _STLP_LITTLE_ENDIAN
 #endif 
 
-#if defined(__MINGW32__)
+#if defined (__MINGW32__)
 /* Mingw32, egcs compiler using the Microsoft C runtime */
 #  undef  _STLP_NO_DRAND48
 #  define _STLP_NO_DRAND48
-#  define _STLP_IMPORT_DECLSPEC __attribute__((dllimport))
-#  define _STLP_EXPORT_DECLSPEC __attribute__((dllexport))
-#  define _STLP_CLASS_IMPORT_DECLSPEC __attribute__((dllimport))
-#  define _STLP_CLASS_EXPORT_DECLSPEC __attribute__((dllexport))
 #  define _STLP_CALL
 
-#  if defined (_STLP_USE_DYNAMIC_LIB)
-#    define _STLP_USE_DECLSPEC 1
-// #   define _STLP_USE_TEMPLATE_EXPORT 1
-/* Using dynamic library in MinGW requires _STLP_NO_CUSTOM_IO */
-#    if !defined(_STLP_NO_CUSTOM_IO)
-#      define _STLP_NO_CUSTOM_IO
-#    endif
-#  endif /* _STLP_USE_DYNAMIC_LIB */
-
+#  if defined (_STLP_NEW_PLATFORM_SDK)
+//For the moment the SDK coming with Mingw still mimik the old platform SDK.
+#    undef _STLP_NEW_PLATFORM_SDK
+#  endif
 #endif /* __MINGW32__ */
 
-#if defined (__CYGWIN__) && defined (_STLP_USE_DYNAMIC_LIB)
+#if (defined (__CYGWIN__) || defined (__MINGW32__)) && \
+     !defined (__BUILDING_STLPORT) && defined (_STLP_USE_DYNAMIC_LIB)
 /*
  * We use the import/export mechanism only to import symbols to
  * an exe or an other dynamic lib. During library built all symbols
@@ -174,12 +181,32 @@ typedef unsigned int wint_t;
 /* g++ 2.7.x and above */
 #define _STLP_LONG_LONG long long 
 
+#ifdef _STLP_USE_UCLIBC
+//# ifndef __DO_C99_MATH__
+  /* No *f math fuctions variants (i.e. sqrtf, fabsf, etc.) */
+#  define _STLP_NO_VENDOR_MATH_F
+  /* No *l math fuctions variants (i.e. sqrtl, fabsl, etc.) */
+#  define _STLP_NO_VENDOR_MATH_L
+#  define _STLP_NO_LONG_DOUBLE
+//# endif
+#endif
+
+#if defined(__OpenBSD__) || defined(__FreeBSD__)
+#  define _STLP_NO_VENDOR_MATH_L
+#  define _STLP_NO_VENDOR_STDLIB_L /* no llabs */
+#  ifndef __unix
+#    define __unix
+#  endif
+#endif
+
 #if (__GNUC__ >= 3)
 #  ifndef _STLP_HAS_NO_NEW_C_HEADERS
+//#   ifndef _STLP_USE_UCLIBC
 #    define _STLP_HAS_NATIVE_FLOAT_ABS
+//#   endif
 #  else
 #    ifdef _STLP_USE_GLIBC
-#      define _STLP_VENDOR_LONG_DOUBLE_MATH  1 // - ptr: with new c headers no needs
+#      define _STLP_VENDOR_LONG_DOUBLE_MATH  1
 #    endif
 #  endif
 #endif
@@ -192,6 +219,8 @@ typedef unsigned int wint_t;
 #    define _STLP_VENDOR_GLOBAL_EXCEPT_STD 1
 #  endif
 #endif
+
+// #  define _STLP_VENDOR_GLOBAL_CSTD       1
 
 #if (__GNUC_MINOR__ < 95)  && (__GNUC__ < 3)
 #  define _STLP_NO_UNCAUGHT_EXCEPT_SUPPORT
@@ -288,23 +317,24 @@ __GIVE_UP_WITH_STL(GCC_272);
 
 #if (__GNUC__ >= 3)
 
-#  if (((__GNUC__ == 3 ) && (__GNUC_MINOR__ == 0)) || ((__GNUC_MINOR__ < 3) && __APPLE__))
-#    define _STLP_NATIVE_INCLUDE_PATH ../g++-v3
-#  else
-#    if ((__GNUC_MINOR__ >= 3) && __APPLE__)
-#      define _STLP_NATIVE_INCLUDE_PATH ../c++
+#  if !defined (_STLP_NATIVE_INCLUDE_PATH)
+#    if (((__GNUC__ == 3 ) && (__GNUC_MINOR__ == 0)) || ((__GNUC_MINOR__ < 3) && __APPLE__))
+#      define _STLP_NATIVE_INCLUDE_PATH ../g++-v3
+#    else
+#      if ((__GNUC_MINOR__ >= 3) && __APPLE__)
+#        define _STLP_NATIVE_INCLUDE_PATH ../c++
 /*
 * Before version 3.4.0 the 0 patch level was not part of the include path:
 */
-#    elif defined (__GNUC_PATCHLEVEL__) && ((__GNUC_PATCHLEVEL__ > 0) || \
-                                            (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
-                                            (__GNUC__ > 3))
-#      define _STLP_NATIVE_INCLUDE_PATH ../__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__
-#    else
-#      define _STLP_NATIVE_INCLUDE_PATH ../__GNUC__.__GNUC_MINOR__
+#      elif defined (__GNUC_PATCHLEVEL__) && ((__GNUC_PATCHLEVEL__ > 0) || \
+                                              (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || \
+                                              (__GNUC__ > 3))
+#        define _STLP_NATIVE_INCLUDE_PATH ../__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__
+#      else
+#        define _STLP_NATIVE_INCLUDE_PATH ../__GNUC__.__GNUC_MINOR__
+#      endif
 #    endif
-#  endif 
-#  define _STLP_NATIVE_OLD_STREAMS_INCLUDE_PATH _STLP_NATIVE_INCLUDE_PATH/backward
+#  endif
 
 /* Instantiation scheme that used (default) in gcc 3 made void of sense explicit
    instantiation within library: nothing except increased library size. - ptr
@@ -313,7 +343,9 @@ __GIVE_UP_WITH_STL(GCC_272);
 
 #elif (__GNUC_MINOR__ < 8)
 
-#  define _STLP_NATIVE_INCLUDE_PATH ../g++-include
+#  if !defined (_STLP_NATIVE_INCLUDE_PATH)
+#    define _STLP_NATIVE_INCLUDE_PATH ../g++-include
+#  endif
 
 /* tuning of static template data members workaround */
 #  if ( _STLP_STATIC_TEMPLATE_DATA < 1 )
@@ -338,22 +370,25 @@ __GIVE_UP_WITH_STL(GCC_272);
 // If your installation use "g++-3" include directory for any reason (pre-2.95.2 or Win binary kit),
 // please change the macro below to point to your directory. 
 
-#  if defined(__DJGPP)
-#    define _STLP_NATIVE_INCLUDE_PATH ../lang/cxx
-#  elif (__GNUC__ >= 3) || (__GNUC_MINOR__ >= 97)
-#    define _STLP_NATIVE_INCLUDE_PATH ../include/g++-v3
-#  elif ((__GNUC_MINOR__ >= 95 && __GNUC_MINOR__ < 97) && !( defined (__FreeBSD__) || defined (__NetBSD__) || defined(__sgi) || defined (__OS2__) ) )
-#    define _STLP_NATIVE_INCLUDE_PATH ../g++-3
-#  elif (__GNUC_MINOR__ > 8) && (__GNUC_MINOR__ < 95) && (__GNUC__ < 3) && !defined( __Lynx__ )
+#  if !defined (_STLP_NATIVE_INCLUDE_PATH)
+#    if defined(__DJGPP)
+#      define _STLP_NATIVE_INCLUDE_PATH ../lang/cxx
+#    elif (__GNUC__ >= 3) || (__GNUC_MINOR__ >= 97)
+#      define _STLP_NATIVE_INCLUDE_PATH ../include/g++-v3
+#    elif ((__GNUC_MINOR__ >= 95 && __GNUC_MINOR__ < 97) && \
+          !( defined (__FreeBSD__) || defined (__NetBSD__) || defined(__sgi) || defined (__OS2__) ) )
+#      define _STLP_NATIVE_INCLUDE_PATH ../g++-3
+#    elif (__GNUC_MINOR__ > 8) && (__GNUC_MINOR__ < 95) && (__GNUC__ < 3) && !defined( __Lynx__ )
 // this really sucks, as GNUpro does not really identifies itself, so we have to guess 
 // depending on a platform
-#    ifdef __hpux
-#      define _STLP_NATIVE_INCLUDE_PATH ../g++-3
+#      ifdef __hpux
+#        define _STLP_NATIVE_INCLUDE_PATH ../g++-3
+#      else
+#        define _STLP_NATIVE_INCLUDE_PATH ../g++-2
+#      endif
 #    else
-#      define _STLP_NATIVE_INCLUDE_PATH ../g++-2
+#      define _STLP_NATIVE_INCLUDE_PATH g++
 #    endif
-#  else
-#    define _STLP_NATIVE_INCLUDE_PATH g++
 #  endif
 
 // <exception> et al
@@ -363,9 +398,7 @@ __GIVE_UP_WITH_STL(GCC_272);
 #    endif
 #  else
 // azov
-#    ifdef __Lynx__ 
-#      define _STLP_NATIVE_CPP_RUNTIME_INCLUDE_PATH _STLP_NATIVE_INCLUDE_PATH
-#    else
+#    ifndef __Lynx__ 
 #      if (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 97)
 // #     define _STLP_NATIVE_CPP_RUNTIME_INCLUDE_PATH ../g++-v3
 #      else
@@ -376,8 +409,9 @@ __GIVE_UP_WITH_STL(GCC_272);
 
 #endif /* GNUC_MINOR < 8 */
 
-#define _STLP_NATIVE_CPP_C_INCLUDE_PATH _STLP_NATIVE_INCLUDE_PATH
-#define _STLP_NATIVE_C_INCLUDE_PATH ../include
+#if !defined (_STLP_NATIVE_C_INCLUDE_PATH)
+#  define _STLP_NATIVE_C_INCLUDE_PATH ../include
+#endif
 
 #ifdef _SCO_ELF
 #  define _STLP_SCO_OPENSERVER
@@ -406,3 +440,9 @@ __GIVE_UP_WITH_STL(GCC_272);
 #if defined (__hpux) && defined(__GNUC__)
 #  define _STLP_NO_LONG_DOUBLE
 #endif
+
+/*
+ Local Variables:
+ mode:C++
+ End:
+*/
