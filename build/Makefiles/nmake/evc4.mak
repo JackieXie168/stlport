@@ -1,5 +1,5 @@
 # Time-stamp: <04/03/31 07:55:19 ptr>
-# $Id: evc4.mak,v 1.1.2.7 2005/06/24 19:39:59 dums Exp $
+# $Id: evc4.mak,v 1.1.2.9 2005/11/24 05:45:47 complement Exp $
 
 DEFS_COMMON = $(DEFS_COMMON) /D _WIN32_WCE=$(CEVERSION) /D UNDER_CE=$(CEVERSION) /D "UNICODE"
 
@@ -23,11 +23,24 @@ OPT_COMMON =
 !if "$(TARGET_PROC)" == "x86"
 DEFS_COMMON = $(DEFS_COMMON) /D "x86" /D "_X86_" /D "_i386_"
 OPT_COMMON = /Gs8192
+!if "$(TARGET_PROC_SUBTYPE)" == "emulator"
+DEFS_COMMON = $(DEFS_COMMON) /D "emulator"
+!endif
 !endif
 
 !if "$(TARGET_PROC)" == "mips"
 DEFS_COMMON = $(DEFS_COMMON) /D "_MIPS_" /D "MIPS"
 OPT_COMMON =
+
+!if "$(TARGET_PROC_SUBTYPE)" == "MIPSII"
+OPT_COMMON = $(OPT_COMMON) /QMmips2 /QMFPE
+!elseif "$(TARGET_PROC_SUBTYPE)" == "MIPSII_FP"
+OPT_COMMON = $(OPT_COMMON) /QMmips2 /QMFPE-
+!elseif "$(TARGET_PROC_SUBTYPE)" == "MIPSIV"
+OPT_COMMON = $(OPT_COMMON) /QMmips4 /QMn32 /QMFPE
+!elseif "$(TARGET_PROC_SUBTYPE)" == "MIPSIV_FP"
+OPT_COMMON = $(OPT_COMMON) /QMmips4 /QMn32 /QMFPE-
+!endif
 !endif
 
 !if "$(TARGET_PROC)" == "sh3"

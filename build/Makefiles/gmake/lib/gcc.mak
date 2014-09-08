@@ -1,6 +1,4 @@
-# -*- makefile -*- Time-stamp: <05/03/24 11:33:35 ptr>
-# $Id: gcc.mak,v 1.1.2.10 2005/09/19 19:53:48 dums Exp $
-
+# -*- makefile -*- Time-stamp: <05/12/23 23:42:13 ptr>
 
 # Oh, the commented below work for gmake 3.78.1 and above,
 # but phrase without tag not work for it. Since gmake 3.79 
@@ -57,7 +55,11 @@ _USE_NOSTDLIB := 1
 endif
 
 ifeq ($(OSNAME),sunos)
-#_USE_NOSTDLIB := 1
+_USE_NOSTDLIB := 1
+endif
+
+ifeq ($(OSNAME),darwin)
+_USE_NOSTDLIB := 1
 endif
 endif
 
@@ -80,10 +82,10 @@ STDLIBS := -Wl,--whole-archive -lsupc++ -Wl,--no-whole-archive -lpthread -lc -lm
 endif
 ifeq ($(OSNAME),freebsd)
 # FreeBSD < 5.3 should use -lc_r, while FreeBSD >= 5.3 use -lpthread
-PTHR := $(shell if [ ${OSREL_MAJOR} -gt 5 ] ; then echo "ptherad" ; else if [ ${OSREL_MAJOR} -lt 5 ] ; then echo "c_r" ; else if [ ${OSREL_MINOR} -lt 3 ] ; then echo "c_r" ; else echo "pthread"; fi ; fi ; fi)
+PTHR := $(shell if [ ${OSREL_MAJOR} -gt 5 ] ; then echo "pthread" ; else if [ ${OSREL_MAJOR} -lt 5 ] ; then echo "c_r" ; else if [ ${OSREL_MINOR} -lt 3 ] ; then echo "c_r" ; else echo "pthread"; fi ; fi ; fi)
 START_OBJ := $(shell for o in crti.o crtbeginS.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crtendS.o crtn.o; do ${CXX} -print-file-name=$$o; done)
-STARTBS := -Wl,--whole-archive -lsupc++ -Wl,--no-whole-archive -lgcc -l${PTHR} -lc -lm
+STDLIBS := -Wl,--whole-archive -lsupc++ -lgcc_eh -Wl,--no-whole-archive -lgcc -l${PTHR} -lc -lm
 endif
 ifeq ($(OSNAME),netbsd)
 START_OBJ := $(shell for o in crt{i,beginS}.o; do ${CXX} -print-file-name=$$o; done)
@@ -91,9 +93,19 @@ END_OBJ := $(shell for o in crt{endS,n}.o; do ${CXX} -print-file-name=$$o; done)
 STDLIBS := -Wl,--whole-archive -lsupc++ -Wl,--no-whole-archive -lgcc_s -lpthread -lc -lm
 endif
 ifeq ($(OSNAME),sunos)
-#START_OBJ := $(shell for o in crti.o crtbegin.o; do ${CXX} -print-file-name=$$o; done)
-#END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} -print-file-name=$$o; done)
-#STDLIBS := -Wl,--whole-archive -lsupc++ -Wl,--no-whole-archive -lgcc_s -lpthread -lc -lm
+START_OBJ := $(shell for o in crti.o crtbegin.o; do ${CXX} -print-file-name=$$o; done)
+END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} -print-file-name=$$o; done)
+STDLIBS := -Wl,-zallextract -lsupc++ -Wl,-zdefaultextract -lgcc_s -lpthread -lc -lm
+endif
+ifeq ($(OSNAME),darwin)
+START_OBJ := 
+END_OBJ := 
+ifdef GCC_APPLE_CC
+STDLIBS := -lgcc -lc -lm -all_load -lsupc++
+else
+LDFLAGS += -single_module
+STDLIBS := -lgcc -lc -lm -all_load -lsupc++ -lgcc_eh
+endif
 endif
 #END_A_OBJ := $(shell for o in crtn.o; do ${CXX} -print-file-name=$$o; done)
 
@@ -157,9 +169,9 @@ ifeq ($(OSNAME),darwin)
 CURRENT_VERSION := ${MAJOR}.${MINOR}.${PATCH}
 COMPATIBILITY_VERSION := $(CURRENT_VERSION)
 
-dbg-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_DBGxx) -Wl ${LDSEARCH}
-stldbg-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_STLDBGxx) -Wl ${LDSEARCH}
-release-shared:	LDFLAGS += -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAMExx) -Wl ${LDSEARCH}
+dbg-shared:	LDFLAGS += -dynamic -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_DBGxx) ${LDSEARCH} ${NOSTDLIB}
+stldbg-shared:	LDFLAGS += -dynamic -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAME_STLDBGxx) ${LDSEARCH} ${NOSTDLIB}
+release-shared:	LDFLAGS += -dynamic -dynamiclib -compatibility_version $(COMPATIBILITY_VERSION) -current_version $(CURRENT_VERSION) -install_name $(SO_NAMExx) ${LDSEARCH} ${NOSTDLIB}
 
 dbg-static:	LDFLAGS += -staticlib ${LDSEARCH}
 stldbg-static:	LDFLAGS += -staticlib ${LDSEARCH}

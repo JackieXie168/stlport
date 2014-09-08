@@ -1,5 +1,4 @@
-# Time-stamp: <05/09/09 22:00:37 ptr>
-# $Id: targetdirs.mak,v 1.1.2.5 2005/09/19 19:53:48 dums Exp $
+# Time-stamp: <05/12/13 23:12:03 ptr>
 
 ifdef TARGET_OS
 TARGET_NAME := ${TARGET_OS}-
@@ -56,20 +55,24 @@ PHONY += $(OUTPUT_DIRS) $(INSTALL_DIRS)
 
 ifneq (${OSNAME},windows)
 $(OUTPUT_DIRS):
-	@if ${EXT_TEST} -e $@ -a -f $@ ; then \
-	  echo "ERROR: Regular file $@ present, directory instead expected" ; \
-	  exit 1; \
-	elif [ ! -d $@ ] ; then \
-	  mkdir -p $@ ; \
-	fi
+	@for d in $@ ; do \
+	  if ${EXT_TEST} -e $$d -a -f $$d ; then \
+	    echo "ERROR: Regular file $$d present, directory instead expected" ; \
+	    exit 1; \
+	  elif [ ! -d $$d ] ; then \
+	    mkdir -p $$d ; \
+	  fi ; \
+	done
 
 $(INSTALL_DIRS):
-	@if ${EXT_TEST} -e $@ -a -f $@ ; then \
-	  echo "ERROR: Regular file $@ present, directory instead expected" ; \
-	  exit 1; \
-	elif [ ! -d $@ ] ; then \
-	  mkdir -p $@ ; \
-	fi
+	@for d in $@ ; do \
+	  if ${EXT_TEST} -e $$d -a -f $$d ; then \
+	    echo "ERROR: Regular file $$d present, directory instead expected" ; \
+	    exit 1; \
+	  elif [ ! -d $$d ] ; then \
+	    mkdir -p $$d ; \
+	  fi ; \
+	done
 else
 $(OUTPUT_DIRS):
 	@if not exist $@ mkdir $(subst /,\,$@)

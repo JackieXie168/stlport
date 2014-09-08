@@ -1,5 +1,5 @@
 # -*- Makefile -*- Time-stamp: <05/03/10 17:51:53 ptr>
-# $Id: gcc.mak,v 1.1.2.2 2005/09/26 19:34:19 dums Exp $
+# $Id: gcc.mak,v 1.1.2.3 2005/11/09 13:50:20 dums Exp $
 
 SRCROOT := ../..
 COMPILER_NAME := gcc
@@ -36,14 +36,21 @@ dbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED
 stldbg-shared:	DEFS += -D_STLP_DEBUG_UNINITIALIZED 
 
 ifeq ($(OSNAME),cygming)
-LIB_VERSION = ${LIBMAJOR}${LIBMINOR}
-release-shared : LDLIBS = -lstlport_r${LIB_VERSION}
-dbg-shared     : LDLIBS = -lstlport_d${LIB_VERSION}
-stldbg-shared  : LDLIBS = -lstlport_stld${LIB_VERSION}
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : LDLIBS = -lstlport.${LIB_VERSION}
+dbg-shared     : LDLIBS = -lstlportg.${LIB_VERSION}
+stldbg-shared  : LDLIBS = -lstlportstlg.${LIB_VERSION}
+else
+ifeq ($(OSNAME),windows)
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : LDLIBS = -lstlport.${LIB_VERSION}
+dbg-shared     : LDLIBS = -lstlportg.${LIB_VERSION}
+stldbg-shared  : LDLIBS = -lstlportstlg.${LIB_VERSION}
 else
 release-shared : LDLIBS = -lstlport
 dbg-shared     : LDLIBS = -lstlportg
 stldbg-shared  : LDLIBS = -lstlportstlg
+endif
 endif
 
 ifeq ($(OSNAME),sunos)

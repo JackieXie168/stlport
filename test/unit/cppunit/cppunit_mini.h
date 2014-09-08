@@ -13,7 +13,7 @@
  *
  */
 
-/* $Id: cppunit_mini.h,v 1.1.2.6 2005/07/24 20:20:33 dums Exp $ */
+/* $Id: cppunit_mini.h,v 1.1.2.7 2005/11/17 21:23:29 complement Exp $ */
 
 #ifndef _CPPUNITMPFR_H_
 #define _CPPUNITMPFR_H_
@@ -96,6 +96,12 @@ namespace CPPUNIT_NS
 
       bool shouldRunThis(const char *in_desiredTest, const char *in_className, const char *in_functionName, bool invert = false )
       {
+#ifdef __SUNPRO_CC
+        using std::strstr;
+        using std::strcmp;
+        using std::strncmp;
+        using std::strlen;
+#endif // __SUNPRO_CC	
         if((in_desiredTest) && (in_desiredTest[0] != '\0'))
         {
           const char *ptr = strstr(in_desiredTest, "::");

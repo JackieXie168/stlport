@@ -1,5 +1,11 @@
-# Time-stamp: <03/10/27 18:22:08 ptr>
-# $Id: targets.mak,v 1.1.2.3 2005/09/20 20:13:04 dums Exp $
+# Time-stamp: <05/11/27 17:27:04 ptr>
+# $Id: targets.mak,v 1.1.2.4 2005/11/27 18:06:36 complement Exp $
+
+# If we have no C++ sources, let's use C compiler for linkage instead of C++.
+ifeq ("$(sort ${SRC_CC} ${SRC_CPP} ${SRC_CXX})","")
+NOT_USE_NOSTDLIB := 1
+_C_SOURCES_ONLY := true
+endif
 
 # if sources disposed in several dirs, calculate
 # appropriate rules; here is recursive call!

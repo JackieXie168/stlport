@@ -18,7 +18,8 @@ using namespace std;
 //#define CHECK_BIG_FILE 4
 
 #  if !defined(STLPORT) || !( (defined(_STLP_MSVC) && (_STLP_MSVC < 1300)) || \
-                              (defined(__GNUC__) && (__GNUC__ < 3)) \
+                              (defined(__GNUC__) && (__GNUC__ < 3)) || \
+                              (defined(__SUNPRO_CC)) \
                             )
 #    define DO_CUSTOM_FACET_TEST
 #  endif
@@ -191,17 +192,45 @@ void FstreamTest::tellg()
     // bogus ios_base::binary is for Wins
     ifstream is("test_file.txt", ios_base::in | ios_base::binary);
     CPPUNIT_ASSERT( is.is_open() );
-    string line;
     char buf[64];
 
     // CPPUNIT_ASSERT( is.tellg() == 0 );
     streampos p = 0;
     for (int i = 0; i < 50; ++i) {
       CPPUNIT_ASSERT( is.tellg() == p );
-      // getline( is, line, '\n' );
       is.read( buf, 8 );
       CPPUNIT_ASSERT( !is.fail() );
       p += 8;
+    }
+  }
+
+  {
+    // bogus ios_base::binary is for Wins
+    ifstream is("test_file.txt", ios_base::in | ios_base::binary);
+    CPPUNIT_ASSERT( is.is_open() );
+
+    streampos p = 0;
+    for (int i = 0; i < 50; ++i) {
+      CPPUNIT_ASSERT( !is.fail() );
+      is.tellg();
+      CPPUNIT_ASSERT( is.tellg() == p );
+      p += 8;
+      is.seekg( p, ios_base::beg  );
+      CPPUNIT_ASSERT( !is.fail() );
+    }
+  }
+
+  {
+    // bogus ios_base::binary is for Wins
+    ifstream is("test_file.txt", ios_base::in | ios_base::binary);
+    CPPUNIT_ASSERT( is.is_open() );
+
+    streampos p = 0;
+    for (int i = 0; i < 50; ++i) {
+      CPPUNIT_ASSERT( is.tellg() == p );
+      p += 8;
+      is.seekg( 8, ios_base::cur );
+      CPPUNIT_ASSERT( !is.fail() );
     }
   }
 }

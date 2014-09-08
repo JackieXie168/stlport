@@ -1,5 +1,5 @@
 # Time-stamp: <04/04/30 23:36:48 ptr>
-# $Id: evc3.mak,v 1.1.2.6 2005/06/24 19:39:59 dums Exp $
+# $Id: evc3.mak,v 1.1.2.7 2005/11/07 20:53:56 dums Exp $
 
 DEFS_COMMON = $(DEFS_COMMON) /D _WIN32_WCE=$(CEVERSION) /D UNDER_CE=$(CEVERSION) /D "UNICODE"
 
@@ -23,6 +23,9 @@ OPT_COMMON =
 !if "$(TARGET_PROC)" == "x86"
 DEFS_COMMON = $(DEFS_COMMON) /D "x86" /D "_X86_"
 OPT_COMMON =
+!if "$(TARGET_PROC_SUBTYPE)" == "emulator"
+DEFS_COMMON = $(DEFS_COMMON) /D "emulator"
+!endif
 !endif
 
 !if "$(TARGET_PROC)" == "mips"

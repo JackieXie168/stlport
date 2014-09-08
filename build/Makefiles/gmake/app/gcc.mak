@@ -1,5 +1,4 @@
-# -*- Makefile -*- Time-stamp: <05/03/24 11:29:23 ptr>
-# $Id: gcc.mak,v 1.1.2.4 2005/04/04 20:01:35 ptr Exp $
+# -*- Makefile -*- Time-stamp: <05/12/14 22:29:01 ptr>
 
 ifndef NOT_USE_NOSTDLIB
 
@@ -45,8 +44,35 @@ _USE_NOSTDLIB := 1
 endif
 
 ifeq ($(OSNAME),sunos)
-#_USE_NOSTDLIB := 1
+_USE_NOSTDLIB := 1
 endif
+
+ifeq ($(OSNAME),darwin)
+_USE_NOSTDLIB := 1
+endif
+endif
+
+ifndef WITHOUT_STLPORT
+LDSEARCH += -L${STLPORT_LIB_DIR}
+
+release-shared:	STLPORT_LIB = -lstlport
+dbg-shared:	STLPORT_LIB = -lstlportg
+stldbg-shared:	STLPORT_LIB = -lstlportstlg
+
+ifeq ($(OSNAME),cygming)
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : STLPORT_LIB = -lstlport.${LIB_VERSION}
+dbg-shared     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
+stldbg-shared  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
+endif
+
+ifeq ($(OSNAME),windows)
+LIB_VERSION = ${LIBMAJOR}.${LIBMINOR}
+release-shared : STLPORT_LIB = -lstlport.${LIB_VERSION}
+dbg-shared     : STLPORT_LIB = -lstlportg.${LIB_VERSION}
+stldbg-shared  : STLPORT_LIB = -lstlportstlg.${LIB_VERSION}
+endif
+
 endif
 
 ifdef _USE_NOSTDLIB
@@ -55,29 +81,35 @@ ifdef _USE_NOSTDLIB
 ifeq ($(OSNAME),linux)
 START_OBJ := $(shell for o in crt{1,i,begin}.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crt{end,n}.o; do ${CXX} -print-file-name=$$o; done)
-STDLIBS := -lgcc_s -lpthread -lc -lm
+STDLIBS = ${STLPORT_LIB} -lgcc_s -lpthread -lc -lm
 endif
 ifeq ($(OSNAME),openbsd)
 START_OBJ := $(shell for o in crt{0,begin}.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crtend.o; do ${CXX} -print-file-name=$$o; done)
-STDLIBS := -lgcc -lpthread -lc -lm
+STDLIBS = ${STLPORT_LIB} -lgcc -lpthread -lc -lm
 endif
 ifeq ($(OSNAME),freebsd)
 # FreeBSD < 5.3 should use -lc_r, while FreeBSD >= 5.3 use -lpthread
-PTHR := $(shell if [ ${OSREL_MAJOR} -gt 5 ] ; then echo "ptherad" ; else if [ ${OSREL_MAJOR} -lt 5 ] ; then echo "supc++ -lc_r" ; else if [ ${OSREL_MINOR} -lt 3 ] ; then echo "supc++ -lc_r" ; else echo "pthread"; fi ; fi ; fi)
+PTHR := $(shell if [ ${OSREL_MAJOR} -gt 5 ] ; then echo "pthread" ; else if [ ${OSREL_MAJOR} -lt 5 ] ; then echo "c_r" ; else if [ ${OSREL_MINOR} -lt 3 ] ; then echo "c_r" ; else echo "pthread"; fi ; fi ; fi)
 START_OBJ := $(shell for o in crt1.o crti.o crtbegin.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} -print-file-name=$$o; done)
-STDLIBS := -lgcc -l${PTHR} -lc -lm
+STDLIBS = ${STLPORT_LIB} -lgcc -l${PTHR} -lc -lm
 endif
 ifeq ($(OSNAME),netbsd)
 START_OBJ := $(shell for o in crt{1,i,begin}.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crt{end,n}.o; do ${CXX} -print-file-name=$$o; done)
-STDLIBS := -lgcc_s -lpthread -lc -lm
+STDLIBS = ${STLPORT_LIB} -lgcc_s -lpthread -lc -lm
 endif
 ifeq ($(OSNAME),sunos)
 START_OBJ := $(shell for o in crt1.o crti.o crtbegin.o; do ${CXX} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} -print-file-name=$$o; done)
-STDLIBS := -lgcc_s -lpthread -lc -lm
+STDLIBS = ${STLPORT_LIB} -lgcc_s -lpthread -lc -lm
+endif
+ifeq ($(OSNAME),darwin)
+START_OBJ := -lcrt1.o -lcrt2.o
+END_OBJ :=
+STDLIBS = ${STLPORT_LIB} -lgcc -lc -lm -lsupc++
+#LDFLAGS += -dynamic
 endif
 LDFLAGS += -nostdlib
 # endif

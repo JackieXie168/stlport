@@ -1,10 +1,10 @@
 # -*- Makefile -*- Time-stamp: <05/05/16 22:07:32 ptr>
-# $Id: Makefile.inc,v 1.1.2.2 2005/05/16 18:32:41 ptr Exp $
+# $Id: Makefile.inc,v 1.1.2.4 2005/12/09 16:09:31 complement Exp $
 
 LIBNAME = stlport
 MAJOR = 5
 MINOR = 0
-PATCH = 0
+PATCH = 1
 SRC_CPP = ../../src/dll_main.cpp \
           ../../src/fstream.cpp \
           ../../src/strstream.cpp \
@@ -35,6 +35,7 @@ SRC_CPP = ../../src/dll_main.cpp \
           ../../src/complex_io_w.cpp \
           ../../src/string_w.cpp
 
-SRC_C = ../../src/c_locale.c
+SRC_C = ../../src/c_locale.c \
+        ../../src/cxa.c
 
 SRC_RC = ../../src/stlport.rc
