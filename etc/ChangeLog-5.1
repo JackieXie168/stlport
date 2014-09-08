@@ -1,4 +1,61 @@
+2007-04-02  Francois Dumont  <dums@stlport...>
+
+	* 5.1.3 released based on revision 2983. STLport-5.1.3 tag created.
+
+2007-03-30  Francois Dumont  <dums@stlport...>
+
+	* build/lib/configure.bat: Restore TARGET_PROC_SUBTYPE definition
+	to distinguish between ARM architectures.
+
+2007-03-22  Francois Dumont  <dums@stlport...>
+
+	* stlport/stl/config/_msvc.h, _deque.h, _bvector.h: Portage from
+	Ulrich Echkardt to EVC 8.
+
+	* doc/README.evc8, README.wince: New documentations about Windows
+	CE and EVC 8 from Ulrich Echkardt.
+
+	* doc/evc_workaround.txt, doc/README.evc3, First file merged to the
+	second one.
+
+	* stlport/stl/_stlport_version.h: Bump patch level to 3.
+
+2007-03-07  Francois Dumont  <dums@stlport...>
+
+	* src/dll_main.cpp, stlport/stl/_stdexcept_base.h: Change strncpy_s
+	invocation to pass _TRUNCATE parameter rather than number of chars
+	to put in destination string. Default strncpy_s behavior is not to
+	truncate string if necessary but to report the issue throught a handler
+	which lead to an application crash if no handler has been set. Thanks
+	Bronek Kozicki bug report 1674974.
+
+	* stlport/stl/type_traits.h: Add a default constructor declaration
+	in _TpWithState class to make gcc happy when class is instanciated
+	with a class with no default constructor.
+
+	* stlport/stl/config/_windows.h: Change definition of
+	_STLP_WIN32_VERSION macro. We do not report definition inconsistency
+	between WINVER and _WIN32_VERSION anymore, WINVER is prefered.
+
+2007-03-01  Francois Dumont  <dums@stlport...>
+
+	* test/unit/bitset_test.cpp: Add test for the to_string member
+	method.
+
+	* stlport/stl/config/_msvc.h, test/unit/locale_test.cpp: Change
+	MSVC6 configuration that now defines _STLP_NO_EXPLICIT_FUNCTION_TMPL_ARGS.
+	Even if MSVC6 supports explicit specification of function template
+	parameters it do not support the explicit specification for
+	template methods, unit tests are showing this problem.
+
+	* stlport/stl/type_traits.h, _alloc.h: Small change in stateless
+	class detection feature. Introduce _IsStateless helper struct for
+	this purpose even if it can only be used with pure class type and
+	not with build-in types or enum or union. It avoids MSVC8 warnings.
+	
 2007-02-25  Francois Dumont  <dums@stlport...>
+
+	* 5.1.2 released based on revision 2937, tag STLport-5.1.2 created.
 
 	* stlport/stl/config/_prolog.h, build/Makefiles/gmake/bcc.mak,
 	Patch from Eric Sanford to remove empty base class optimization
