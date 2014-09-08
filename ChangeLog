@@ -1,4 +1,18 @@
+Mon Oct 27 19:38:28 1997  Boris Fomitchev  <fbp@mcst.ru>
+	
+	* pair.h : fixed (back) gcc-2.7.2 constructor problem.
+
+Mon Oct 27 19:38:28 1997  Catherine Lung <clung@ca.ibm.com>
+	
+        * IBM OS/390 C/C++ 1.x - 2.x config provided.
+	
+Mon Oct 27 19:38:28 1997  Dave Abrahams <abrahams@motu.com>
+	
+        * CW configuretion updated. CW 2.x config provided.
+
 Fri Oct 10 12:38:28 1997  eyal.ben-david@aks.com
+
+	* Version 2.032 released.
 
 	* stlcomp.h __STL_USE_EXCEPTIONS made sensitive
 	  to Watcom C++ options

@@ -181,8 +181,10 @@
 
 // AIX xlC 3.1 , 3.0.1 ==0x301
 // Visual Age C++ 3.x
+// OS-390 C++
 #if ( defined (__xlC__) && __xlC__ < 0x400 ) || \
-      ( defined (  __IBMCPP__ ) && (  __IBMCPP__ < 400 ) )
+    (defined(_MVS__) && defined ( __IBMCPP__ ) && (__IBMCPP__ <= 22040)) || \
+    ( defined (  __IBMCPP__ ) && (  __IBMCPP__ < 400 ) )
 #  define __STL_RESERVED_BOOL_KEYWORD 1
 #  define __STL_UNINITIALIZABLE_PRIVATE 1
 #  define __STL_BASE_TYPEDEF_OUTSIDE_BUG 1
@@ -222,7 +224,7 @@
 // VC++ 4.2 and higher
 #    define __STL_YVALS_H 1
 #    define __STL_USE_NEW_STYLE_HEADERS 1
-#    if defined  (__STL_NEW_HEADER_NAMES)
+#    if defined  (__STL_NEW_HEADER_NAMES) || (_MSC_VER < 1100)
 #     define __STL_BAD_ALLOC_DEFINED 1
 #    endif
 #   endif /* 1010 */
@@ -446,48 +448,67 @@
 // #  define __STL_NONTEMPL_BASE_MATCH_BUG  1
 #  define __STL_UNINITIALIZABLE_PRIVATE  1
 // #  define __STL_BASE_TYPEDEF_OUTSIDE_BUG 1
+#	define __STL_THROW_RETURN_BUG	1
 # endif
 
 // Metrowerks CodeWarrior
 # if defined (__MWERKS__)
-// #  define __STL_BASE_MATCH_BUG          1
-#  define __STL_UNINITIALIZABLE_PRIVATE  1
-// #  define __STL_BASE_TYPEDEF_OUTSIDE_BUG 1
-// #  define  __STL_NONTEMPL_BASE_MATCH_BUG
 
-// Metrowerks Standard Library features begin here
-// out-of-date or incorrect parameter list for some library functions
-#  define __STL_MSVC50_COMPATIBILITY 1 
-#  define __STL_BAD_ALLOC_DEFINED  1                                   
+#  define __STL_USE_EXCEPTIONS	1	// Enable exception handling
+
+// *** CodeWarrior Compiler Features ***
+#  include <ansi_parms.h>
+#  if defined(__MSL_LONGLONG_SUPPORT__)
+#   define __STL_LONG_LONG	1
+#  endif
+#   define __STL_BOOL_KEYWORD	1
+#   define __STL_EXPLICIT 1
+#   define __STL_EXCEPTIONS 1
+#   define __STL_MUTABLE 1
+#   define __STL_NEW_STYLE_CASTS 1
+
+// *** CodeWarrior Compiler Bugs ***
+#  define __STL_MULTI_CONST_TEMPLATE_ARG_BUG	1
+#  define __STL_THROW_RETURN_BUG	1
+#  define __STL_INLINE_NAME_RESOLUTION_BUG	1
+#  define __STL_TEMPLATE_PARAM_SUBTYPE_BUG	1
+#  define __STL_FORCED_INLINE_INSTANTIATION_BUG
+
+// *** Metrowerks Standard Library Features ***
+#  define __STL_BAD_ALLOC_DEFINED  1
 #  define __STL_USE_NEW_STYLE_HEADERS 1
 // _always_ using new-style system headers
 #  define __STL_NEW_HEADER_NAMES 1
-#   define __STL_BOOL_KEYWORD	1
-
-// Compiler features begin here
-#  include <ansi_parms.h>
-#  if defined(__MSL_LONGLONG_SUPPORT__)
-#   define __STL_LONG_LONG 
-#  endif
-#   define __STL_EXPLICIT 1
-#   define __STL_EXCEPTIONS 1
-
-#   define __STL_NO_NAMESPACES 1                       
-#   define __STL_MUTABLE 1
-#   define __STL_NEW_STYLE_CASTS 1
 #   define __STL_IOSFWD 1
-#   define  __STL_NON_TYPE_TMPL_PARAM_BUG	1	// dwa 8/21/97 - this bug still present.
+
+// *** Metrowerks Standard Library Bugs ***
+#  define __STL_MSVC50_COMPATIBILITY 1
+#  define __STL_NO_NAMESPACES 1	// Namespaces not implemented in MSL
+
+// Version-specific settings
+#  if __MWERKS__ >= 0x2000			// v. 2.0 features
+
+// typename not yet enabled in MSL, so don't use it for now
+// #   define __STL_TYPENAME				1
+
+#   define __STL_WCHAR_T                1
+#  else								// Pre-2.0 bugs
+#   define  __STL_NON_TYPE_TMPL_PARAM_BUG	1	// dwa 8/21/97 - this bug fixed for CWPro2
+#   define __STL_UNINITIALIZABLE_PRIVATE  1		// dwa 10/23/97 - this bug fixed for CWPro2
+#  endif
 
 #  if __MWERKS__ >= 0x1900         				// dwa 8/19/97 - 1.9 Compiler feature defines
-#   define __EDG_SWITCHES	1
 #   define __STL_DEFAULT_TEMPLATE_PARAM 1
-#  elif __MWERKS__ >= 0x1800                    // dwa 8/19/97 - 1.8 Compiler feature defines
-#   define __STL_USE_NEWALLOC   1                           
+#  else								// Pre-1.9 bugs
+#   if __MWERKS__ < 0x1800
+#    __GIVE_UP_WITH_STL(CW_18)
+#   endif
 #   define __STL_BASE_TYPEDEF_BUG        1
 #   define __STL_BASE_MATCH_BUG   1
 #   define __STL_NONTEMPL_BASE_MATCH_BUG 1
-#   define __STL_DEFAULT_TYPE_PARAM  1
+#   define __STL_DEFAULT_TYPE_PARAM  1			// More limited template parameters
 #  endif
+
 # endif /* __MWERKS__ */
 
 // HP compilers

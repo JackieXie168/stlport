@@ -71,7 +71,13 @@ public:
     }
 
 private:
+#ifdef __STL_FORCED_INLINE_INSTANTIATION_BUG
+	static void __delete( X* );
+	
+    void reset() { if (owner_) __delete( ptr_ ); owner_=0; }
+#else
     void reset() { if (owner_) delete ptr_; owner_=0; }
+#endif
     typedef element_type* pointer_type;
     pointer_type ptr_;
     mutable bool owner_;
@@ -79,6 +85,22 @@ private:
     template<class Y> friend class auto_ptr;
 #  endif
 };
+
+#ifdef __STL_FORCED_INLINE_INSTANTIATION_BUG
+// dwa 11/4/97 - this trick is needed with MWERKS to allow
+// declarations of the form:
+//
+// class X;
+// class Y { 		// Y owns an X. ~Y() needs X's definition,
+//   ~Y();			// but clients of Y should not
+//   auto_ptr<X> x;
+// };               
+template <class X> void auto_ptr<X>::__delete( X* p )
+{
+	delete p;
+}
+#endif
+
 
 __END_STL_NAMESPACE
 

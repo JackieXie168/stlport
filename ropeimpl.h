@@ -674,6 +674,9 @@ rope<charT,Alloc>::concat(RopeBase * left, RopeBase * right)
     __STL_TRY
     return(tree_concat(left, right));
     __STL_UNWIND(unref(left); unref(right));
+#ifdef __STL_THROW_RETURN_BUG
+	return 0;
+#endif
 }
 
 template <class charT, class Alloc>

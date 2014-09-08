@@ -50,6 +50,9 @@
 # ifndef __SGI_STL_TEMPBUF_H
 #  include <tempbuf.h>
 # endif
+# if __MWERKS__ == 0x2000
+#  include <stdio.h> // extern "C" remove() conflicts with our template!
+# endif
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma set woff 1209

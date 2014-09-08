@@ -55,7 +55,7 @@ struct pair {
 # if defined (__STL_CONST_CONSTRUCTOR_BUG)
     pair() : first(T1()), second(T2()) {}
 # else
-    pair() : first(), second() {}
+    pair() {}
 # endif
     pair(const T1& a, const T2& b) : first(a), second(b) {}
 

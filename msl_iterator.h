@@ -32,7 +32,9 @@
 # define bidirectional_iterator _msl_bidirectional_iter
 # define random_access_iterator _msl_random_access_iter
 # define distance __msl_distance
+# define __distance __msl___distance
 # define advance __msl_advance
+# define __advance __msl___advance
 # define reverse_bidirectional_iterator __msl_reverse_bidirectional_iterator
 # define reverse_iterator __msl_reverse_iterator
 # define back_insert_iterator __msl_back_insert_iterator
@@ -76,7 +78,9 @@
 # undef bidirectional_iterator
 # undef random_access_iterator 
 # undef distance 
+# undef __distance 
 # undef advance 
+# undef __advance
 # undef reverse_bidirectional_iterator
 # undef reverse_iterator
 # undef back_insert_iterator

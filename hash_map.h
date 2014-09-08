@@ -52,7 +52,7 @@ template <class Key, class T, __DFL_TMPL_PARAM(HashFcn,hash<Key>),
 class hash_map
 {
 private:
-# ifdef __MWERKS__
+# ifdef __STL_MULTI_CONST_TEMPLATE_ARG_BUG
   typedef hashtable<pair<const Key, T>, Key, HashFcn,
 
       __select1st_hint<pair<const Key, T>, Key >, EqualKey, Alloc> ht;
@@ -193,7 +193,7 @@ template <class Key, class T, __DFL_TMPL_PARAM(HashFcn,hash<Key>),
 class hash_multimap
 {
 private:
-# ifdef __MWERKS__
+# ifdef __STL_MULTI_CONST_TEMPLATE_ARG_BUG
   typedef hashtable<pair<const Key, T>, Key, HashFcn,
       __select1st_hint<pair<const Key, T>, Key >, EqualKey, Alloc> ht;
 # else

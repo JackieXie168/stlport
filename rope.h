@@ -841,7 +841,7 @@ class __rope_const_iterator : public __rope_iterator_base<charT,Alloc> {
 	decr(1);
 	return __rope_const_iterator<charT,Alloc>(root, old_pos);
     }
-#if !defined( __MWERKS__ )		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
+#if !defined( __MWERKS__ ) || __MWERKS__ >= 0x200		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
     friend __rope_const_iterator<charT,Alloc> operator-
 	(const __rope_const_iterator<charT,Alloc> & x,
 	 ptrdiff_t n);
@@ -987,7 +987,7 @@ class __rope_iterator : public __rope_iterator_base<charT,Alloc> {
     friend inline ptrdiff_t operator-
 	(const __rope_iterator<charT,Alloc> & x,
 	 const __rope_iterator<charT,Alloc> & y);
-#if !defined( __MWERKS__ )		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
+#if !defined( __MWERKS__ )  || __MWERKS__ >= 0x200		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
     friend inline __rope_iterator<charT,Alloc> operator-
 	(const __rope_iterator<charT,Alloc> & x,
 	 ptrdiff_t n);
@@ -1228,6 +1228,9 @@ protected:
             __STL_TRY
               return RopeLeaf_from_char_ptr(buf, size);
             __STL_UNWIND(RopeBase::free_string(buf, size))
+#ifdef __STL_THROW_RETURN_BUG
+		return 0;
+#endif
 	}
 
 
@@ -2040,7 +2043,7 @@ inline ptrdiff_t operator-(const __rope_const_iterator<charT,Alloc> & x,
 	return x.current_pos - y.current_pos;
 }
 
-#if !defined( __MWERKS__ )		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
+#if !defined( __MWERKS__ ) || __MWERKS__ >= 0x200		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
 template <class charT, class Alloc>
 inline __rope_const_iterator<charT,Alloc>
 operator-(const __rope_const_iterator<charT,Alloc> & x,
@@ -2081,7 +2084,7 @@ inline ptrdiff_t operator-(const __rope_iterator<charT,Alloc> & x,
 	return x.current_pos - y.current_pos;
 }
 
-#if !defined( __MWERKS__ )		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
+#if !defined( __MWERKS__ ) || __MWERKS__ >= 0x200		// dwa 8/21/97  - "ambiguous access to overloaded function" bug.
 template <class charT, class Alloc>
 inline __rope_iterator<charT,Alloc>
 operator-(const __rope_iterator<charT,Alloc> & x,

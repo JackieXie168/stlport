@@ -1,7 +1,7 @@
 *************************************************************
 *            STLport (adapted SGI STL) README file
-*                      VERSION 2.032
-*                Last updated : Oct 09, 1997.
+*                      VERSION 2.033
+*                Last updated : Nov 03, 1997.
 *************************************************************
 
 This package is build upon the SGI Standard Template Library (STL) 
@@ -45,7 +45,7 @@ purpose.  It is provided "as is" without express or implied warranty.
 *************************************************************
 GETTING THE LIBRARY
 
-Look for the latest STLport release at : "http://www.ipmce.su/~fbp/stl/"
+Look for the latest STLport release at : "http://www.metabyte.com/~fbp/stl/"
 
 *************************************************************
 
@@ -64,7 +64,7 @@ See ChangeLog for details.
 TESTING SUMMARY
 
 STLport has been successfully tested using several test suites
-(check http://www.ipmce.su/~fbp/stl/testsuite.html)
+(check http://www.metabyte.com/~fbp/stl/testsuite.html)
 , with additional check for separate compilation & multiple units.
 STLport was reported to work with the following compilers:
 
@@ -79,7 +79,7 @@ STLport was reported to work with the following compilers:
 
     Visual C++ 4.x-5.0 (auto-recognized);
 
-    SGI MIPSpro C++ 7.x (auto-recognized);
+    SGI MIPSpro C++ 4.x, 7.x (auto-recognized);
 
     AIX xlC 3.1.4.0 (auto-recognized);
 
@@ -100,6 +100,8 @@ STLport was reported to work with the following compilers:
     HP aCC 1.06 (auto-recognized);
 
     PowerSoft's Power++ (auto-recognized)
+
+    OS 390 CC 1.x-2.x compilers (auto-recognized).
 
 *************************************************************
 KNOWN PROBLEMS

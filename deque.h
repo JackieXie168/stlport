@@ -768,7 +768,11 @@ struct __deque_rep : public __safe_server {
 };
 
 template <class T, class Ref, class Ptr, class BufSize>
-bool __deque_iterator<T, Ref, Ptr, BufSize>::dereferenceable() const {
+#ifdef __STL_INLINE_NAME_RESOLUTION_BUG
+inline
+#endif
+bool __deque_iterator<T, Ref, Ptr, BufSize>::dereferenceable() const
+{
     typedef __deque_rep<T, BufSize> deque_rep;
     const iterator& finish = (((const deque_rep*)owner())->finish);
     const iterator& start = (((const deque_rep*)owner())->start);

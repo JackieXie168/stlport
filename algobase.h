@@ -643,9 +643,9 @@ inline int lexicographical_compare_3way(const char* first1, const char* last1,
 
 template <class T>
 inline void destroy(T* pointer) {
-# if _MSC_VER >= 1100
+# if _MSC_VER >= 1010
   pointer;
-# endif	// _MSC_VER >= 1100
+# endif	// _MSC_VER >= 1000
 # if ( defined (__BORLANDC__) && ( __BORLANDC__ < 0x500 ) )
     pointer->T::~T();
 # else
@@ -986,6 +986,9 @@ __uninitialized_copy_copy(InputIterator1 first1, InputIterator1 last1,
     destroy(result, mid);
     throw;
   }
+# 		ifdef __STL_THROW_RETURN_BUG
+  return ForwardIterator();
+# 		endif
 #     endif /* __STL_USE_EXCEPTIONS */
 }
 
@@ -1007,10 +1010,10 @@ __uninitialized_fill_copy(ForwardIterator result, ForwardIterator mid,
     destroy(result, mid);
     throw;
   }
-#     endif /* __STL_USE_EXCEPTIONS */
-# ifdef __SC__
+# 		ifdef __STL_THROW_RETURN_BUG
   return ForwardIterator();
-# endif
+# 		endif
+#     endif /* __STL_USE_EXCEPTIONS */
 }
 
 // Copies [first1, last1) into [first2, first2 + (last1 - first1)), and

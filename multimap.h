@@ -73,7 +73,7 @@ public:
   };
 
 private:
-# ifdef __MWERKS__
+# ifdef __STL_MULTI_CONST_TEMPLATE_ARG_BUG
   typedef rb_tree<key_type, value_type, 
                   __select1st_hint<value_type, Key>, key_compare, Alloc> rep_type;
 # else

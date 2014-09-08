@@ -126,7 +126,7 @@ bool operator<(const queue<T, Sequence>& x, const queue<T, Sequence>& y) {
     return x.c < y.c;
 }
 
-#if defined ( __STL_DEFAULT_TEMPLATE_PARAM ) && ! defined (__MWERKS__)
+#if defined ( __STL_DEFAULT_TEMPLATE_PARAM ) && !defined ( __STL_TEMPLATE_PARAM_SUBTYPE_BUG )
 template <class T, class Sequence = vector<T>, 
           class Compare = less<typename Sequence::value_type> >
 #else

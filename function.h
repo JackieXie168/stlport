@@ -368,7 +368,7 @@ struct identity : public unary_function<T, T> {
     const T& operator()(const T& x) const { return x; }
 };
 
-#ifdef __MWERKS__
+#ifdef __STL_MULTI_CONST_TEMPLATE_ARG_BUG
 // fbp : sort of select1st just for maps
 template <class Pair, class U>		
 // JDJ (CW Pro1 doesn't like const when first_type is also const)
