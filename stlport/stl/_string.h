@@ -316,7 +316,11 @@ public:                         // Constructor, destructor, assignment.
     { return assign(__STATIC_CAST(size_type,1), __c); }
 
   static _CharT _STLP_CALL _M_null() {
-    return _STLP_DEFAULT_CONSTRUCTED(_CharT);
+#   ifndef _STLP_DEFAULT_CONSTRUCTOR_BUG
+    return _CharT();
+#   else
+    return (_CharT) 0;
+#   endif
   }
 
 private:                        // Helper functions used by constructors

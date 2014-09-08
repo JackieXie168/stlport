@@ -6,15 +6,14 @@ CXX=cl.exe
 CC=cl.exe
 RC=rc
 
-LIB_BASENAME=stlport_vc6
-COMP=VC6
+LIB_BASENAME=stlport_vc6_unicode
+COMP=VC6_UNICODE
 
-# EXTRA_COMMON_FLAGS=/D "_MBCS"
-EXTRA_COMMON_FLAGS=/Zm800 /FI "vc_warning_disable.h" /D "_MBCS"
+EXTRA_COMMON_FLAGS=/Zm800 /FI "vc_warning_disable.h" /D "_UNICODE" /D "UNICODE"
 EXTRA_DEBUG_FLAGS=
 EXTRA_NDEBUG_FLAGS=
 
-all: platform all_static all_dynamic 
+all: platform all_dynamic all_static
 
 !INCLUDE vc_common.mak
 

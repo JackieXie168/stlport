@@ -18,11 +18,7 @@
 #  include <stl/_prolog.h>
 # endif
 
-# if defined (__BORLANDC__)
-#  include _STLP_NATIVE_CPP_C_HEADER(_str.h)
-# else
-#  include _STLP_NATIVE_C_HEADER(string.h)
-# endif
+#   include _STLP_NATIVE_C_HEADER(string.h)
 
 # if defined (__BORLANDC__) && defined (_STLP_IMPORT_VENDOR_CSTD)
 #  include <using/cstring>

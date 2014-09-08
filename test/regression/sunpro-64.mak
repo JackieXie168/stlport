@@ -134,20 +134,19 @@ CXX = $(CC)
 # DEBUG_FLAGS=-compat=4
 
 
-# CXXFLAGS = -xarch=v9 +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -D_STLP_NO_OWN_IOSTREAMS -D_STLP_HAS_NO_NEW_IOSTREAMS
-CXXFLAGS = -xarch=v9 +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -library=no%Cstd  -I. -qoption ccfe -expand=1000 -qoption ccfe -instlib=../../lib/libstlport_sunpro64.so
+CXXFLAGS = -xarch=v9 +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -D_STLP_NO_OWN_IOSTREAMS -D_STLP_HAS_NO_NEW_IOSTREAMS
+# CXXFLAGS = +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -D_STLP_NO_OWN_IOSTREAMS
 
 
 
-# LIBS = -lm -liostream 
-LIBS = -L../../lib -lstlport_sunpro64 -lm
+LIBS = -lm -liostream 
 LIBSTDCXX = 
 
 check: $(TEST)
 
 $(TEST) : $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) $(OBJECTS) $(LIBS) -o $(TEST_EXE)
-	LD_LIBRARY_PATH=../../lib:${LD_LIBRARY_PATH} ./$(TEST_EXE) < stdin > $(TEST)
+	echo 'a string' | ./$(TEST_EXE) > $(TEST)
 
 SUFFIXES: .cpp.o.exe.out.res
 
@@ -158,9 +157,9 @@ SUFFIXES: .cpp.o.exe.out.res
 	$(CXX) $(CXXFLAGS) $< -E -H > $@
 
 %.out: %.cpp
-	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -D_REENTRANT -o $*.o
-	$(CXX) $(CXXFLAGS) $*.o $(LIBS) -lpthread -g -o $*.exe
-	LD_LIBRARY_PATH=../../lib:${LD_LIBRARY_PATH} ./$*.exe < stdin > $@
+	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -o $*.o
+	$(CXX) $(CXXFLAGS) $*.o $(LIBS) -g -o $*.exe
+	./$*.exe > $@
 	-rm -f $*.exe
 
 istmit1.out: istmit1.cpp

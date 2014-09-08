@@ -134,7 +134,7 @@ CXX = $(CC)
 # DEBUG_FLAGS=-compat=4
 
 
-CXXFLAGS = +w2 ${STL_INCL} ${DEBUG_FLAGS} -library=no%Cstd  -I. -qoption ccfe -expand=1000 -qoption ccfe -instlib=../../lib/libstlport_sunpro.so
+CXXFLAGS = +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -qoption ccfe -expand=1000 -qoption ccfe -instlib=../../lib/libstlport_sunpro.so
 
 LIBS = -L../../lib -lstlport_sunpro -lm
 LIBSTDCXX = 
@@ -154,10 +154,10 @@ SUFFIXES: .cpp.o.exe.out.res
 	$(CXX) $(CXXFLAGS) $< -E -H > $@
 
 %.out: %.cpp
-	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -D_REENTRANT -o $*.o
-	$(CXX) $(CXXFLAGS) $*.o -L../../lib -lstlport_sunpro -lpthread -xildoff -lm -g -o $*.exe
-	env LD_LIBRARY_PATH=../../lib ./$*.exe > $@
-#	-rm -f $*.exe
+	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -o $*.o
+	$(CXX) $(CXXFLAGS) $*.o $(LIBS) -g -o $*.exe
+	./$*.exe > $@
+	-rm -f $*.exe
 
 istmit1.out: istmit1.cpp
 	$(CXX) $(CXXFLAGS) $< $(STAT_MODULE) $(LIBSTDCXX) -lstdc++ $(LIBS) -o istmit1

@@ -27,10 +27,6 @@
 # include <cstdlib>
 #endif
 
-#ifndef _STLP_CWCHAR
-# include <cwchar>
-#endif
-
 #ifndef _STLP_INTERNAL_THREADS_H
 # include <stl/_threads.h>
 #endif

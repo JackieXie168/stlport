@@ -20,10 +20,6 @@
 #ifndef _STLP_INTERNAL_WRAP_MAP_H
 #define _STLP_INTERNAL_WRAP_MAP_H
 
-#ifndef _STLP_INTERNAL_MAP_H
-# include <stl/_map.h>
-#endif
-
 # ifdef _STLP_USE_NAMESPACES
 namespace STLPORT { 
 # endif

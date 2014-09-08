@@ -26,10 +26,6 @@
 #ifndef _STLP_VECTOR_C
 #define _STLP_VECTOR_C
 
-# if !defined (_STLP_INTERNAL_VECTOR_H)
-#  include "stl/_vector.h"
-# endif
-
 # if defined ( _STLP_NESTED_TYPE_PARAM_BUG )
 #  define iterator       _Tp*
 #  define size_type           size_t

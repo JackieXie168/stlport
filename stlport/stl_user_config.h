@@ -32,7 +32,7 @@
 //==========================================================
 
 /* _STLP_NO_OWN_IOSTREAMS: 
- * __STL_NO_SGI_IOSTREAMS (in older versions)
+ * __STL_NO_SGI_IOSTREAMS (older version)
  *  This is major configuration switch.
  *  Turn it on to disable use of SGI iostreams and use wrappers 
  *  around your compiler's iostreams, like before.
@@ -72,23 +72,6 @@
  * (e.g libstlport_gcc_stldebug.a) when you set this flag in STLport iostreams mode.
  */
 // #define   _STLP_DEBUG 1
-
-
-/* 
- *
- *  _STLP_NO_CUSTOM_IO : define this if you do not instantiate basic_xxx iostream classes  with custom types (which is most likely the case).
- *  Custom means types other than char, wchar and char_traits<>,
- *  like basic_ostream<my_char_type, my_traits<my_char_type> >
- *  When this option is on, most non-inline template functions definitions for iostreams are not seen by the client.
- *  Default is off, just not to break compilation for those who do use those types.
- *  which saves a lot of compile time for most compilers, also object and executable size for some.
- *  That also guarantees that you still use optimized standard i/o when you compile your program without optimization. 
- *  Option does not affect STLport library build; you may use the same binary library with and without this option, 
- *  on per-project basis.
- *
- */
-// #define _STLP_NO_CUSTOM_IO
-
 
 /* 
  * _STLP_NO_RELOPS_NAMESPACE: if defined, don't put the relational
@@ -177,11 +160,6 @@
  */
 
 // # define _STLP_USE_MFC 1
-
-
-// boris : this setting is here as we cannot detect precense of new Platform SDK automatically 
-// If you are using new PSDK with VC++ 6.0 or lower, please define this to get correct prototypes for InterlockedXXX functions
-// # define _STLP_NEW_PLATFORM_SDK 1
 
 /*
  * Use minimum set of default arguments on template classes that have more

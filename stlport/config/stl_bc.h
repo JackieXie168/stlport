@@ -11,8 +11,7 @@
 #   define  _STLP_CALL __cdecl
 # endif
 
-# define _USE_STLP
-// # define _STLP_USE_OWN_NAMESPACE
+# define __STL_USE_OWN_NAMESPACE
 # define _STLP_DLLEXPORT_NEEDS_PREDECLARATION
 # define _STLP_OPERATOR_SPEC_NEEDS_TEMPLATE_ARGS
 
@@ -29,7 +28,7 @@
 #if ( __BORLANDC__ < 0x540 )
 // Borland C++ Builder 3 (?)
 // those are assumptions, if some of them actually work, please let me know
-// #  define _STLP_STATIC_CONST_INIT_BUG 1
+#  define _STLP_STATIC_CONST_INIT_BUG 1
 // #  define _STLP_THROW_RETURN_BUG 1
 #  define _STLP_NO_TEMPLATE_CONVERSIONS 1
 #  define _STLP_DEFAULT_CONSTRUCTOR_BUG 1
@@ -159,45 +158,9 @@ typedef char    mbstate_t;
 #  endif
 #  define _STLP_EXPORT_TEMPLATE_KEYWORD __declspec(dllexport)
 
-# if (__BORLANDC__ >= 0x560) && ! defined (_STLP_OWN_IOSTREAMS)
-// #  define _STLP_IS_NATIVE_LIB
-#  define _STLP_NATIVE_INCLUDE_PATH ../include/oldstl
-#  define _STLP_NATIVE_CPP_C_INCLUDE_PATH ../include/oldstl
-#  define _STLP_NATIVE_C_INCLUDE_PATH ../include/oldstl
-#  define _STLP_NATIVE_CPP_RUNTIME_PATH ../include/oldstl
-# endif
-
-# ifndef __BUILDING_STLPORT
-#  ifdef _STLP_DEBUG
-#   ifdef _MT
-#    ifdef _RTLDLL
-#      pragma comment(lib,"stlpmt_stldebug45.lib")
-#    else
-#     pragma comment(lib,"stlpmt_stldebugst.lib")
-#    endif
-#   else
-#    ifdef _RTLDLL
-#      pragma comment(lib,"stlp_stldebug45.lib")
-#    else
-#     pragma comment(lib,"stlp_stldebugst.lib")
-#    endif
-#   endif
-#  else
-#   ifdef _MT
-#    ifdef _RTLDLL
-#      pragma comment(lib,"stlpmt45.lib")
-#    else
-#     pragma comment(lib,"stlpmtst.lib")
-#    endif
-#  else
-#    ifdef _RTLDLL
-#      pragma comment(lib,"stlp45.lib")
-#    else
-#     pragma comment(lib,"stlpst.lib")
-#    endif
-#   endif
-#  endif
-# endif
+// boris : no more automatic lib linking, as per Borland process
+// #  define _STLP_LIB_STATIC_SUFFIX "_static"
+// #  include <config/stl_select_lib.h>
 
 #  endif /* _STLP_OWN_IOSTREAMS */
 # endif

@@ -42,7 +42,7 @@
 # include <stl/_heap.h>
 #endif
 
-#ifndef _STLP_INTERNAL_FUNCTION_H
+#ifndef _STLP_INTERNAL_FUNCTIONAL_H
 # include <stl/_function.h>
 #endif
 

@@ -41,7 +41,7 @@ CXXFLAGS = ${STL_INCL} -library=no%Cstd -features=rtti -DEH_VECTOR_OPERATOR_NEW 
 LIBS = -lm 
 LIBSTDCXX = 
 
-LIBSTLPORT = -library=no%Cstd -L../../lib -lstlport_sunpro
+LIBSTLPORT = -library=no%Cstd -L../../lib -lstlport_sunpro 
 
 
 check: $(TEST)
@@ -60,9 +60,9 @@ SUFFIXES: .cpp.o.out.res
 
 %.out: %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -g -o $*.o
-	$(CXX) $(CXXFLAGS) $*.o $(LIBS) ${LIBSTLPORT} -o $*
-	LD_LIBRARY_PATH="../../lib;${LD_LIBRARY_PATH}" ./$* 
-
+	$(CXX) $(CXXFLAGS) $*.o $(LIBS) -o $*
+	./$* -q
+	-rm -f $*
 
 %.s: %.cpp
 	$(CXX) $(CXXFLAGS) -O4 -S -pto $<  -o $@

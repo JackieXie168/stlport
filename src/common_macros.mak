@@ -6,16 +6,17 @@ SHELL=/bin/sh
 VERSION_MAJOR=4
 VERSION_MINOR=5
 
+# This one is not always present; it is only used for bugfixing release versions which are backwards
+# compatible with minor version
+PATCH_SUFFIX=
+
 # This one is not always present; it should be empty for release versions.
 # We do not assume any binary compatibility for betas.
 BETA_SUFFIX=
 
 VERSION_SUFFIX= .$(VERSION_MAJOR).$(VERSION_MINOR)$(BETA_SUFFIX)
-WIN_VERSION_SUFFIX= $(VERSION_MAJOR)$(VERSION_MINOR)$(BETA_SUFFIX)
 
-# DYNAMIC_SUFFIX= $(VERSION_SUFFIX)$(PATCH_SUFFIX)
-DYNAMIC_SUFFIX= $(VERSION_SUFFIX)
-WIN_DYNAMIC_SUFFIX= $(WIN_VERSION_SUFFIX)
+DYNAMIC_SUFFIX= $(VERSION_SUFFIX)$(PATCH_SUFFIX)
 
 #
 #  Directories
@@ -44,7 +45,7 @@ STLDEBUG_OBJDIR_dynamic=$(OBJDIR)$(PATH_SEP)DebugSTLD
 #
 
 INSTALLDIR=/usr/local
-# INSTALLDIR=/tmp
+INSTALLDIR=/tmp
 INSTALLDIR_INC=$(INSTALLDIR)/include/stlport
 INSTALLDIR_LIB=$(INSTALLDIR)/lib
 

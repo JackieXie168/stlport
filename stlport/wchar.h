@@ -23,8 +23,7 @@
 # if ! defined (_STLP_WINCE) && ! defined (_STLP_NO_WCHAR_T)
 
 # if defined ( __BORLANDC__ ) && (__BORLANDC__) >= 0x530
-// #  include <cstring>
-# include _STLP_NATIVE_CPP_C_HEADER(_str.h)
+#  include <cstring>
 using _STLP_VENDOR_CSTD::strlen;
 using _STLP_VENDOR_CSTD::strspn;
 # endif

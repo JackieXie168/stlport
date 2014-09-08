@@ -29,34 +29,6 @@
 
 _STLP_BEGIN_NAMESPACE
 
-
-//----------------------------------------------------------------------
-// helpers
-
-#ifdef __sgi
-  static const union { unsigned int i; float f; } float_ulimit = { 0x42b2d4fc };
-  static const float float_limit = ulimit.f;
-  static union {
-    struct { unsigned int h; unsigned int l; } w;
-    double d;
-  } double_ulimit = { 0x408633ce, 0x8fb9f87d };
-  static const double double_limit = ulimit.d;
-  static union {
-    struct { unsigned int h[2]; unsigned int l[2]; } w;
-    long double ld;
-  } ldouble_ulimit = {0x408633ce, 0x8fb9f87e, 0xbd23b659, 0x4e9bd8b1};
-# ifndef _STLP_NO_LONG_DOUBLE
-  static const long double ldouble_limit = ulimit.ld;
-# endif
-#else
-  static const float float_limit = _STLP_LOGF(FLT_MAX);
-  static const double double_limit = _STLP_DO_LOG(double)(DBL_MAX);
-# ifndef _STLP_NO_LONG_DOUBLE
-  static const long double ldouble_limit = _STLP_LOGL(LDBL_MAX);
-# endif
-#endif
-
-
 //----------------------------------------------------------------------
 // sin
 
@@ -104,7 +76,14 @@ _STLP_DECLSPEC complex<float> _STLP_CALL tan(const complex<float>& z) {
   float re2 = 2.f * z._M_re;
   float im2 = 2.f * z._M_im;
 
-  if (_STLP_ABSF(im2) > float_limit)
+#ifdef __sgi
+  const union { unsigned int i; float f; } ulimit = { 0x42b2d4fc };
+  const float limit = ulimit.f;
+#else
+  const float limit = _STLP_LOGF(FLT_MAX);
+#endif
+
+  if (_STLP_ABSF(im2) > limit)
     return complex<float>(0.f, (im2 > 0 ? 1.f : -1.f));
   else {
     float den = _STLP_COSF(re2) + _STLP_COSHF(im2);
@@ -116,7 +95,17 @@ _STLP_DECLSPEC complex<double> _STLP_CALL tan(const complex<double>& z) {
   double re2 = 2. * z._M_re;
   double im2 = 2. * z._M_im;
 
-  if (fabs(float(im2)) > double_limit)
+#ifdef __sgi
+  union {
+    struct { unsigned int h; unsigned int l; } w;
+    double d;
+  } ulimit = { 0x408633ce, 0x8fb9f87d };
+  const double limit = ulimit.d;
+#else
+  const double limit = _STLP_DO_LOG(double)(DBL_MAX);
+#endif
+
+  if (fabs(float(im2)) > limit)
     return complex<double>(0., (im2 > 0 ? 1. : -1.));
   else {
     double den = _STLP_COS(re2) + _STLP_COSH(im2);
@@ -128,7 +117,18 @@ _STLP_DECLSPEC complex<double> _STLP_CALL tan(const complex<double>& z) {
 _STLP_DECLSPEC complex<long double> _STLP_CALL tan(const complex<long double>& z) {
   long double re2 = 2.l * z._M_re;
   long double im2 = 2.l * z._M_im;
-  if (_STLP_ABSL(im2) > ldouble_limit)
+
+#ifdef __sgi
+  union {
+    struct { unsigned int h[2]; unsigned int l[2]; } w;
+    long double ld;
+  } ulimit = {0x408633ce, 0x8fb9f87e, 0xbd23b659, 0x4e9bd8b1};
+  const long double limit = ulimit.ld;
+#else
+  const long double limit = _STLP_LOGL(LDBL_MAX);
+#endif
+
+  if (_STLP_ABSL(im2) > limit)
     return complex<long double>(0.l, (im2 > 0 ? 1.l : -1.l));
   else {
     long double den = _STLP_COSL(re2) + _STLP_COSHL(im2);
@@ -184,7 +184,15 @@ _STLP_DECLSPEC complex<long double> _STLP_CALL cosh(const complex<long double>& 
 _STLP_DECLSPEC complex<float> _STLP_CALL tanh(const complex<float>& z) {
   float re2 = 2.f * z._M_re;
   float im2 = 2.f * z._M_im;
-  if (_STLP_ABSF(re2) > float_limit)
+
+#ifdef __sgi
+  const union { unsigned int i; float f; } ulimit = { 0x42b2d4fc };
+  const float limit = ulimit.f;
+#else
+  const float limit = _STLP_LOGF(FLT_MAX);
+#endif
+
+  if (_STLP_ABSF(re2) > limit)
     return complex<float>((re2 > 0 ? 1.f : -1.f), 0.f);
   else {
     float den = _STLP_COSHF(re2) + _STLP_COSF(im2);
@@ -194,8 +202,19 @@ _STLP_DECLSPEC complex<float> _STLP_CALL tanh(const complex<float>& z) {
 
 _STLP_DECLSPEC complex<double> _STLP_CALL tanh(const complex<double>& z) {
   double re2 = 2. * z._M_re;
-  double im2 = 2. * z._M_im;  
-  if (fabs(float(re2)) > double_limit)
+  double im2 = 2. * z._M_im;
+
+#ifdef __sgi
+  union {
+    struct { unsigned int h; unsigned int l; } w;
+    double d;
+  } ulimit = { 0x408633ce, 0x8fb9f87d };
+  const double limit = ulimit.d;
+#else
+  const double limit = _STLP_DO_LOG(double)(DBL_MAX);
+#endif
+  
+  if (fabs(float(re2)) > limit)
     return complex<double>((re2 > 0 ? 1. : -1.), 0.);
   else {
     double den = _STLP_COSH(re2) + _STLP_COS(im2);
@@ -207,7 +226,18 @@ _STLP_DECLSPEC complex<double> _STLP_CALL tanh(const complex<double>& z) {
 _STLP_DECLSPEC complex<long double> _STLP_CALL tanh(const complex<long double>& z) {
   long double re2 = 2.l * z._M_re;
   long double im2 = 2.l * z._M_im;
-  if (_STLP_ABSL(re2) > ldouble_limit)
+
+#ifdef __sgi
+  union {
+    struct { unsigned int h[2]; unsigned int l[2]; } w;
+    long double ld;
+  } ulimit = {0x408633ce, 0x8fb9f87e, 0xbd23b659, 0x4e9bd8b1};
+  const long double limit = ulimit.ld;
+#else
+  const long double limit = _STLP_LOGL(LDBL_MAX);
+#endif
+
+  if (_STLP_ABSL(re2) > limit)
     return complex<long double>((re2 > 0 ? 1.l : -1.l), 0.l);
   else {
     long double den = _STLP_COSHL(re2) + _STLP_COSL(im2);

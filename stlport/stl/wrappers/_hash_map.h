@@ -20,10 +20,6 @@
 #ifndef _STLP_INTERNAL_WRAP_HASH_MAP_H
 #define _STLP_INTERNAL_WRAP_HASH_MAP_H
 
-#ifndef _STLP_INTERNAL_HASH_MAP_H
-# include <stl/_hash_map.h>
-#endif
-
 # ifdef _STLP_USE_NAMESPACES
 namespace STLPORT { 
 # endif

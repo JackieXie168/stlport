@@ -66,11 +66,11 @@ _M_get_base_or_zero(_InputIter& __in, _InputIter& __end, ios_base& __str, _CharT
   bool __negative = false;
   _CharT __c = *__in;
 
-  if (__c == __atoms[1] /* __xminus_char */ ) {
+  if (__c == __atoms[1] /* __minus_char */ ) {
     __negative = true;
     ++__in;
   }
-  else if (__c == __atoms[0] /* __xplus_char */ ) 
+  else if (__c == __atoms[0] /* __plus_char */ ) 
     ++__in;
 
 
@@ -125,7 +125,7 @@ __get_integer(_InputIter& __first, _InputIter& __last,
 	      int __base, _Integer& __val, 
 	      int __got, bool __is_negative, char __separator, const string& __grouping, const __true_type&) 
 {
-  bool __ovflow = false;
+  bool __overflow = false;
   _Integer __result = 0;
   bool __is_group = !__grouping.empty();
   char __group_sizes[64];
@@ -153,11 +153,11 @@ __get_integer(_InputIter& __first, _InputIter& __last,
      ++__current_group_size;
      
      if (__result < __over_base)
-       __ovflow = true;  // don't need to keep accumulating
+       __overflow = true;  // don't need to keep accumulating
      else {
        _Integer __next = __STATIC_CAST(_Integer, __base * __result - __n);
        if (__result != 0)
-	 __ovflow = __ovflow || __next >= __result;
+	 __overflow = __overflow || __next >= __result;
        __result = __next;
      }
    }
@@ -168,13 +168,13 @@ __get_integer(_InputIter& __first, _InputIter& __last,
 
    // fbp : added to not modify value if nothing was read
    if (__got > 0) {
-       __val = __ovflow
+       __val = __overflow
 	 ? __is_negative ? (numeric_limits<_Integer>::min)()
 	 : (numeric_limits<_Integer>::max)()
 	 : (__is_negative ? __result : __STATIC_CAST(_Integer, -__result));
    }
   // overflow is being treated as failure
-  return ((__got > 0) && !__ovflow) && (__is_group == 0 || __valid_grouping(__group_sizes, __group_sizes_end,
+  return ((__got > 0) && !__overflow) && (__is_group == 0 || __valid_grouping(__group_sizes, __group_sizes_end,
 									    __grouping.data(), __grouping.data()+ __grouping.size())) ;
 }
 
@@ -184,7 +184,7 @@ __get_integer(_InputIter& __first, _InputIter& __last,
 	      int __base, _Integer& __val, 
 	      int __got, bool __is_negative, char __separator, const string& __grouping, const __false_type&) 
 {
-  bool __ovflow = false;
+  bool __overflow = false;
   _Integer __result = 0;
   bool __is_group = !__grouping.empty();
   char __group_sizes[64];
@@ -212,11 +212,11 @@ __get_integer(_InputIter& __first, _InputIter& __last,
     ++__current_group_size;
 
     if (__result > __over_base)
-      __ovflow = true;  //don't need to keep accumulating
+      __overflow = true;  //don't need to keep accumulating
     else {
       _Integer __next = __STATIC_CAST(_Integer, __base * __result + __n);
 	if (__result != 0)
-	  __ovflow = __ovflow || __next <= __result;
+	  __overflow = __overflow || __next <= __result;
 	__result = __next;
       }      
   }
@@ -227,12 +227,12 @@ __get_integer(_InputIter& __first, _InputIter& __last,
 
   // fbp : added to not modify value if nothing was read
   if (__got > 0) {
-      __val = __ovflow
+      __val = __overflow
 	? (numeric_limits<_Integer>::max)()
 	: (__is_negative ? __STATIC_CAST(_Integer, -__result) : __result);      
   }
   // overflow is being treated as failure
-  return ((__got > 0) && !__ovflow) && 
+  return ((__got > 0) && !__overflow) && 
     (__is_group == 0 || __valid_grouping(__group_sizes, __group_sizes_end,
 					 __grouping.data(), __grouping.data()+ __grouping.size())) ;
 }
@@ -300,12 +300,12 @@ _M_do_get_integer(_InputIter& __in, _InputIter& __end, ios_base& __str,
 template <class _InputIter, class _CharT>
 _InputIter  _STLP_CALL
 __copy_sign(_InputIter __first, _InputIter __last, string& __v,
-            _CharT __xplus, _CharT __xminus) {
+            _CharT __plus, _CharT __minus) {
     if (__first != __last) {
     _CharT __c = *__first;
-    if (__c == __xplus)
+    if (__c == __plus)
       ++__first;
-    else if (__c == __xminus) {
+    else if (__c == __minus) {
       __v.push_back('-');
       ++__first;
     }
@@ -391,16 +391,16 @@ _M_read_float(string& __buf, _InputIter& __in, _InputIter& __end, ios_base& __s,
   _CharT __sep = __numpunct.thousands_sep();
 
   _CharT __digits[10];
-  _CharT __xplus;
-  _CharT __xminus;
+  _CharT __plus;
+  _CharT __minus;
 
   _CharT __pow_e;
   _CharT __pow_E;
 
-  _Initialize_get_float(__ct, __xplus, __xminus, __pow_e, __pow_E, __digits);
+  _Initialize_get_float(__ct, __plus, __minus, __pow_e, __pow_E, __digits);
 
   // Get an optional sign
-  __in = __copy_sign(__in, __end, __buf, __xplus, __xminus);
+  __in = __copy_sign(__in, __end, __buf, __plus, __minus);
 
   // Get an optional string of digits.
   if (__grouping.size() != 0)
@@ -423,7 +423,7 @@ _M_read_float(string& __buf, _InputIter& __in, _InputIter& __end, ios_base& __s,
   if (__ok && __in != __end && (*__in == __pow_e || *__in == __pow_E)) {
     __buf.push_back('e');
     ++__in;
-    __in = __copy_sign(__in, __end, __buf, __xplus, __xminus);
+    __in = __copy_sign(__in, __end, __buf, __plus, __minus);
     __ok = __copy_digits(__in, __end, __buf, __digits);
     // If we have an exponent then the sign 
     // is optional but the digits aren't.
@@ -524,7 +524,7 @@ num_get<_CharT, _InputIter>::do_get(_InputIter __in, _InputIter __end,
 
 # endif /* _STLP_NO_BOOL */
 
-# ifdef _STLP_FIX_LIBRARY_ISSUES
+# ifdef OBSOLETE
 template <class _CharT, class _InputIter>  
 _InputIter 
 num_get<_CharT, _InputIter>::do_get(_InputIter __in, _InputIter __end, ios_base& __str,

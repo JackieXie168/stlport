@@ -53,7 +53,7 @@
 #   define __SGI_STL                                      0x330
 
 /* STLport version */
-#   define _STLPORT_VERSION                               0x451
+#   define _STLPORT_VERSION                               0x450
 
 /* Placeholder for user to override settings.
  * It could be also used to mask settings from 
@@ -162,7 +162,7 @@
 # endif
 
 /* Operating system recognition (basic) */
-# if defined (__unix) || defined (__linux__) || defined (__QNX__) || defined (_AIX)  || defined (__NetBSD__) || defined (__Lynx__)
+# if defined (__unix) || defined (__linux__) || defined (__QNX__) || defined (_AIX)  || defined (__NetBSD__)
 #  define _STLP_UNIX 1
 #  if defined (__linux__) && ! defined (_STLP_USE_GLIBC)
 #   define _STLP_USE_GLIBC 1
@@ -237,6 +237,10 @@
 
 #  undef _STLP_NAMESPACE
 
+# if (defined (_STLP_NOTHREADS) || defined (_STLP_NO_THREADS) || defined (NOTHREADS)) && ! defined (_NOTHREADS)
+#  define _NOTHREADS
+# endif
+
 # if !defined(_NOTHREADS) && ! defined (_STLP_THREADS_DEFINED)
 
 #  if defined(_PTHREADS)
@@ -253,7 +257,6 @@
 #   elif defined(__DECC) || defined(__DECCXX)
 #    define _STLP_DEC_THREADS
 #   elif defined (_STLP_WIN32) && ! defined (_STLP_PTHREADS)
-#    define _STLP_WIN32THREADS 1
 #   elif ((defined (__sun) && !defined (__linux__)) \
      || defined(_UITHREADS) ) && !defined(_STLP_PTHREADS)
 #     define _STLP_UITHREADS
@@ -430,6 +433,16 @@
 #  endif
 #  define __FULL_NAME(X) __WORKAROUND_RENAME(X)
 
+/* provide a mechanism to redefine std:: namespace in a way that is transparent to the 
+ * user. _STLP_REDEFINE_STD is being used for wrapper files that include native headers
+ * to temporary undef the std macro. */
+#  if defined ( _STLP_USE_NAMESPACES ) && defined ( _STLP_USE_OWN_NAMESPACE ) \
+   && ! defined ( _STLP_DONT_REDEFINE_STD )
+#   define _STLP_REDEFINE_STD 1
+#  else
+#   undef  _STLP_REDEFINE_STD
+#  endif
+
 /* this always mean the C library is in global namespace */
 # if defined (_STLP_HAS_NO_NEW_C_HEADERS) && ! defined (_STLP_VENDOR_GLOBAL_CSTD)
 #  define _STLP_VENDOR_GLOBAL_CSTD 1
@@ -455,7 +468,7 @@
 /* if using stlport:: namespace or if C library stuff is not in vendor's std::,
  * try importing 'em.
  * MSVC has ambiguity problem when we try to import C-style std:: stuff back into global namespace */
-#  if defined (_STLP_USE_NAMESPACES) && /* ! defined (_STLP_OWN_IOSTREAMS) && */ \
+#  if defined (_STLP_USE_NAMESPACES) && \
    ( defined(_STLP_USE_OWN_NAMESPACE) || defined (_STLP_VENDOR_GLOBAL_CSTD))
 #    define  _STLP_IMPORT_VENDOR_CSTD 1
 #  endif
@@ -937,8 +950,9 @@ __IMPORT_WITH_ITERATORS(_Super) __IMPORT_REVERSE_ITERATORS(_Super)
 #  endif
 
 /* We only need to expose details of streams implementation 
+   if we cannot tell if we are using static or dynamic lib and 
    if we use non-standard i/o or are building STLport*/
-# if defined (__BUILDING_STLPORT) ||  defined (_STLP_NO_FORCE_INSTANTIATE) || !defined(_STLP_NO_CUSTOM_IO)
+# if defined (__BUILDING_STLPORT) || !(defined (_STLP_USE_DECLSPEC) && defined (_STLP_NO_CUSTOM_IO))
 #  define _STLP_EXPOSE_STREAM_IMPLEMENTATION 1
 # endif
 
@@ -982,6 +996,12 @@ __IMPORT_WITH_ITERATORS(_Super) __IMPORT_REVERSE_ITERATORS(_Super)
 #   define _STLP_NEW_IO_NAMESPACE
 #  endif
 # endif
+
+/* We disable link-time instantiation of RW library because
+ * it is not compatible with std renaming */
+#if 0 /* !(defined(_STLP_DONT_RENAME_STD) || defined(__BORLANDC__) || defined(_RWSTD_COMPILE_INSTANTIATE)) */
+#  define _RWSTD_COMPILE_INSTANTIATE
+#endif
 
 #ifdef _STLP_USE_SEPARATE_RELOPS_NAMESPACE
 # define _STLP_RELOPS_OPERATORS(_TMPL, _TP) \

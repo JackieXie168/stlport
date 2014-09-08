@@ -24,6 +24,7 @@
  */
 
 # define __PUT_STATIC_DATA_MEMBERS_HERE
+
 # define _STLP_EXPOSE_GLOBALS_IMPLEMENTATION
 
 # if !defined(_STLP_DEBUG) && ! defined (_STLP_ASSERTIONS)
@@ -78,6 +79,7 @@
 #ifdef _STLP_MSVC
 #pragma optimize("g",off)
 #endif 
+
 
 _STLP_BEGIN_NAMESPACE
 
@@ -158,7 +160,6 @@ template class _STLP_CLASS_DECLSPEC __debug_alloc<__new_alloc>;
 template class _STLP_CLASS_DECLSPEC __Pthread_alloc<_MAX_BYTES>;
 template class _STLP_CLASS_DECLSPEC __debug_alloc<__pthread_alloc>;
 #endif
-template class _STLP_CLASS_DECLSPEC __malloc_alloc<0>;
 
 # if defined (_STLP_THREADS) && ! defined ( _STLP_ATOMIC_EXCHANGE ) && (defined(_STLP_PTHREADS) || defined (_STLP_UITHREADS)  || defined (_STLP_OS2THREADS))
 template class _STLP_CLASS_DECLSPEC _Swap_lock_struct<0>;
@@ -167,7 +168,7 @@ template class _STLP_CLASS_DECLSPEC _Swap_lock_struct<0>;
 template class allocator<void*>;
 template class _STLP_alloc_proxy<void**, void*, allocator<void*> >;
 template class _Vector_base<void*,allocator<void*> >;
-# if defined (_STLP_DEBUG) && ! defined (__SUNPRO_CC)
+# if defined (_STLP_DEBUG)
 template class __WORKAROUND_DBG_RENAME(vector) <void*,allocator<void*> >;
 # endif
 template class __vector__<void*,allocator<void*> >;
@@ -183,7 +184,7 @@ template class _STLP_CLASS_DECLSPEC allocator<char>;
 template class _STLP_CLASS_DECLSPEC _STLP_alloc_proxy<char *,char, allocator<char> >;
 template class _STLP_CLASS_DECLSPEC _String_base<char, allocator<char> >;
 
-# if defined (_STLP_DEBUG) && ! defined (__SUNPRO_CC)
+# ifdef _STLP_DEBUG
 template class _STLP_CLASS_DECLSPEC _Nondebug_string<char, char_traits<char>, allocator<char> >;
 # endif
 
@@ -192,7 +193,7 @@ template class basic_string<char, char_traits<char>, allocator<char> >;
 
 _STLP_END_NAMESPACE
 
-# if defined (_WIN32) && defined (_STLP_USE_DECLSPEC) && ! defined (_STLP_USE_STATIC_LIB) && ! defined (_STLP_USE_STATICX_LIB)
+# if defined (_WIN32) && defined (_STLP_USE_DECLSPEC)
 // stlportmt.cpp : Defines the entry point for the DLL application.
 //
 #define WIN32_LEAN_AND_MEAN
@@ -219,26 +220,25 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
 } /* extern "C" */
 
-_STLP_BEGIN_NAMESPACE
 
 void force_link()
 {
   float f;
-  f = numeric_limits<float>::infinity();
-  f = numeric_limits<float>::quiet_NaN();
-  f = numeric_limits<float>::signaling_NaN();
+  f = std::numeric_limits<float>::infinity();
+  f = std::numeric_limits<float>::quiet_NaN();
+  f = std::numeric_limits<float>::signaling_NaN();
   double d;
-  d = numeric_limits<double>::infinity();
-  d = numeric_limits<double>::quiet_NaN();
-  d = numeric_limits<double>::signaling_NaN();
+  d = std::numeric_limits<double>::infinity();
+  d = std::numeric_limits<double>::quiet_NaN();
+  d = std::numeric_limits<double>::signaling_NaN();
 #ifndef _STLP_NO_LONG_DOUBLE
   long double ld;
-  ld = numeric_limits<long double>::infinity();
-  ld = numeric_limits<long double>::quiet_NaN();
-  ld = numeric_limits<long double>::signaling_NaN();
+  ld = std::numeric_limits<long double>::infinity();
+  ld = std::numeric_limits<long double>::quiet_NaN();
+  ld = std::numeric_limits<long double>::signaling_NaN();
 #endif
   
-  set<int>::iterator iter;
+  std::set<int>::iterator iter;
   // _M_increment; _M_decrement instantiation
   ++iter;
   --iter;
@@ -247,7 +247,5 @@ void force_link()
   unsigned char uc = _Bs_G<bool>::_S_bit_count[0];
   uc += _Bs_G<bool>::_S_first_one[0];
 }
-
-_STLP_END_NAMESPACE
 
 # endif

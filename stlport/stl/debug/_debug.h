@@ -62,8 +62,6 @@ enum {
   _StlMsg_DBA_SIZE_MISMATCH    ,
   _StlMsg_DBA_UNDERRUN         ,
   _StlMsg_DBA_OVERRUN          ,
-  // auto_ptr messages
-  _StlMsg_AUTO_PTR_NULL    ,
   _StlMsg_UNKNOWN
   /* _StlMsg_MAX */
 };

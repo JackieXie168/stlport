@@ -284,7 +284,7 @@ public:
     _M_set(__tmp, __tmp + __len, __tmp + __len);
     }
     else if (size() >= __len) {
-      iterator __new_finish = copy(__first, __last, this->_M_start);
+      iterator __new_finish = __copy_aux(__first, __last, this->_M_start, _TrivialAss());
       _Destroy(__new_finish, this->_M_finish);
       this->_M_finish = __new_finish;
     }
@@ -295,7 +295,7 @@ public:
 # else
           const_iterator __mid = __first + size() ;
 # endif
-    copy(__first, __mid, this->_M_start);
+    __copy_aux(__first, __mid, this->_M_start, _TrivialAss());
     this->_M_finish = __uninitialized_copy(__mid, __last, this->_M_finish, _IsPODType());
     }
   }

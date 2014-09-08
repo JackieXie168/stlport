@@ -82,9 +82,7 @@ HEADER_DIRS2 = config stl stl/debug stl/wrappers using/h  wrap_std/h
 symbolic_links :
 	$(RM) $(OUTDIR)/$(RELEASE_NAME).$(DYNEXT)
 	$(RM) $(OUTDIR)/$(STLDEBUG_NAME).$(DYNEXT)
-	$(RM) $(OUTDIR)/$(DEBUG_NAME).$(DYNEXT)
 	ln -s $(RELEASE_DYNLIB) $(OUTDIR)/$(RELEASE_NAME).$(DYNEXT)
-	-ln -s $(DEBUG_DYNLIB) $(OUTDIR)/$(DEBUG_NAME).$(DYNEXT)
 	ln -s $(STLDEBUG_DYNLIB) $(OUTDIR)/$(STLDEBUG_NAME).$(DYNEXT)
 
 install_unix :
@@ -113,17 +111,8 @@ install_unix :
 	done
 	$(RM) $(INSTALLDIR_LIB)/$(RELEASE_NAME).$(DYNEXT)
 	$(RM) $(INSTALLDIR_LIB)/$(STLDEBUG_NAME).$(DYNEXT)
-	ln -s $(RELEASE_DYNLIB) $(INSTALLDIR_LIB)/$(RELEASE_NAME).$(DYNEXT)
-	ln -s $(STLDEBUG_DYNLIB) $(INSTALLDIR_LIB)/$(STLDEBUG_NAME).$(DYNEXT)
-
-#	ln -s $(INSTALLDIR_LIB)/$(RELEASE_DYNLIB) $(INSTALLDIR_LIB)/$(RELEASE_NAME).$(DYNEXT)
-#	ln -s $(INSTALLDIR_LIB)/$(STLDEBUG_DYNLIB) $(INSTALLDIR_LIB)/$(STLDEBUG_NAME).$(DYNEXT)
-
-install_sun : install_unix
-	  for file in `cat ../stlport/$$dir/export.sun`; \
-	  do \
-		$(INSTALL_H) ../stlport/$$dir/$$file $(INSTALLDIR_INC)/$$dir ; \
-          done
+	ln -s $(INSTALLDIR_LIB)/$(RELEASE_DYNLIB) $(INSTALLDIR_LIB)/$(RELEASE_NAME).$(DYNEXT)
+	ln -s $(INSTALLDIR_LIB)/$(STLDEBUG_DYNLIB) $(INSTALLDIR_LIB)/$(STLDEBUG_NAME).$(DYNEXT)
 
 $(OUTDIR)$(PATH_SEP)$(RELEASE_DYNLIB) : $(OUTDIR) $(RELEASE_OBJDIR_dynamic) $(DEF_FILE) $(RELEASE_OBJECTS_dynamic)
 	$(DYN_LINK) $(DYNLINK_OUT)$(OUTDIR)$(PATH_SEP)$(RELEASE_DYNLIB) $(LDFLAGS_RELEASE_dynamic) $(RELEASE_OBJECTS_dynamic) $(LDLIBS_RELEASE_dynamic) 

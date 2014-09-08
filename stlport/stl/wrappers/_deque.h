@@ -23,10 +23,6 @@
  *
  */
 
-#ifndef _STLP_INTERNAL_DEQUE_H
-# include <stl/_deque.h>
-#endif
-
 # if defined (_STLP_DEBUG)
 #  define _DEQUE_SUPER_NAME _DBG_deque
 # else
