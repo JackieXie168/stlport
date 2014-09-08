@@ -19,43 +19,50 @@
 // standard library headers.  You should not attempt to use this header
 // file directly.
 
-#ifndef __SGI_STL_INTERNAL_COLLATE_H
-#define __SGI_STL_INTERNAL_COLLATE_H
+#ifndef _STLP_INTERNAL_COLLATE_H
+#define _STLP_INTERNAL_COLLATE_H
 
-#include <stl/c_locale.h>
-#include <stl/_string_fwd.h>
-#include <stl/_locale.h>
+#ifndef _STLP_C_LOCALE_H
+# include <stl/c_locale.h>
+#endif
 
-__STL_BEGIN_NAMESPACE
+#ifndef _STLP_INTERNAL_LOCALE_H
+# include <stl/_locale.h>
+#endif
+
+#ifndef _STLP_STRING_H
+# include <stl/_string.h>
+#endif
+
+_STLP_BEGIN_NAMESPACE
 
 
 template <class _CharT> class collate {};
 template <class _CharT> class collate_byname {};
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC collate<char> : public locale::facet 
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC collate<char> : public locale::facet 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef char   char_type;
   typedef string string_type;
 
-  explicit collate(size_t __refs = 0);
+  explicit collate(size_t __refs = 0) : _BaseFacet(__refs) {}
 
   int compare(const char* __low1, const char* __high1,
               const char* __low2, const char* __high2) const {
     return do_compare( __low1, __high1, __low2, __high2);
   }
 
-  string_type transform(const char* __low, const char* __high) const;
+  string_type transform(const char* __low, const char* __high) const {
+    return do_transform(__low, __high);
+  }
 
   long hash(const char* __low, const char* __high) const
     { return do_hash(__low, __high); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
 
 protected:
   ~collate();
@@ -69,32 +76,31 @@ private:
   collate<char>& operator =(const collate<char>&);  
 };
 
-# ifndef __STL_NO_WCHAR_T
+# ifndef _STLP_NO_WCHAR_T
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC collate<wchar_t> : public locale::facet 
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC collate<wchar_t> : public locale::facet 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef wchar_t char_type;
   typedef wstring string_type;
 
-  explicit collate(size_t __refs = 0);
+  explicit collate(size_t __refs = 0) : _BaseFacet(__refs) {}
 
   int compare(const wchar_t* __low1, const wchar_t* __high1,
               const wchar_t* __low2, const wchar_t* __high2) const {
     return do_compare( __low1, __high1, __low2, __high2);
   }
 
-  string_type transform(const wchar_t* __low, const wchar_t* __high) const;
+  string_type transform(const wchar_t* __low, const wchar_t* __high) const {
+    return do_transform(__low, __high);
+  }
 
   long hash(const wchar_t* __low, const wchar_t* __high) const
     { return do_hash(__low, __high); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
 
 protected:
   ~collate();
@@ -110,8 +116,8 @@ private:
 
 # endif /* NO_WCHAR_T */
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC collate_byname<char>: public collate<char> 
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC collate_byname<char>: public collate<char> 
 {
 public:
   explicit collate_byname(const char* __name, size_t __refs = 0);
@@ -129,10 +135,10 @@ private:
   collate_byname<char>& operator =(const collate_byname<char>&);  
 };
 
-# ifndef __STL_NO_WCHAR_T
+# ifndef _STLP_NO_WCHAR_T
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC collate_byname<wchar_t>: public collate<wchar_t> 
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC collate_byname<wchar_t>: public collate<wchar_t> 
 {
 public:
   explicit collate_byname(const char * __name, size_t __refs = 0);
@@ -153,9 +159,23 @@ private:
 # endif /* NO_WCHAR_T */
 
 
-__STL_END_NAMESPACE
+template <class _CharT>
+bool 
+__locale_do_operator_call (const locale* __that, 
+                           const basic_string<_CharT, char_traits<_CharT>, allocator<_CharT> >& __x,
+                           const basic_string<_CharT, char_traits<_CharT>, allocator<_CharT> >& __y) 
+{
+  collate<_CharT>* __f = (collate<_CharT>*)__that->_M_get_facet(collate<_CharT>::id);
+  if (!__f)
+    __that->_M_throw_runtime_error();
+  return __f->compare(__x.data(), __x.data() + __x.size(),
+                      __y.data(), __y.data() + __y.size());
+  
+}
 
-#endif /* __SGI_STL_INTERNAL_COLLATE_H */
+_STLP_END_NAMESPACE
+
+#endif /* _STLP_INTERNAL_COLLATE_H */
 
 // Local Variables:
 // mode:C++

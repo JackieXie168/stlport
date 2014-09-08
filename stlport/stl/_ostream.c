@@ -15,12 +15,31 @@
  * modified is included with the above copyright notice.
  *
  */ 
-#ifndef __STL_OSTREAM_C
-#define __STL_OSTREAM_C
+#ifndef _STLP_OSTREAM_C
+#define _STLP_OSTREAM_C
 
-#include <stl/_numeric_facets.h> // For num_put<>
+#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 
-__STL_BEGIN_NAMESPACE
+#if !defined (_STLP_INTERNAL_NUM_PUT_H)
+# include <stl/_num_put.h>            // For basic_streambuf and iterators
+#endif
+
+_STLP_BEGIN_NAMESPACE
+
+// Helper functions for istream<>::sentry constructor.
+template <class _CharT, class _Traits>
+bool
+_M_init(basic_ostream<_CharT, _Traits>& __str) {
+  if (__str.good()) {
+    // boris : check if this is needed !
+    if (!__str.rdbuf())
+      __str.setstate(ios_base::badbit);
+    if (__str.tie())
+      __str.tie()->flush();
+    return __str.good();
+  } else
+    return false;
+}
 
 //----------------------------------------------------------------------
 // Definitions of non-inline member functions.
@@ -76,23 +95,23 @@ bool basic_ostream<_CharT, _Traits>
     const ptrdiff_t __avail = __from->egptr() - __from->gptr();
 
     streamsize __nwritten;
-    __STL_TRY {
+    _STLP_TRY {
       __nwritten = __to->sputn(__from->gptr(), __avail);
-      __from->gbump(__nwritten);
+      __from->gbump((int)__nwritten);
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
       return __any_inserted;
     }
 
     if (__nwritten == __avail) {
-      __STL_TRY {
+      _STLP_TRY {
         if (this->_S_eof(__from->sgetc()))
           return true;
         else
           __any_inserted = true;
       }
-      __STL_CATCH_ALL {
+      _STLP_CATCH_ALL {
         this->_M_handle_exception(ios_base::failbit);
         return false;
       }
@@ -119,10 +138,10 @@ bool basic_ostream<_CharT, _Traits>
 
   while (true) {
     int_type __c;
-    __STL_TRY {
+    _STLP_TRY {
       __c = __from->sbumpc();
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::failbit);
       return __any_inserted;
     }
@@ -132,19 +151,19 @@ bool basic_ostream<_CharT, _Traits>
 
     else {
       int_type __tmp;
-      __STL_TRY {
+      _STLP_TRY {
         __tmp = __to->sputc(__c);
       }
-      __STL_CATCH_ALL {
+      _STLP_CATCH_ALL {
         this->_M_handle_exception(ios_base::badbit);
         return __any_inserted;
       }
 
       if (this->_S_eof(__tmp)) {
-        __STL_TRY {
+        _STLP_TRY {
           /* __tmp = */ __from->sputbackc(__c);
         }
-        __STL_CATCH_ALL {
+        _STLP_CATCH_ALL {
           this->_M_handle_exception(ios_base::badbit);
           return __any_inserted;
         }
@@ -158,7 +177,7 @@ bool basic_ostream<_CharT, _Traits>
 // Helper function for numeric output.
 
 template <class _CharT, class _Traits, class _Number>
-basic_ostream<_CharT, _Traits>&  __STL_CALL
+basic_ostream<_CharT, _Traits>&  _STLP_CALL
 _M_put_num(basic_ostream<_CharT, _Traits>& __os, _Number __x)
 {
   typedef typename basic_ostream<_CharT, _Traits>::sentry _Sentry;
@@ -166,20 +185,14 @@ _M_put_num(basic_ostream<_CharT, _Traits>& __os, _Number __x)
   bool __failed = true;
 
   if (__sentry) {
-    
-    __STL_TRY {
+    _STLP_TRY {
       typedef num_put<_CharT, ostreambuf_iterator<_CharT, _Traits> > _NumPut;      
-      __failed = (use_facet<
-                  _NumPut
-                  >(
-                    __os.getloc())
-                  ).put(
-                        ostreambuf_iterator<_CharT, _Traits>(__os), 
-                        __os, __os.fill(),
-                        __x).failed();
-      
+      __failed = (use_facet<_NumPut>(__os.getloc())).put(
+                                                         ostreambuf_iterator<_CharT, _Traits>(__os.rdbuf()), 
+                                                         __os, __os.fill(),
+                                                         __x).failed();
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       __os._M_handle_exception(ios_base::badbit);
     }
   }
@@ -188,16 +201,29 @@ _M_put_num(basic_ostream<_CharT, _Traits>& __os, _Number __x)
   return __os;
 }
 
+# if defined (_STLP_USE_TEMPLATE_EXPORT)  && defined (__BUILDING_STLPORT)
+_STLP_EXPORT_TEMPLATE _STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+_M_put_num(basic_ostream<char, char_traits<char> >&, unsigned long);
+_STLP_EXPORT_TEMPLATE _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&  _STLP_CALL
+_M_put_num(basic_ostream<char, char_traits<char> >&, long);
+#  if defined (_STLP_LONG_LONG)
+_STLP_EXPORT_TEMPLATE _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&  _STLP_CALL
+_M_put_num(basic_ostream<char, char_traits<char> >&, unsigned _STLP_LONG_LONG);
+_STLP_EXPORT_TEMPLATE _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&  _STLP_CALL
+_M_put_num(basic_ostream<char, char_traits<char> >&, _STLP_LONG_LONG );
+#  endif
+# endif
+
 template <class _CharT, class _Traits>
 void basic_ostream<_CharT, _Traits>::_M_put_char(_CharT __c)
 {
   sentry __sentry(*this);
   if (__sentry) {
     bool __failed = true;
-    __STL_TRY {
+    _STLP_TRY {
       streamsize __npad = this->width() > 0 ? this->width() - 1 : 0;
-
-      if (__npad <= 1)
+      //      if (__npad <= 1)
+      if (__npad == 0)
         __failed = this->_S_eof(this->rdbuf()->sputc(__c));
       else if ((this->flags() & ios_base::adjustfield) == ios_base::left) {
         __failed = this->_S_eof(this->rdbuf()->sputc(__c));
@@ -211,7 +237,7 @@ void basic_ostream<_CharT, _Traits>::_M_put_char(_CharT __c)
 
       this->width(0);
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
     }
 
@@ -229,7 +255,7 @@ void basic_ostream<_CharT, _Traits>::_M_put_nowiden(const _CharT* __s)
     streamsize __n = _Traits::length(__s);
     streamsize __npad = this->width() > __n ? this->width() - __n : 0;
 
-    __STL_TRY {
+    _STLP_TRY {
       if (__npad == 0)
         __failed = this->rdbuf()->sputn(__s, __n) != __n;
       else if ((this->flags() & ios_base::adjustfield) == ios_base::left) {
@@ -244,7 +270,7 @@ void basic_ostream<_CharT, _Traits>::_M_put_nowiden(const _CharT* __s)
 
       this->width(0);
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
     }
 
@@ -262,7 +288,7 @@ void basic_ostream<_CharT, _Traits>::_M_put_widen(const char* __s)
     streamsize __n = char_traits<char>::length(__s);
     streamsize __npad = this->width() > __n ? this->width() - __n : 0;
 
-    __STL_TRY {
+    _STLP_TRY {
       if (__npad == 0)
         __failed = !this->_M_put_widen_aux(__s, __n);
       else if ((this->flags() & ios_base::adjustfield) == ios_base::left) {
@@ -277,7 +303,7 @@ void basic_ostream<_CharT, _Traits>::_M_put_widen(const char* __s)
 
       this->width(0);
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
     }
 
@@ -307,10 +333,10 @@ basic_ostream<_CharT, _Traits>::put(char_type __c)
   bool __failed = true;
 
   if (__sentry) {
-    __STL_TRY {
+    _STLP_TRY {
       __failed = this->_S_eof(this->rdbuf()->sputc(__c));
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
     }
   }
@@ -330,10 +356,10 @@ basic_ostream<_CharT, _Traits>::write(const char_type* __s, streamsize __n)
   bool __failed = true;
 
   if (__sentry) {
-    __STL_TRY {
+    _STLP_TRY {
       __failed = this->rdbuf()->sputn(__s, __n) != __n;
     }
-    __STL_CATCH_ALL {
+    _STLP_CATCH_ALL {
       this->_M_handle_exception(ios_base::badbit);
     }
   }
@@ -344,8 +370,8 @@ basic_ostream<_CharT, _Traits>::write(const char_type* __s, streamsize __n)
   return *this;
 }
 
+_STLP_END_NAMESPACE
 
-__STL_END_NAMESPACE
+#endif /* defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) */
 
-
-#endif /* __STL_OSTREAM_C */
+#endif /* _STLP_OSTREAM_C */

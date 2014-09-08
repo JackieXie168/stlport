@@ -6,9 +6,9 @@
 #include <windows.h>
 
 #define VER_MAJOR 4
-#define VER_MINOR 0
+#define VER_MINOR 1
 #define VER_YEAR  2000
-#define VER_MMDD  0707
+#define VER_MMDD  1111
 
 #define VERSION_STRING2(x) #x "\0"
 #define VERSION_STRING(x) VERSION_STRING2(x)
@@ -17,8 +17,7 @@
 
 #define VERSION_STRING1(x) #x
 #define DLLNAME_STRING2(compstr,buildstr) \
-"STLPORT_" VERSION_STRING1(compstr) VERSION_STRING1(buildstr) ".DLL\0"
-// #define DLLNAME_STRING2(compstr, buildstr) "STLPORT_" #compstr #buildstr ".DLL\0"
+"STLPORT_" VERSION_STRING1(compstr) VERSION_STRING1(buildstr) "_\0" VERSION_STRING1(VER_MAJOR) VERSION_STRING1(VER_MINOR) ".DLL\0"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION VERSION_ID
@@ -38,7 +37,7 @@ BEGIN
 VALUE "CompanyName", "STLport Consulting, Inc.\0"
 VALUE "FileDescription", "STLport\0"
 VALUE "FileVersion", VERSION_STR
-VALUE "InternalName", "stlport.dll\0"
+VALUE "InternalName", "STLPORT.DLL\0"
 VALUE "LegalCopyright", "Copyright (C) Boris Fomitchev\0"
 
 VALUE "OriginalFilename", DLLNAME_STRING2(COMP,BUILD)

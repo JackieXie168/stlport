@@ -17,22 +17,22 @@
  */ 
 
 
-# include "stlport_prefix.h"
-#include <iterator>
-#include <cstring>
-#include <cstdlib>
-#include <locale>
-#include <vector>
+#include "stlport_prefix.h"
+#include <stl/_time_facets.h>
+#include <stl/_istream.h>
+#include "c_locale.h"
 
+_STLP_BEGIN_NAMESPACE
 
-__STL_BEGIN_NAMESPACE
+char* _STLP_CALL
+__write_integer(char* buf, ios_base::fmtflags flags, long x);
 
 // The function copy_cstring is used to initialize a string
 // with a C-style string.  Used to initialize the month and weekday
-// tables in time_get and time_put.  Called only by __init_timeinfo
+// tables in time_get and time_put.  Called only by _Init_timeinfo
 // so its name does not require leading underscores.
 
-inline void copy_cstring(const char * s, string& v) {
+static inline void copy_cstring(const char * s, string& v) {
   copy(s, s + strlen(s), back_insert_iterator<string >(v));
 }
 
@@ -49,11 +49,11 @@ inline void copy_cstring(const char * s, string& v) {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"};
 
-// __init_time_info: initialize table with
+// _Init_time_info: initialize table with
 // "C" values (note these are not defined in the C standard, so this
 // is somewhat arbitrary).
 
-void __STL_CALL __init_timeinfo(_Time_Info& table) {
+void _STLP_CALL _Init_timeinfo(_Time_Info& table) {
   int i;
   for (i = 0; i < 14; ++i)
     copy_cstring(default_dayname[i], table._M_dayname[i]);
@@ -66,7 +66,7 @@ void __STL_CALL __init_timeinfo(_Time_Info& table) {
   copy_cstring("%a %b %e %H:%M:%S %Y", table._M_date_time_format);
 }
 
-void __STL_CALL __init_timeinfo(_Time_Info& table, _Locale_time * time) {
+void _STLP_CALL _Init_timeinfo(_Time_Info& table, _Locale_time * time) {
   int i;
   for (i = 0; i < 7; ++i)
     copy_cstring(_Locale_abbrev_dayofweek(time)[i],
@@ -87,6 +87,8 @@ void __STL_CALL __init_timeinfo(_Time_Info& table, _Locale_time * time) {
   copy_cstring(_Locale_t_fmt(time), table._M_time_format);
   copy_cstring(_Locale_d_fmt(time), table._M_date_format);
   copy_cstring(_Locale_d_t_fmt(time), table._M_date_time_format);
+  copy_cstring(_Locale_long_d_fmt(time), table._M_long_date_format);
+  copy_cstring(_Locale_long_d_t_fmt(time), table._M_long_date_time_format);
 }
 
 inline char* __subformat(string format, char*& buf, 
@@ -95,8 +97,12 @@ inline char* __subformat(string format, char*& buf,
   const char * cp_end = cp + format.size();
   while (cp != cp_end) {
     if (*cp == '%') {
+  	  char mod = 0;
       ++cp;
-      buf = __write_formatted_time(buf, *cp++, table, t);
+      if(*cp == '#') {
+        mod = *cp; ++cp;
+      }
+      buf = __write_formatted_time(buf, *cp++, mod, table, t);
     } else
       *buf++ = *cp++;
   }
@@ -124,7 +130,10 @@ __iso_week_days (int yday, int wday)
 #define	__is_leap(year)	\
   ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
 
-char * __write_formatted_time(char* buf, char format,
+#define __hour12(hour) \
+  (((hour) % 12 == 0) ? (12) : (hour) % 12)
+
+char * __write_formatted_time(char* buf, char format, char modifier,
 			      const _Time_Info& table, const tm* t) {
   switch(format) {
     case 'a':
@@ -148,12 +157,15 @@ char * __write_formatted_time(char* buf, char format,
 	     buf);
 
     case 'c': {
-      const char * cp = table._M_date_time_format.data();
-      const char* cp_end = cp + table._M_date_time_format.size();
+      const char * cp = (modifier != '#') ? table._M_date_time_format.data():\
+      									   table._M_long_date_time_format.data();
+      const char* cp_end = (modifier != '#') ? cp + table._M_date_time_format.size():\
+      										  cp + table._M_long_date_time_format.size();
+      char mod = 0;
       while (cp != cp_end) {
 	if (*cp == '%') {
-	  ++cp;
-	  buf = __write_formatted_time(buf, *cp++, table, t);
+	  ++cp; if(*cp == '#') mod = *cp++; else mod = 0;
+	  buf = __write_formatted_time(buf, *cp++, mod, table, t);
 	}
 	else
 	  *buf++ = *cp++;
@@ -162,31 +174,31 @@ char * __write_formatted_time(char* buf, char format,
     }
 
     case 'd': 
-      sprintf(buf, "%.2ld", (long)t->tm_mday);
-      return buf + 2;
+      sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)t->tm_mday);
+      return ((long)t->tm_mday < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'e':
       sprintf(buf, "%2ld", (long)t->tm_mday);
       return buf + 2;
 
     case 'H':
-      sprintf(buf, "%.2ld", (long)t->tm_hour);
-      return buf + 2;
+      sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)t->tm_hour);
+      return ((long)t->tm_hour < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'I':
-      sprintf(buf, "%.2ld", (long)t->tm_hour % 12);
-      return buf + 2;
+      sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)__hour12(t->tm_hour));
+      return ((long)__hour12(t->tm_hour) < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'j':
       return __write_integer(buf, 0, (long)((long)t->tm_yday + 1));
 
     case 'm':
-      sprintf(buf, "%.2ld", (long)t->tm_mon + 1);
-      return buf + 2;
+      sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)t->tm_mon + 1);
+      return ((long)(t->tm_mon + 1) < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'M':
-      sprintf(buf, "%.2ld", (long)t->tm_min);
-      return buf + 2;
+      sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)t->tm_min);
+      return ((long)t->tm_min < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'p':
       return copy(table._M_am_pm[t->tm_hour/12].begin(),
@@ -194,8 +206,8 @@ char * __write_formatted_time(char* buf, char format,
 	   	  buf);
 
     case 'S': // pad with zeros
-       sprintf(buf, "%.2ld", (long)t->tm_sec);
-       return buf + 2;
+       sprintf(buf, (modifier != '#')?"%.2ld":"%ld", (long)t->tm_sec);
+       return ((long)t->tm_sec < 10L && modifier == '#')?buf+1:buf + 2;
 
     case 'U':
       return __write_integer(buf, 0, 
@@ -213,12 +225,15 @@ char * __write_formatted_time(char* buf, char format,
 			      (t->tm_yday + 8 - t->tm_wday) / 7));
 
     case'x': {
-      const char * cp = table._M_date_format.data();
-      const char* cp_end = cp + table._M_date_format.size();
+      const char * cp = (modifier != '#') ? table._M_date_format.data():\
+      									   table._M_long_date_format.data();
+      const char* cp_end = (modifier != '#') ? cp + table._M_date_format.size():\
+      										  cp + table._M_long_date_format.size();
+      char mod = 0;
       while (cp != cp_end) {
 	if (*cp == '%') {
-	  ++cp;
-	  buf = __write_formatted_time(buf, *cp++, table, t);
+	  ++cp; if(*cp == '#') mod = *cp++; else mod = 0;
+	  buf = __write_formatted_time(buf, *cp++, mod, table, t);
 	}
 	else
 	  *buf++ = *cp++;
@@ -229,10 +244,11 @@ char * __write_formatted_time(char* buf, char format,
     case 'X': {
       const char * cp = table._M_time_format.data();
       const char* cp_end = cp + table._M_time_format.size();
+      char mod = 0;
       while (cp != cp_end) {
 	if (*cp == '%') {
-	  ++cp;
-	  buf = __write_formatted_time(buf, *cp++, table, t);
+	  ++cp; if(*cp == '#') mod = *cp++; else mod = 0;
+	  buf = __write_formatted_time(buf, *cp++, mod, table, t);
 	}
 	else
 	  *buf++ = *cp++;
@@ -252,7 +268,7 @@ char * __write_formatted_time(char* buf, char format,
 #ifdef __GNUC__
 
       // fbp : at least on SUN 
-# if defined ( __STL_UNIX ) && ! defined (__linux__)
+# if defined ( _STLP_UNIX ) && ! defined (__linux__)
 #  define __USE_BSD 1
 # endif
  
@@ -336,13 +352,13 @@ char * __write_formatted_time(char* buf, char format,
       }
     }
 
-# if defined ( __STL_USE_GLIBC  ) && ! defined (__CYGWIN__)
+# if defined ( _STLP_USE_GLIBC  ) && ! defined (__CYGWIN__)
     case 'z':		/* GNU extension.  */
       if (t->tm_isdst < 0)
 	break;
       {
 	int diff;
-#ifdef	__USE_BSD
+#if defined(__USE_BSD) || defined(__BEOS__)
 	diff = t->tm_gmtoff;
 #else
 	diff = t->__tm_gmtoff;
@@ -367,7 +383,7 @@ char * __write_formatted_time(char* buf, char format,
   return buf;
 }
 
-time_base::dateorder __STL_CALL
+time_base::dateorder _STLP_CALL
 __get_date_order(_Locale_time* time)
 {
   const char * fmt = _Locale_d_fmt(time);
@@ -406,4 +422,20 @@ __get_date_order(_Locale_time* time)
       return time_base::no_order;
   }
 }
-__STL_END_NAMESPACE
+
+#if !defined(_STLP_NO_FORCE_INSTANTIATE)
+template class time_get<char, istreambuf_iterator<char, char_traits<char> > >;
+// template class time_get<char, const char*>;
+template class time_put<char, ostreambuf_iterator<char, char_traits<char> > >;
+// template class time_put<char, char*>;
+
+#ifndef _STLP_NO_WCHAR_T
+template class time_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// template class time_get<wchar_t, const wchar_t*>;
+template class time_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// template class time_put<wchar_t, wchar_t*>;
+#endif /* INSTANTIATE_WIDE_STREAMS */
+
+#endif
+
+_STLP_END_NAMESPACE

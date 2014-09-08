@@ -30,8 +30,8 @@ test_slist.obj test_vector.obj test_string.obj test_bitset.obj test_valarray.obj
 
 LINK32=link.exe
 
-CPP_PROJ=/nologo /Gr /MDd /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I. /D "__STL_DEBUG"
-# CPP_PROJ=/nologo /MTd /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I.
+# CPP_PROJ=/nologo /Gr /MDd /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I. /D "_STLP_DEBUG" /D "_STLP_NO_CUSTOM_IO"
+CPP_PROJ=/nologo /MD /W3 /GX /GR /D "WIN32" /D "_CONSOLE" /I$(STL_INCL) /I.
 
 # linker finds proper STLport lib automatically, only path to the
 # library is needed
@@ -56,7 +56,7 @@ clean :
 	$< > $@
 
 .cpp.exe:
-  $(CPP) $(CPP_PROJ) -DMAIN $<
+  $(CPP) $(CPP_PROJ) -DMAIN $< $(CPP_LIBS)
 
 .c.obj:
    $(CPP) $(CPP_PROJ) /c $<

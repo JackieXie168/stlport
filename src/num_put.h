@@ -16,22 +16,17 @@
  *
  */ 
 
-# ifndef __STL_NUM_PUT_H
-#  define __STL_NUM_PUT_H
+# ifndef _STLP_NUM_PUT_H
+#  define _STLP_NUM_PUT_H
 
-#define __BUILDING_STLPORT 1
-#include <cstring>
-#include <cstdlib>
-#include <climits>
-#include <cmath>
-// #include <cfloat>
+#ifndef _STLP_INTERNAL_NUM_PUT_H
+#include <stl/_num_put.h>
+#endif
+#ifndef _STLP_INTERNAL_OSTREAM_H
+#include <stl/_ostream.h>
+#endif
 
-#include <iterator>
-#include <string>
-#include <locale>
-#include <limits>
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 // Note that grouping[0] is the number of digits in the *rightmost* group.
 // We assume, without checking, that *last is null and that there is enough
@@ -77,6 +72,6 @@ __insert_grouping_aux(Char* first, Char* last, const string& grouping,
   return (last - first) + sign + basechars;
 }
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 # endif

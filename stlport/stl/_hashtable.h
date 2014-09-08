@@ -27,46 +27,37 @@
  *   You should not attempt to use it directly.
  */
 
-#ifndef __SGI_STL_INTERNAL_HASHTABLE_H
-#define __SGI_STL_INTERNAL_HASHTABLE_H
+#ifndef _STLP_INTERNAL_HASHTABLE_H
+#define _STLP_INTERNAL_HASHTABLE_H
 
-# ifndef __SGI_STL_INTERNAL_VECTOR_H
+# ifndef _STLP_INTERNAL_VECTOR_H
 #  include <stl/_vector.h>
 # endif
 
-# ifndef __SGI_STL_INTERNAL_ITERATOR_H
+# ifndef _STLP_INTERNAL_ITERATOR_H
 #  include <stl/_iterator.h>
 # endif
 
-# ifndef __SGI_STL_INTERNAL_FUNCTION_H
-#  include <stl/_function.h>
+# ifndef _STLP_INTERNAL_FUNCTION_H
+#  include <stl/_function_base.h>
 # endif
 
-# ifndef __SGI_STL_INTERNAL_ALGO_H
-#  include <stl/_algo.h>
+# ifndef _STLP_INTERNAL_ALGOBASE_H
+#  include <stl/_algobase.h>
 # endif
 
-# ifndef __SGI_STL_HASH_FUN_H
+# ifndef _STLP_HASH_FUN_H
 #  include <stl/_hash_fun.h>
 # endif
 
 // Hashtable class, used to implement the hashed associative containers
 // hash_set, hash_map, hash_multiset, and hash_multimap.
 
-#ifdef __STL_DEBUG
+#ifdef _STLP_DEBUG
 #  define hashtable __WORKAROUND_DBG_RENAME(hashtable)
 #endif
 
-__STL_BEGIN_NAMESPACE
-
-# if defined ( __STL_USE_ABBREVS )
-#  define _Hashtable_iterator         _hT__It
-#  define _Hashtable_const_iterator   _hT__cIt
-#  define _Hashtable_node             _hT__N
-#  define _Hashtable_base             _hT__B
-#  define _Ht_iterator _Ht_It
-# endif
-
+_STLP_BEGIN_NAMESPACE
 
 template <class _Val>
 struct _Hashtable_node
@@ -131,7 +122,7 @@ struct _Ht_iterator : public _Hashtable_iterator< _Val, _Key,_HF, _ExK,_EqK,_All
   reference operator*() const { 
       return this->_M_cur->_M_val; 
   }
-  __STL_DEFINE_ARROW_OPERATOR
+  _STLP_DEFINE_ARROW_OPERATOR
 
   _Self& operator++() {
     _Node* __n = this->_M_cur->_M_next;
@@ -153,7 +144,7 @@ operator==(const _Ht_iterator<_Val, _Traits,_Key,_HF,_ExK,_EqK,_All>& __x,
   return __x._M_cur == __y._M_cur; 
 }
 
-#ifdef __STL_USE_SEPARATE_RELOPS_NAMESPACE
+#ifdef _STLP_USE_SEPARATE_RELOPS_NAMESPACE
 template <class _Val, class _Key, class _HF,
           class _ExK, class _EqK, class _All>
 inline bool 
@@ -182,23 +173,26 @@ operator!=(const _Ht_iterator<_Val, _Nonconst_traits<_Val>,_Key,_HF,_ExK,_EqK,_A
 }
 #endif
 
-# ifdef __STL_USE_OLD_HP_ITERATOR_QUERIES
+# ifdef _STLP_USE_OLD_HP_ITERATOR_QUERIES
 template <class _Val, class _Traits, class _Key, class _HF, class _ExK, class _EqK, class _All>
-inline _Val* __VALUE_TYPE(const _Ht_iterator<_Val, _Traits,_Key,_HF,_ExK,_EqK,_All>&) { return (_Val*) 0; }
+inline _Val* value_type(const _Ht_iterator<_Val, _Traits,_Key,_HF,_ExK,_EqK,_All>&) { return (_Val*) 0; }
 template <class _Val, class _Traits, class _Key, class _HF, class _ExK, class _EqK, class _All>
-inline forward_iterator_tag __ITERATOR_CATEGORY(const _Ht_iterator<_Val, _Traits,_Key,_HF,_ExK,_EqK,_All>&) { return forward_iterator_tag(); }
+inline forward_iterator_tag iterator_category(const _Ht_iterator<_Val, _Traits,_Key,_HF,_ExK,_EqK,_All>&) { return forward_iterator_tag(); }
 template <class _Val, class _Traits, class _Key, class _HF, class _ExK, class _EqK, class _All>
-inline ptrdiff_t* __DISTANCE_TYPE(const _Ht_iterator<_Val,_Traits,_Key,_HF,_ExK,_EqK,_All>&) { return (ptrdiff_t*) 0; }
+inline ptrdiff_t* distance_type(const _Ht_iterator<_Val,_Traits,_Key,_HF,_ExK,_EqK,_All>&) { return (ptrdiff_t*) 0; }
 #endif
 
 #define __stl_num_primes  28
 template <class _Tp>
-struct _Stl_prime {
+class _Stl_prime {
 public:
-  static const unsigned long _M_list[__stl_num_primes];
+  static const size_t _M_list[__stl_num_primes];
 };
 
-#define __stl_prime_list _Stl_prime_type::_M_list
+# if defined (_STLP_USE_TEMPLATE_EXPORT) 
+_STLP_EXPORT_TEMPLATE_CLASS _Stl_prime<bool>;
+# endif
+
 typedef _Stl_prime<bool> _Stl_prime_type;
 
 
@@ -234,20 +228,21 @@ private:
   typedef _Hashtable_node<_Val> _Node;
 
 private:
+  _STLP_FORCE_ALLOCATORS(_Val, _All)
   typedef typename _Alloc_traits<_Node, _All>::allocator_type _M_node_allocator_type;
   typedef typename _Alloc_traits<void*, _All>::allocator_type _M_node_ptr_allocator_type;
   typedef __vector__<void*, _M_node_ptr_allocator_type> _BucketVector;
 public:
   typedef typename _Alloc_traits<_Val,_All>::allocator_type allocator_type;
   allocator_type get_allocator() const { 
-    return __STL_CONVERT_ALLOCATOR((const _M_node_allocator_type&)_M_num_elements, _Val); 
+    return _STLP_CONVERT_ALLOCATOR((const _M_node_allocator_type&)_M_num_elements, _Val); 
   }
 private:
   hasher                _M_hash;
   key_equal             _M_equals;
   _ExK                  _M_get_key;
   _BucketVector         _M_buckets;
-  _STL_alloc_proxy<size_type, _Node, _M_node_allocator_type>  _M_num_elements;
+  _STLP_alloc_proxy<size_type, _Node, _M_node_allocator_type>  _M_num_elements;
   const _Node* _M_get_bucket(size_t __n) const { return (_Node*)_M_buckets[__n]; }
 
 public:
@@ -269,8 +264,8 @@ public:
       _M_hash(__hf),
       _M_equals(__eql),
       _M_get_key(__ext),
-      _M_buckets(__STL_CONVERT_ALLOCATOR(__a,void*)),
-      _M_num_elements(__STL_CONVERT_ALLOCATOR(__a,_Node), (size_type)0)
+      _M_buckets(_STLP_CONVERT_ALLOCATOR(__a,void*)),
+      _M_num_elements(_STLP_CONVERT_ALLOCATOR(__a,_Node), (size_type)0)
   {
     _M_initialize_buckets(__n);
   }
@@ -283,8 +278,8 @@ public:
       _M_hash(__hf),
       _M_equals(__eql),
       _M_get_key(_ExK()),
-      _M_buckets(__STL_CONVERT_ALLOCATOR(__a,void*)),
-      _M_num_elements(__STL_CONVERT_ALLOCATOR(__a,_Node), (size_type)0)
+      _M_buckets(_STLP_CONVERT_ALLOCATOR(__a,void*)),
+      _M_num_elements(_STLP_CONVERT_ALLOCATOR(__a,_Node), (size_type)0)
   {
     _M_initialize_buckets(__n);
   }
@@ -294,7 +289,7 @@ public:
       _M_hash(__ht._M_hash),
       _M_equals(__ht._M_equals),
       _M_get_key(__ht._M_get_key),
-      _M_buckets(__STL_CONVERT_ALLOCATOR(__ht.get_allocator(),void*)),
+      _M_buckets(_STLP_CONVERT_ALLOCATOR(__ht.get_allocator(),void*)),
       _M_num_elements((const _M_node_allocator_type&)__ht._M_num_elements, (size_type)0)
   {
     _M_copy_from(__ht);
@@ -320,11 +315,11 @@ public:
 
   void swap(_Self& __ht)
   {
-    __STLPORT_STD::swap(_M_hash, __ht._M_hash);
-    __STLPORT_STD::swap(_M_equals, __ht._M_equals);
-    __STLPORT_STD::swap(_M_get_key, __ht._M_get_key);
+    _STLP_STD::swap(_M_hash, __ht._M_hash);
+    _STLP_STD::swap(_M_equals, __ht._M_equals);
+    _STLP_STD::swap(_M_get_key, __ht._M_get_key);
     _M_buckets.swap(__ht._M_buckets);
-    __STLPORT_STD::swap(_M_num_elements, __ht._M_num_elements);
+    _STLP_STD::swap(_M_num_elements, __ht._M_num_elements);
   }
 
   iterator begin()
@@ -347,7 +342,7 @@ public:
 
   const_iterator end() const { return const_iterator((_Node*)0, this); }
 
-  static bool __STL_CALL _M_equal (const hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>&,
+  static bool _STLP_CALL _M_equal (const hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>&,
 			const hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>&);
 
 public:
@@ -355,7 +350,7 @@ public:
   size_type bucket_count() const { return _M_buckets.size(); }
 
   size_type max_bucket_count() const
-    { return __stl_prime_list[(int)__stl_num_primes - 1]; } 
+    { return _Stl_prime_type::_M_list[(int)__stl_num_primes - 1]; } 
 
   size_type elems_in_bucket(size_type __bucket) const
   {
@@ -380,22 +375,22 @@ public:
   pair<iterator, bool> insert_unique_noresize(const value_type& __obj);
   iterator insert_equal_noresize(const value_type& __obj);
  
-#ifdef __STL_MEMBER_TEMPLATES
+#ifdef _STLP_MEMBER_TEMPLATES
   template <class _InputIterator>
   void insert_unique(_InputIterator __f, _InputIterator __l)
   {
-    insert_unique(__f, __l, __ITERATOR_CATEGORY(__f));
+    insert_unique(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIterator));
   }
 
   template <class _InputIterator>
   void insert_equal(_InputIterator __f, _InputIterator __l)
   {
-    insert_equal(__f, __l, __ITERATOR_CATEGORY(__f));
+    insert_equal(__f, __l, _STLP_ITERATOR_CATEGORY(__f, _InputIterator));
   }
 
   template <class _InputIterator>
   void insert_unique(_InputIterator __f, _InputIterator __l,
-                     input_iterator_tag)
+                     const input_iterator_tag &)
   {
     for ( ; __f != __l; ++__f)
       insert_unique(*__f);
@@ -403,7 +398,7 @@ public:
 
   template <class _InputIterator>
   void insert_equal(_InputIterator __f, _InputIterator __l,
-                    input_iterator_tag)
+                    const input_iterator_tag &)
   {
     for ( ; __f != __l; ++__f)
       insert_equal(*__f);
@@ -411,10 +406,9 @@ public:
 
   template <class _ForwardIterator>
   void insert_unique(_ForwardIterator __f, _ForwardIterator __l,
-                     forward_iterator_tag)
+                     const forward_iterator_tag &)
   {
-    size_type __n = 0;
-    distance(__f, __l, __n);
+    size_type __n = distance(__f, __l);
     resize(_M_num_elements._M_data + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_unique_noresize(*__f);
@@ -422,16 +416,15 @@ public:
 
   template <class _ForwardIterator>
   void insert_equal(_ForwardIterator __f, _ForwardIterator __l,
-                    forward_iterator_tag)
+                    const forward_iterator_tag &)
   {
-    size_type __n = 0;
-    distance(__f, __l, __n);
+    size_type __n = distance(__f, __l);
     resize(_M_num_elements._M_data + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_equal_noresize(*__f);
   }
 
-#else /* __STL_MEMBER_TEMPLATES */
+#else /* _STLP_MEMBER_TEMPLATES */
   void insert_unique(const value_type* __f, const value_type* __l)
   {
     size_type __n = __l - __f;
@@ -450,8 +443,7 @@ public:
 
   void insert_unique(const_iterator __f, const_iterator __l)
   {
-    size_type __n = 0;
-    distance(__f, __l, __n);
+    size_type __n = distance(__f, __l);
     resize(_M_num_elements._M_data + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_unique_noresize(*__f);
@@ -459,36 +451,51 @@ public:
 
   void insert_equal(const_iterator __f, const_iterator __l)
   {
-    size_type __n = 0;
-    distance(__f, __l, __n);
+    size_type __n = distance(__f, __l);
     resize(_M_num_elements._M_data + __n);
     for ( ; __n > 0; --__n, ++__f)
       insert_equal_noresize(*__f);
   }
-#endif /*__STL_MEMBER_TEMPLATES */
+#endif /*_STLP_MEMBER_TEMPLATES */
 
   reference find_or_insert(const value_type& __obj);
 
-  iterator find(const key_type& __key) 
+private:
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||defined(__SC__))
+  template <class _KT> 
+   _Node* _M_find(const _KT& __key) const
+# else
+   _Node* _M_find(const key_type& __key) const
+# endif
   {
-    size_type __n = _M_bkt_num_key(__key);
+    size_type __n = _M_hash(__key)% _M_buckets.size();
     _Node* __first;
     for ( __first = (_Node*)_M_buckets[__n];
           __first && !_M_equals(_M_get_key(__first->_M_val), __key);
           __first = __first->_M_next)
       {}
-    return iterator(__first, this);
+    return __first;
   } 
 
-  const_iterator find(const key_type& __key) const
+public:
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||defined(__SC__))
+  template <class _KT> 
+  iterator find(const _KT& __key) 
+# else
+  iterator find(const key_type& __key) 
+# endif
   {
-    size_type __n = _M_bkt_num_key(__key);
-    const _Node* __first;
-    for ( __first = (_Node*)_M_buckets[__n];
-          __first && !_M_equals(_M_get_key(__first->_M_val), __key);
-          __first = __first->_M_next)
-      {}
-    return const_iterator(__first, this);
+    return iterator(_M_find(__key), this);
+  } 
+
+# if defined(_STLP_MEMBER_TEMPLATES) && ! defined ( _STLP_NO_EXTENSIONS )  && !(defined(__MRC__)||defined(__SC__))
+  template <class _KT> 
+  const_iterator find(const _KT& __key) const
+# else
+  const_iterator find(const key_type& __key) const
+# endif
+  {
+    return const_iterator(_M_find(__key), this);
   } 
 
   size_type count(const key_type& __key) const
@@ -521,13 +528,7 @@ public:
 
 private:
 
-  size_type _M_next_size(size_type __n) const
-    { 
-      const size_type* __first = (const size_type*)__stl_prime_list;
-      const size_type* __last =  (const size_type*)__stl_prime_list + (int)__stl_num_primes;
-      const size_type* pos = lower_bound(__first, __last, __n);
-      return (pos == __last ? *(__last - 1) : *pos);
-    }
+  size_type _M_next_size(size_type __n) const;
 
   void _M_initialize_buckets(size_type __n)
   {
@@ -561,11 +562,11 @@ private:
   {
     _Node* __n = _M_num_elements.allocate(1);
     __n->_M_next = 0;
-    __STL_TRY {
+    _STLP_TRY {
       _Construct(&__n->_M_val, __obj);
       //      return __n;
     }
-    __STL_UNWIND(_M_num_elements.deallocate(__n, 1));
+    _STLP_UNWIND(_M_num_elements.deallocate(__n, 1));
     return __n;
   }
   
@@ -582,43 +583,42 @@ private:
 };
 
 template <class _Val, class _Key, class _HF, class _ExK, class _EqK, class _All>
-inline bool __STL_CALL operator==(const hashtable<_Val,_Key,_HF,_ExK,_EqK,_All>& __ht1,
+inline bool _STLP_CALL operator==(const hashtable<_Val,_Key,_HF,_ExK,_EqK,_All>& __ht1,
                        const hashtable<_Val,_Key,_HF,_ExK,_EqK,_All>& __ht2)
 {
   return hashtable<_Val,_Key,_HF,_ExK,_EqK,_All>::_M_equal( __ht1, __ht2 );
 }
 
-#ifdef __STL_USE_SEPARATE_RELOPS_NAMESPACE
+#ifdef _STLP_USE_SEPARATE_RELOPS_NAMESPACE
 
 template <class _Val, class _Key, class _HF, class _Ex, class _Eq, class _All>
-inline bool __STL_CALL operator!=(const hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>& __ht1,
+inline bool _STLP_CALL operator!=(const hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>& __ht1,
                        const hashtable<_Val,_Key,_HF,_Ex,_Eq,_All>& __ht2) {
   return !(__ht1 == __ht2);
 }
 
 template <class _Val, class _Key, class _HF, class _ExK, class _EqK, 
           class _All>
-inline void __STL_CALL swap(hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>& __ht1,
+inline void _STLP_CALL swap(hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>& __ht1,
                  hashtable<_Val, _Key, _HF, _ExK, _EqK, _All>& __ht2) {
   __ht1.swap(__ht2);
 }
 
-#endif /* __STL_USE_SEPARATE_RELOPS_NAMESPACE */
+#endif /* _STLP_USE_SEPARATE_RELOPS_NAMESPACE */
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
-# undef __stl_prime_list
 # undef hashtable
 
-# if !defined (__STL_LINK_TIME_INSTANTIATION)
+# if !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_hashtable.c>
 # endif
 
-# if defined (__STL_DEBUG)
+# if defined (_STLP_DEBUG)
 #  include <stl/debug/_hashtable.h>
 # endif
 
-#endif /* __SGI_STL_INTERNAL_HASHTABLE_H */
+#endif /* _STLP_INTERNAL_HASHTABLE_H */
 
 // Local Variables:
 // mode:C++

@@ -113,7 +113,7 @@ OBJ_LIST  = stl_test.o accum1.o accum2.o \
 	unique1.o unique2.o \
 	uprbnd1.o uprbnd2.o \
 	vec1.o vec2.o vec3.o vec4.o vec5.o vec6.o vec7.o vec8.o \
-        hmap1.o hmmap1.o hset2.o hmset1.o string1.o bitset1.o
+        hmap1.o hmmap1.o hset2.o hmset1.o string1.o bitset1.o slist1.o
 
 LIST  = stl_test.cpp accum1.cpp accum2.cpp \
 	adjdiff0.cpp adjdiff1.cpp adjdiff2.cpp \
@@ -230,7 +230,7 @@ TEST  = stl_test.out
 CC = cxx
 CXX = $(CC)
 # CXXFLAGS = -O -w0 ${STL_INCL}  -I.
-CXXFLAGS =  ${STL_INCL}  -std strict_ansi_errors -I. -D__NO_USE_STD_IOSTREAM -D__STL_NO_SGI_IOSTREAMS -D__STL_DEBUG
+CXXFLAGS =  ${STL_INCL}  -std strict_ansi_errors -I. -D__NO_USE_STD_IOSTREAM -D_STLP_NO_OWN_IOSTREAMS -D_STLP_DEBUG
 
 LIBS = -lm 
 LIBSTDCXX = 

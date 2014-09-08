@@ -23,21 +23,22 @@
  * modified is included with the above copyright notice.
  *
  */
-#ifndef __STL_LIST_C
-#define __STL_LIST_C
+#ifndef _STLP_LIST_C
+#define _STLP_LIST_C
 
-#if defined(__MRC__)||defined(__SC__)
-//*TY 05/25/2000 - needed for the mpw workaround in sort()
+#if defined (__WATCOMC__)
 #include <vector>
 #endif
 
 # undef list
 # define  list  __WORKAROUND_DBG_RENAME(list)
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
+
+# if defined (_STLP_EXPOSE_GLOBALS_IMPLEMENTATION)
 
 template <class _Dummy>
-void 
+void _STLP_CALL
 _List_global<_Dummy>::_Transfer(_List_node_base* __position, 
 				_List_node_base* __first, _List_node_base* __last) {
   if (__position != __last) {
@@ -54,150 +55,35 @@ _List_global<_Dummy>::_Transfer(_List_node_base* __position,
   }
 }
 
+#endif /* defined (__BUILDING_STLPORT) || ! defined (_STLP_OWN_IOSTREAMS) */
+
+
 template <class _Tp, class _Alloc>
 void 
 _List_base<_Tp,_Alloc>::clear() 
 {
-  _List_node<_Tp>* __cur = (_List_node<_Tp>*) _M_node._M_data->_M_next;
-  while (__cur != _M_node._M_data) {
+  _List_node<_Tp>* __cur = (_List_node<_Tp>*) this->_M_node._M_data->_M_next;
+  while (__cur != this->_M_node._M_data) {
     _List_node<_Tp>* __tmp = __cur;
     __cur = (_List_node<_Tp>*) __cur->_M_next;
     _Destroy(&__tmp->_M_data);
-    _M_node.deallocate(__tmp, 1);
+    this->_M_node.deallocate(__tmp, 1);
   }
-  _M_node._M_data->_M_next = _M_node._M_data;
-  _M_node._M_data->_M_prev = _M_node._M_data;
+  this->_M_node._M_data->_M_next = this->_M_node._M_data;
+  this->_M_node._M_data->_M_prev = this->_M_node._M_data;
 }
 
-# if defined (__STL_NESTED_TYPE_PARAM_BUG) 
-#  define __iterator__   _List_iterator<_Tp, _Nonconst_traits<_Tp> >
-#  define iterator       __iterator__
-#  define const_iterator _List_iterator<_Tp, _Const_traits<_Tp> >
+# if defined (_STLP_NESTED_TYPE_PARAM_BUG) 
 #  define size_type      size_t
-# else
-#  define __iterator__ __STL_TYPENAME_ON_RETURN_TYPE list<_Tp,_Alloc>::iterator
 # endif
-
-# if defined (__STL_MEMBER_TEMPLATES) && ! defined (__STL_INLINE_MEMBER_TEMPLATES)
-
-template <class _Tp, class _Alloc> template <class _Predicate>
-void list<_Tp, _Alloc>::remove_if(_Predicate __pred) 
-{
-  iterator __first = begin();
-  iterator __last = end();
-  while (__first != __last) {
-    iterator __next = __first;
-    ++__next;
-    if (__pred(*__first)) erase(__first);
-    __first = __next;
-  }
-}
-
-template <class _Tp, class _Alloc>  template <class _BinaryPredicate>
-void list<_Tp, _Alloc>::unique(_BinaryPredicate __binary_pred) {
-  iterator __first = begin();
-  iterator __last = end();
-  if (__first == __last) return;
-  iterator __next = __first;
-  while (++__next != __last) {
-    if (__binary_pred(*__first, *__next))
-      erase(__next);
-    else
-      __first = __next;
-    __next = __first;
-  }
-}
-
-template <class _Tp, class _Alloc>  template <class _StrictWeakOrdering>
-void list<_Tp, _Alloc>::merge(list<_Tp, _Alloc>& __x,
-			      _StrictWeakOrdering __comp) {
-  iterator __first1 = begin();
-  iterator __last1 = end();
-  iterator __first2 = __x.begin();
-  iterator __last2 = __x.end();
-  while (__first1 != __last1 && __first2 != __last2)
-    if (__comp(*__first2, *__first1)) {
-      iterator __next = __first2;
-      _List_global_inst::_Transfer(__first1._M_node, __first2._M_node, (++__next)._M_node);
-      __first2 = __next;
-    }
-    else
-      ++__first1;
-  if (__first2 != __last2) _List_global_inst::_Transfer(__last1._M_node, __first2._M_node, __last2._M_node);
-}
-
-template <class _Tp, class _Alloc> template <class _StrictWeakOrdering>
-void list<_Tp, _Alloc>::sort(_StrictWeakOrdering __comp) {
-  // Do nothing if the list has length 0 or 1.
-  if (_M_node._M_data->_M_next != _M_node._M_data &&
-      ((_Node*) (_M_node._M_data->_M_next))->_M_next != _M_node._M_data) {
-    list<_Tp, _Alloc> __carry;
-    list<_Tp, _Alloc> __counter[64];
-    int __fill = 0;
-    while (!empty()) {
-      __carry.splice(__carry.begin(), *this, begin());
-      int __i = 0;
-      while(__i < __fill && !__counter[__i].empty()) {
-	__counter[__i].merge(__carry, __comp);
-	__carry.swap(__counter[__i++]);
-      }
-      __carry.swap(__counter[__i]);         
-      if (__i == __fill) ++__fill;
-    } 
-
-    for (int __i = 1; __i < __fill; ++__i) 
-      __counter[__i].merge(__counter[__i-1], __comp);
-    swap(__counter[__fill-1]);
-  }
-}
-# endif
-
-#ifndef __STL_MEMBER_TEMPLATES
-
-template <class _Tp, class _Alloc>
-void 
-list<_Tp, _Alloc>::insert(iterator __position, 
-                          const _Tp* __first, const _Tp* __last)
-{
-  for ( ; __first != __last; ++__first)
-    insert(__position, *__first);
-}
-
-template <class _Tp, class _Alloc>
-void 
-list<_Tp, _Alloc>::insert(iterator __position,
-                         const_iterator __first, const_iterator __last)
-{
-  for ( ; __first != __last; ++__first)
-    insert(__position, *__first);
-}
-
-#endif
-
-template <class _Tp, class _Alloc>
-void 
-list<_Tp, _Alloc>::_M_fill_insert(iterator __position, size_type __n, const _Tp& __x)
-{
-  for ( ; __n > 0; --__n)
-    insert(__position, __x);
-}
-
-template <class _Tp, class _Alloc>
-__iterator__ list<_Tp, _Alloc>::erase(iterator __first, 
-				      iterator __last)
-{
-  while (__first != __last)
-    erase(__first++);
-  return __last;
-}
 
 template <class _Tp, class _Alloc>
 void list<_Tp, _Alloc>::resize(size_type __new_size, const _Tp& __x)
 {
   iterator __i = begin();
   size_type __len = 0;
-  for ( ; __i != end() && __len < __new_size; ++__i, ++__len)
-    ;
+  for ( ; __i != end() && __len < __new_size; ++__i, ++__len);
+
   if (__len == __new_size)
     erase(__i, end());
   else                          // __i == end()
@@ -233,45 +119,43 @@ void list<_Tp, _Alloc>::_M_fill_assign(size_type __n, const _Tp& __val) {
     erase(__i, end());
 }
 
-template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::remove(const _Tp& __value)
-{
-  iterator __first = begin();
-  iterator __last = end();
+template <class _Tp, class _Alloc, class _Predicate> 
+void _S_remove_if(list<_Tp, _Alloc>& __that, _Predicate __pred)  {
+  typename list<_Tp, _Alloc>::iterator __first = __that.begin();
+  typename list<_Tp, _Alloc>::iterator __last = __that.end();
   while (__first != __last) {
-    iterator __next = __first;
+    typename list<_Tp, _Alloc>::iterator __next = __first;
     ++__next;
-    if (*__first == __value) 
-      erase(__first);
+    if (__pred(*__first)) __that.erase(__first);
     __first = __next;
   }
 }
 
-template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::unique()
-{
-  iterator __first = begin();
-  iterator __last = end();
+template <class _Tp, class _Alloc, class _BinaryPredicate>
+void _S_unique(list<_Tp, _Alloc>& __that, _BinaryPredicate __binary_pred) {
+  typename list<_Tp, _Alloc>::iterator __first = __that.begin();
+  typename list<_Tp, _Alloc>::iterator __last = __that.end();
   if (__first == __last) return;
-  iterator __next = __first;
+  typename list<_Tp, _Alloc>::iterator __next = __first;
   while (++__next != __last) {
-    if (*__first == *__next)
-      erase(__next);
+    if (__binary_pred(*__first, *__next))
+      __that.erase(__next);
     else
       __first = __next;
     __next = __first;
   }
 }
 
-template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::merge(list<_Tp, _Alloc>& __x)
-{
-  iterator __first1 = begin();
-  iterator __last1 = end();
+template <class _Tp, class _Alloc, class _StrictWeakOrdering>
+void _S_merge(list<_Tp, _Alloc>& __that, list<_Tp, _Alloc>& __x,
+	      _StrictWeakOrdering __comp) {
+  typedef typename list<_Tp, _Alloc>::iterator iterator;
+  iterator __first1 = __that.begin();
+  iterator __last1 = __that.end();
   iterator __first2 = __x.begin();
   iterator __last2 = __x.end();
   while (__first1 != __last1 && __first2 != __last2)
-    if (*__first2 < *__first1) {
+    if (__comp(*__first2, *__first1)) {
       iterator __next = __first2;
       _List_global_inst::_Transfer(__first1._M_node, __first2._M_node, (++__next)._M_node);
       __first2 = __next;
@@ -281,61 +165,41 @@ void list<_Tp, _Alloc>::merge(list<_Tp, _Alloc>& __x)
   if (__first2 != __last2) _List_global_inst::_Transfer(__last1._M_node, __first2._M_node, __last2._M_node);
 }
 
-inline void __List_base_reverse(_List_node_base* __p)
-{
-  _List_node_base* __tmp = __p;
-  do {
-    __STLPORT_STD::swap(__tmp->_M_next, __tmp->_M_prev);
-    __tmp = __tmp->_M_prev;     // Old next node is now prev.
-  } while (__tmp != __p);
-}
-
-template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::reverse() 
-{
-  __List_base_reverse(this->_M_node._M_data);
-}    
-
-template <class _Tp, class _Alloc>
-void list<_Tp, _Alloc>::sort()
-{
+template <class _Tp, class _Alloc, class _StrictWeakOrdering>
+void _S_sort(list<_Tp, _Alloc>& __that, _StrictWeakOrdering __comp) {
   // Do nothing if the list has length 0 or 1.
-  if (_M_node._M_data->_M_next != _M_node._M_data &&
-      ((_Node*) (_M_node._M_data->_M_next))->_M_next != _M_node._M_data) {
+  if (__that._M_node._M_data->_M_next != __that._M_node._M_data &&
+      (__that._M_node._M_data->_M_next)->_M_next != __that._M_node._M_data) {
     list<_Tp, _Alloc> __carry;
-#if !(defined(__MRC__)||defined(__SC__))		//*TY 05/25/2000 - added workaround for mpw compilers
+#if !defined (__WATCOMC__)
     list<_Tp, _Alloc> __counter[64];
-#else		//*TY 05/25/2000 - 
+#else
     __vector__<list<_Tp, _Alloc>, _Alloc> __counter(64);		
-    //*TY 05/25/2000 - mpw has difficulty handling exception thrown from inside the array of object ctor
 #endif		//*TY 05/25/2000 - 
     int __fill = 0;
-    while (!empty()) {
-      __carry.splice(__carry.begin(), *this, begin());
+    while (!__that.empty()) {
+      __carry.splice(__carry.begin(), __that, __that.begin());
       int __i = 0;
       while(__i < __fill && !__counter[__i].empty()) {
-        __counter[__i].merge(__carry);
-        __carry.swap(__counter[__i++]);
+	_S_merge(__counter[__i], __carry, __comp);
+	__carry.swap(__counter[__i++]);
       }
       __carry.swap(__counter[__i]);         
       if (__i == __fill) ++__fill;
     } 
-
-    for (int __i = 1; __i < __fill; ++__i)
-      __counter[__i].merge(__counter[__i-1]);
-    swap(__counter[__fill-1]);
+    
+    for (int __i = 1; __i < __fill; ++__i) 
+      _S_merge(__counter[__i], __counter[__i-1], __comp);
+    __that.swap(__counter[__fill-1]);
   }
 }
 
 # undef  list
-# undef  iterator
-# undef  const_iterator
 # undef  size_type
-# undef __iterator__
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
-#endif /*  __STL_LIST_C */
+#endif /*  _STLP_LIST_C */
 
 // Local Variables:
 // mode:C++

@@ -17,91 +17,85 @@
  *
  */
 
-#ifndef __STLPORT_DBG_ITERATOR_H
-# define __STLPORT_DBG_ITERATOR_H
+#ifndef _STLP_DBG_ITERATOR_H
+# define _STLP_DBG_ITERATOR_H
 
 # include <stl/_pair.h>
 # include <stl/_alloc.h>
 
-# define __STL_DBG_ALLOCATOR_SELECT( _Tp ) __STL_DEFAULT_ALLOCATOR_SELECT( _Tp )
+# define _STLP_DBG_ALLOCATOR_SELECT( _Tp ) _STLP_DEFAULT_ALLOCATOR_SELECT( _Tp )
 
-# if defined (__STL_MSVC)
-#  define __STL_DBG_IDENTITY( __base ) _STL_dbg_aux< __base >::_SameClass
-# else
-#  define __STL_DBG_IDENTITY( __base ) 
-# endif
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //============================================================
 
 template <class _Iterator>
-void _Decrement(_Iterator& __it, bidirectional_iterator_tag) {
+void _Decrement(_Iterator& __it, const bidirectional_iterator_tag &) {
   --__it;
 }
 
 template <class _Iterator>
-void _Decrement(_Iterator& __it, random_access_iterator_tag) {
+void _Decrement(_Iterator& __it, const random_access_iterator_tag &) {
   --__it;
 }
 
-# ifdef __SGI_STL_NO_ARROW_OPERATOR
+// # ifdef _STLP_NO_ARROW_OPERATOR
 
 template <class _Iterator>
-void _Decrement(_Iterator& __it, forward_iterator_tag) {
-  __STL_ASSERT(0)
+void _Decrement(_Iterator& __it, const forward_iterator_tag &) {
+  _STLP_ASSERT(0)
 }
 
 template <class _Iterator>
-void _Advance(_Iterator&, ptrdiff_t, forward_iterator_tag) {
-  __STL_ASSERT(0)
+void _Advance(_Iterator&, ptrdiff_t, const forward_iterator_tag &) {
+  _STLP_ASSERT(0)
 }
 
 template <class _Iterator>
-void _Advance(_Iterator& __it, ptrdiff_t, bidirectional_iterator_tag) {
-  __STL_ASSERT(0)  
+void _Advance(_Iterator& __it, ptrdiff_t, const bidirectional_iterator_tag &) {
+  _STLP_ASSERT(0)  
 }
 
-# endif
+// # endif
 
 template <class _Iterator>
-void _Advance(_Iterator& __it, ptrdiff_t __n, random_access_iterator_tag) {
+void _Advance(_Iterator& __it, ptrdiff_t __n, const random_access_iterator_tag &) {
   __it += __n;
 }
 
 template <class _Iterator>
-ptrdiff_t _DBG_distance(const _Iterator& __x, const _Iterator& __y, random_access_iterator_tag) {
+ptrdiff_t _DBG_distance(const _Iterator& __x, const _Iterator& __y, const random_access_iterator_tag &) {
   return __x - __y;
 }
 
-# ifdef __SGI_STL_NO_ARROW_OPERATOR
+// # ifdef _STLP_NO_ARROW_OPERATOR
 template <class _Iterator>
-ptrdiff_t _DBG_distance(const _Iterator&, const _Iterator&, forward_iterator_tag) {
-  __STL_ASSERT(0)
+ptrdiff_t _DBG_distance(const _Iterator&, const _Iterator&, const forward_iterator_tag &) {
+  _STLP_ASSERT(0)
   return 0;
 }
 
 template <class _Iterator>
-ptrdiff_t _DBG_distance(const _Iterator&, const _Iterator&, bidirectional_iterator_tag) {
-  __STL_ASSERT(0)  
+ptrdiff_t _DBG_distance(const _Iterator&, const _Iterator&, const bidirectional_iterator_tag &) {
+  _STLP_ASSERT(0)  
   return 0;
 }
 
 template <class _Iterator>
-bool _CompareIt(const _Iterator&, const _Iterator&, forward_iterator_tag) {
-  __STL_ASSERT(0)
+bool _CompareIt(const _Iterator&, const _Iterator&, const forward_iterator_tag &) {
+  _STLP_ASSERT(0)
   return false;
 }
 
 template <class _Iterator>
-bool _CompareIt(const _Iterator&, const _Iterator&, bidirectional_iterator_tag) {
-  __STL_ASSERT(0)  
+bool _CompareIt(const _Iterator&, const _Iterator&, const bidirectional_iterator_tag &) {
+  _STLP_ASSERT(0)  
   return false;
 }
-# endif
+// # endif
 
 template <class _Iterator>
-bool _CompareIt(const _Iterator& __x, const _Iterator& __y, random_access_iterator_tag) {
+bool _CompareIt(const _Iterator& __x, const _Iterator& __y, const random_access_iterator_tag &) {
   return __x < __y;
 }
 
@@ -113,12 +107,12 @@ bool _Dereferenceable(_Iterator __it) {
 
 
 template <class _Iterator>
-bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, forward_iterator_tag) {
+bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, const forward_iterator_tag &) {
   return (__n == 1) && _Dereferenceable(__it);
 }
 
 template <class _Iterator>
-bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, bidirectional_iterator_tag) {
+bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, const bidirectional_iterator_tag &) {
   typedef typename _Iterator::_Container_type __container_type;
   __container_type* __c = __it._Get_container_ptr();
   return (__n == 1 && __it._M_iterator != __c->end() ) ||
@@ -126,7 +120,7 @@ bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, bidirectional_iterator
 }
 
 template <class _Iterator>
-bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, random_access_iterator_tag) {
+bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, const random_access_iterator_tag &) {
   typedef typename _Iterator::_Container_type __container_type;
   __container_type* __c = __it._Get_container_ptr();
   ptrdiff_t __new_pos = (__it._M_iterator - __c->begin()) + __n;
@@ -146,12 +140,12 @@ public:
   typedef typename _Container::const_iterator  _Const_iterator;
   typedef _Container                     _Container_type;
     
-# ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-  typedef typename iterator_traits<_Const_iterator>::iterator_category iterator_category;
+# ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
   typedef typename iterator_traits<_Const_iterator>::iterator_category _Iterator_category;
 # else
   typedef typename _Container::_Iterator_category  _Iterator_category;
 # endif
+  typedef _Iterator_category iterator_category;
 
   _DBG_iter_base() : __owned_link(0)  {}
   _DBG_iter_base(const __owned_list* __c, const _Const_iterator& __it) :
@@ -165,17 +159,17 @@ public:
   }
 
   void __increment() {
-    __STL_DEBUG_CHECK(_Incrementable(*this,1,_Iterator_category()))
+    _STLP_DEBUG_CHECK(_Incrementable(*this,1,_Iterator_category()))
     ++_M_iterator;
   }
   
   void __decrement() {
-    __STL_DEBUG_CHECK(_Incrementable(*this,-1,_Iterator_category()))
+    _STLP_DEBUG_CHECK(_Incrementable(*this,-1,_Iterator_category()))
     _Decrement(_M_iterator, _Iterator_category());
   }
 
   void __advance(difference_type __n) {
-    __STL_DEBUG_CHECK(_Incrementable(*this,__n, _Iterator_category()))
+    _STLP_DEBUG_CHECK(_Incrementable(*this,__n, _Iterator_category()))
     _Advance(_M_iterator,__n, _Iterator_category());
   }
 
@@ -187,7 +181,7 @@ template <class _Container>
 ptrdiff_t operator-(const _DBG_iter_base<_Container>& __x,
                     const _DBG_iter_base<_Container>& __y ) {
   typedef typename _DBG_iter_base<_Container>::_Iterator_category  _Iterator_category;
-  __STL_DEBUG_CHECK(__check_same_owner(__x, __y))
+  _STLP_DEBUG_CHECK(__check_same_owner(__x, __y))
   return _DBG_distance(__x._M_iterator,__y._M_iterator, _Iterator_category());
 }
 
@@ -215,9 +209,6 @@ public:
   typedef typename _Base::difference_type difference_type;    
   typedef typename _Traits::reference  reference;
   typedef typename _Traits::pointer    pointer;
-#if defined( __STL_HAS_NAMESPACES )
-  __STL_USING_BASE_MEMBER _DBG_iter_mid<_Container, _Traits>::_M_iterator;
-#endif /* __STL_HAS_NAMESPACES */
 
 private:
   typedef typename _Base::_Nonconst_iterator _Nonconst_iterator;
@@ -228,7 +219,7 @@ private:
 
 public:
 
-# ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
+# ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
   typedef typename _Base::iterator_category iterator_category;
 # endif
   typedef typename _Base::_Iterator_category  _Iterator_category;
@@ -262,11 +253,11 @@ public:
   }
   
   reference operator*() const {
-    __STL_DEBUG_CHECK(_Dereferenceable(*this))
-    return *_M_iterator;
+    _STLP_DEBUG_CHECK(_Dereferenceable(*this))
+    return *this->_M_iterator;
   }
 
-  __STL_DEFINE_ARROW_OPERATOR
+  _STLP_DEFINE_ARROW_OPERATOR
   
   _Self& operator++() {
     this->__increment();
@@ -312,14 +303,14 @@ public:
 template <class _Container>
 inline bool 
 operator==(const _DBG_iter_base<_Container>& __x, const _DBG_iter_base<_Container>& __y) {
-  __STL_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
+  _STLP_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
   return __x._M_iterator==__y._M_iterator;
 }
 
 template <class _Container>
 inline bool 
 operator<(const _DBG_iter_base<_Container>& __x, const _DBG_iter_base<_Container>& __y) {
-  __STL_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
+  _STLP_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
   typedef typename _DBG_iter_base<_Container>::_Iterator_category _Category;
   return _CompareIt(__x._M_iterator , __y._M_iterator, _Category());
 }
@@ -335,7 +326,7 @@ operator>(const _DBG_iter_base<_Container>& __x,
 template <class _Container>
 inline bool 
 operator>=(const _DBG_iter_base<_Container>& __x, const _DBG_iter_base<_Container>& __y) {
-  __STL_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
+  _STLP_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
   typedef typename _DBG_iter_base<_Container>::_Iterator_category _Category;
   return !_CompareIt(__x._M_iterator , __y._M_iterator, _Category());
 }
@@ -352,7 +343,7 @@ template <class _Container>
 inline bool 
 operator!=(const _DBG_iter_base<_Container>& __x, 
 	   const _DBG_iter_base<_Container>& __y) {
-  __STL_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
+  _STLP_DEBUG_CHECK(__check_same_owner_or_null(__x, __y))
   return __x._M_iterator != __y._M_iterator;
 }
 
@@ -366,49 +357,39 @@ operator+(ptrdiff_t __n, const _DBG_iter<_Container, _Traits>& __it) {
 }
 
 
-# ifdef __STL_USE_OLD_HP_ITERATOR_QUERIES
-
-# if defined (__STL_NESTED_TYPE_PARAM_BUG) \
-   || ( defined (__SUNPRO_CC) && __SUNPRO_CC < 0x500) \
-   || ( defined (__STL_MSVC) && (__STL_MSVC < 1100) )
-#  define __STL_DEBUG_USE_DISTINCT_VALUE_TYPE_HELPERS 1
+# ifdef _STLP_USE_OLD_HP_ITERATOR_QUERIES
+# if defined (_STLP_NESTED_TYPE_PARAM_BUG) \
+   || ( defined (__SUNPRO_CC) && __SUNPRO_CC < 0x600) \
+   || ( defined (_STLP_MSVC) && (_STLP_MSVC < 1100) )
+#  define _STLP_DEBUG_USE_DISTINCT_VALUE_TYPE_HELPERS 1
 # endif
 
 template <class _Container>
 inline ptrdiff_t* 
-__DISTANCE_TYPE(const  _DBG_iter_base<_Container>&) { return (ptrdiff_t*) 0; }
+distance_type(const  _DBG_iter_base<_Container>&) { return (ptrdiff_t*) 0; }
 
-# if !defined (__STL_DEBUG_USE_DISTINCT_VALUE_TYPE_HELPERS)
+# if !defined (_STLP_DEBUG_USE_DISTINCT_VALUE_TYPE_HELPERS)
 template <class _Container>
-inline __STL_TYPENAME_ON_RETURN_TYPE _DBG_iter_base<_Container>::value_type*
-__VALUE_TYPE(const  _DBG_iter_base<_Container>&) {
+inline _STLP_TYPENAME_ON_RETURN_TYPE _DBG_iter_base<_Container>::value_type*
+value_type(const  _DBG_iter_base<_Container>&) {
   typedef typename _DBG_iter_base<_Container>::value_type _Val;
   return (_Val*)0;
 }
 
 template <class _Container>
-inline __STL_TYPENAME_ON_RETURN_TYPE _DBG_iter_base<_Container>::_Iterator_category 
-__ITERATOR_CATEGORY(const  _DBG_iter_base<_Container>&) {
+inline _STLP_TYPENAME_ON_RETURN_TYPE _DBG_iter_base<_Container>::_Iterator_category 
+iterator_category(const  _DBG_iter_base<_Container>&) {
   typedef typename _DBG_iter_base<_Container>::_Iterator_category _Category;
   return _Category();
 }
 # endif
 
-#  endif /* __STL_USE_OLD_HP_ITERATOR_QUERIES */
+#  endif /* _STLP_USE_OLD_HP_ITERATOR_QUERIES */
 
 # define _Get_iter(__x)   __x
 # define _Debug_iter(__x, __y) __y
 
-# if 0
-template <class _Iterator>
-class __debug_iterator_traits
-{
-public:
-  typedef _Iterator __underlying_iterator_type;
-  typedef pair<__underlying_iterator_type, __underlying_iterator_type> __underlying_iterator_pair;
-};
-# endif
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 #endif /* INTERNAL_H */
 

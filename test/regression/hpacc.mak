@@ -9,6 +9,13 @@ VPATH = .
 
 STL_INCL=-I../../stlport
 
+HP_VERSION=$(shell uname -r)
+ifeq (${HP_VERSION},B.10.20)
+PTHREAD_LIB=-lcma
+else
+PTHREAD_LIB=-lpthread
+endif
+
 LIST  = stl_test.cpp accum1.cpp accum2.cpp \
 	adjdiff0.cpp adjdiff1.cpp adjdiff2.cpp \
 	adjfind0.cpp adjfind1.cpp adjfind2.cpp \
@@ -126,22 +133,25 @@ TEST  = stl_test.out
 CC = aCC
 CXX = $(CC)
 
-# DEBUG_FLAGS= -D__STL_DEBUG
+# DEBUG_FLAGS= -D_STLP_DEBUG
 
 CXXFLAGS = -Wl,+vshlibunsats -Aa ${STL_INCL} -I. ${CXX_EXTRA_FLAGS} ${STL_VERSION_FLAGS}
 
-LIBS = -L../../lib -lstlport_aCC -lm -lcma
+LIBS = -L../../lib -lstlport_aCC -lm ${PTHREAD_LIB}
 LIBSTDCXX = 
 
 check: $(TEST)
 
-$(TEST) : $(OBJECTS)
+#Run test each time
+#If test crashes, still move .out away
+$(TEST) : $(OBJECTS)  
 	$(CXX) $(CXXFLAGS) ${REPO_FLAGS} $(OBJECTS) $(LIBS) -o $(TEST_EXE)
-	echo 'a string' | $(TEST_EXE) > $(TEST)
+	-echo 'a string' | $(TEST_EXE) > $(TEST) 
+	mv -f $(TEST) $(TEST).bak
 
 
 .cc.o .cxx.o .C.o .cpp.o:
-	${CXX} ${CXXFLAGS} ${DEBUG_FLAGS} ${REPO_FLAGS} ${.IMPSRC} -c -o $*.o $<
+	${CXX} ${CXXFLAGS} ${DEBUG_FLAGS} ${REPO_FLAGS} -c -o $*.o $<
 
 %.out: %.cpp
 	$(CXX) $(CXXFLAGS) ${DEBUG_FLAGS} -USINGLE -DMAIN=1 $< -c -o $*.o
@@ -158,7 +168,7 @@ $(STAT_MODULE): stat.cpp
 	$(CXX) $(CXXFLAGS) ${DEBUG_FLAGS} ${REPO_FLAGS} -c $< -o $@
 
 %.s: %.cpp
-	$(CXX) $(CXXFLAGS) +O3 +noeh -D__STL_NO_EXCEPTIONS -S $<  -o $*.s
+	$(CXX) $(CXXFLAGS) +O3 +noeh -D_STLP_NO_EXCEPTIONS -S $<  -o $*.s
 
 %.i: %.cpp
 	$(CXX) $(CXXFLAGS) ${DEBUG_FLAGS} -E $<  > $@

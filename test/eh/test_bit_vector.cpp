@@ -25,6 +25,7 @@
 # else
 #include <bvector.h>
 # endif
+
 #include "LeakCheck.h"
 #include "test_construct.h"
 #include "test_assign_op.h"

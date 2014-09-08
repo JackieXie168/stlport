@@ -16,38 +16,58 @@
  *
  */ 
 # include "stlport_prefix.h"
+# include <stl/_numpunct.h>
 
-#include "locale_impl.h"
-#include <stl/_numeric_facets.h>
-
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // numpunct<char>
-
-numpunct<char>::numpunct(size_t refs)
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-  : locale::facet(refs),
-#else					//*TY 04/29/2000 - 
-  : _facet(refs),		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-    _M_truename("true"),
-    _M_falsename("false")
-{
-}
-
-numpunct<char>::~numpunct() 
-{}
-
-char   numpunct<char>::do_decimal_point() const { return '.'; }
+char   numpunct<char>::do_decimal_point() const {return '.';}
 char   numpunct<char>::do_thousands_sep() const { return ','; }
 string numpunct<char>::do_grouping()  const { return string();}
 string numpunct<char>::do_truename()  const { return _M_truename;}
 string numpunct<char>::do_falsename() const { return _M_falsename; }
+numpunct<char>::~numpunct() {}
 
-__STL_END_NAMESPACE
+_STLP_STATIC_MEMBER_DECLSPEC  string numpunct<char>::_M_truename("true");
+_STLP_STATIC_MEMBER_DECLSPEC  string  numpunct<char>::_M_falsename("false");
+_STLP_STATIC_MEMBER_DECLSPEC  string numpunct<char>::_M_grouping("");
+
+# ifndef _STLP_NO_WCHAR_T
+
+numpunct<wchar_t>::~numpunct() {}
+
+wchar_t numpunct<wchar_t>::do_decimal_point() const { return L'.'; }
+
+wchar_t numpunct<wchar_t>::do_thousands_sep() const
+{
+  return L',';
+}
+
+string numpunct<wchar_t>::do_grouping() const
+{
+  return string();
+}
+
+
+wstring numpunct<wchar_t>::do_truename() const
+{
+  return _M_truename;
+}
+ 
+wstring numpunct<wchar_t>::do_falsename() const
+{
+  return _M_falsename;
+} 
+
+_STLP_STATIC_MEMBER_DECLSPEC  wstring numpunct<wchar_t>::_M_truename(L"true");
+_STLP_STATIC_MEMBER_DECLSPEC  wstring numpunct<wchar_t>::_M_falsename(L"false");
+_STLP_STATIC_MEMBER_DECLSPEC  string numpunct<wchar_t>::_M_grouping("");
+# endif
+
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++
 // End:
+

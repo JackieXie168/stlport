@@ -20,39 +20,40 @@
 // file directly.
 
 
-#ifndef __SGI_STL_INTERNAL_CODECVT_H
-#define __SGI_STL_INTERNAL_CODECVT_H
+#ifndef _STLP_INTERNAL_CODECVT_H
+#define _STLP_INTERNAL_CODECVT_H
 
-#include <stl/c_locale.h>
-#include <stl/_locale.h>
+# ifndef _STLP_C_LOCALE_H
+#  include <stl/c_locale.h>
+# endif
+# ifndef _STLP_INTERNAL_LOCALE_H
+#  include <stl/_locale.h>
+# endif
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
-class __STL_CLASS_DECLSPEC codecvt_base {
+class _STLP_CLASS_DECLSPEC codecvt_base {
 public:
   enum result {ok, partial, error, noconv};
 };
 
 template <class _InternT, class _ExternT, class _StateT>
-class __STL_CLASS_DECLSPEC codecvt {};
+class codecvt {};
  
 template <class _InternT, class _ExternT, class _StateT>
-class __STL_CLASS_DECLSPEC codecvt_byname {};
+class codecvt_byname {};
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC codecvt<char, char, mbstate_t>
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC codecvt<char, char, mbstate_t>
   : public locale::facet, public codecvt_base 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef char       intern_type;
   typedef char       extern_type;
   typedef mbstate_t  state_type;
 
-  explicit codecvt(size_t __refs = 0);
+  explicit codecvt(size_t __refs = 0) : _BaseFacet(__refs) {}
 
   result out(mbstate_t    __state,
              const char*  __from,
@@ -82,18 +83,18 @@ public:
                  __to,   __to_limit, __to_next);
   }
 
-  int encoding() const __STL_NOTHROW { return do_encoding(); }
+  int encoding() const _STLP_NOTHROW { return do_encoding(); }
 
-  bool always_noconv() const __STL_NOTHROW { return do_always_noconv(); }
+  bool always_noconv() const _STLP_NOTHROW { return do_always_noconv(); }
 
   int length(const mbstate_t& __state,
              const char* __from, const char* __end,
              size_t __max) const
     { return do_length(__state, __from, __end, __max); }
   
-  int max_length() const __STL_NOTHROW { return do_max_length(); }
+  int max_length() const _STLP_NOTHROW { return do_max_length(); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
 
 protected:
   ~codecvt();
@@ -119,34 +120,31 @@ protected:
                             char*      /* __to_limit */,
                             char*&     __to_next) const;
 
-  virtual int do_encoding() const __STL_NOTHROW;
-  virtual bool do_always_noconv() const __STL_NOTHROW;
+  virtual int do_encoding() const _STLP_NOTHROW;
+  virtual bool do_always_noconv() const _STLP_NOTHROW;
   virtual int do_length(const mbstate_t&         __state,
                         const  char* __from, 
                         const  char* __end,
                         size_t __max) const;
-  virtual int do_max_length() const __STL_NOTHROW;
+  virtual int do_max_length() const _STLP_NOTHROW;
 private:
   codecvt(const codecvt<char, char, mbstate_t>&);
   codecvt<char, char, mbstate_t>& operator =(const codecvt<char, char, mbstate_t>&); 
 };
 
-# ifndef __STL_NO_WCHAR_T
+# ifndef _STLP_NO_WCHAR_T
  
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC codecvt<wchar_t, char, mbstate_t>
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC codecvt<wchar_t, char, mbstate_t>
   : public locale::facet, public codecvt_base
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef wchar_t    intern_type;
   typedef char       extern_type;
   typedef mbstate_t  state_type;
 
-  explicit codecvt(size_t __refs = 0);
+  explicit codecvt(size_t __refs = 0) : _BaseFacet(__refs) {}
 
   result out(mbstate_t       __state,
              const wchar_t*  __from,
@@ -177,9 +175,9 @@ public:
                  __to,  __to_limit, __to_next);
   }
 
-  int encoding() const __STL_NOTHROW { return do_encoding(); }
+  int encoding() const _STLP_NOTHROW { return do_encoding(); }
 
-  bool always_noconv() const __STL_NOTHROW { return do_always_noconv(); }
+  bool always_noconv() const _STLP_NOTHROW { return do_always_noconv(); }
 
   int length(const mbstate_t&        __state,
              const char* __from,
@@ -187,9 +185,9 @@ public:
              size_t             __max) const
     { return do_length(__state, __from, __end, __max); }
   
-  int max_length() const __STL_NOTHROW { return do_max_length(); }
+  int max_length() const _STLP_NOTHROW { return do_max_length(); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
 
 protected:
   ~codecvt();
@@ -215,16 +213,16 @@ protected:
                             char*  __to_limit,
                             char*& __to_next) const;
 
-  virtual int do_encoding() const __STL_NOTHROW;
+  virtual int do_encoding() const _STLP_NOTHROW;
 
-  virtual bool do_always_noconv() const __STL_NOTHROW;
+  virtual bool do_always_noconv() const _STLP_NOTHROW;
   
   virtual int do_length(const mbstate_t& __state,
                         const  char* __from, 
                         const  char* __end,
                         size_t __max) const;
 
-  virtual int do_max_length() const __STL_NOTHROW;
+  virtual int do_max_length() const _STLP_NOTHROW;
 
 private:
   codecvt(const codecvt<wchar_t, char, mbstate_t>&);
@@ -233,18 +231,19 @@ private:
 
 # endif
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC codecvt_byname<char, char, mbstate_t>
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC codecvt_byname<char, char, mbstate_t>
   : public codecvt<char, char, mbstate_t> {
 public:
   explicit codecvt_byname(const char* __name, size_t __refs = 0);
+  ~codecvt_byname();
 private:
   codecvt_byname(const codecvt_byname<char, char, mbstate_t>&);
   codecvt_byname<char, char, mbstate_t>& operator =(const codecvt_byname<char, char, mbstate_t>&);  
 };
 
-# ifndef __STL_NO_WCHAR_T
-__STL_TEMPLATE_NULL
+# ifndef _STLP_NO_WCHAR_T
+_STLP_TEMPLATE_NULL
 class codecvt_byname<wchar_t, char, mbstate_t>
   : public codecvt<wchar_t, char, mbstate_t> 
 {
@@ -275,16 +274,16 @@ protected:
                             char*  __to_limit,
                             char*& __to_next) const;
 
-  virtual int do_encoding() const __STL_NOTHROW;
+  virtual int do_encoding() const _STLP_NOTHROW;
 
-  virtual bool do_always_noconv() const __STL_NOTHROW;
+  virtual bool do_always_noconv() const _STLP_NOTHROW;
   
   virtual int do_length(const mbstate_t&         __state,
                         const  char* __from, 
                         const  char* __end,
                         size_t __max) const;
 
-  virtual int do_max_length() const __STL_NOTHROW;
+  virtual int do_max_length() const _STLP_NOTHROW;
 
 private:
   _Locale_ctype* _M_ctype;
@@ -294,9 +293,9 @@ private:
 
 # endif
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
-#endif /* __SGI_STL_INTERNAL_CODECVT_H */
+#endif /* _STLP_INTERNAL_CODECVT_H */
 
 // Local Variables:
 // mode:C++

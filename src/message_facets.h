@@ -19,11 +19,17 @@
 # define MESSAGE_FACETS_H
 
 #include <string>
-#include <locale>
+#include <stl/_messages_facets.h>
+#include <stl/_ctype.h>
+// #include <istream>
 #include <typeinfo>
 #include <hash_map>
+#include "c_locale.h"
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
+
+// Forward declaration of an opaque type.
+struct _Catalog_locale_map;
 
 _Locale_messages* __acquire_messages(const char* name); 
 void __release_messages(_Locale_messages* cat);
@@ -49,6 +55,48 @@ private:                        // Invalidate copy constructor and assignment
   void operator=(const _Catalog_locale_map&);
 };
 
-__STL_END_NAMESPACE
+
+class _Messages {
+public:
+  typedef messages_base::catalog catalog;
+
+  _Messages();
+
+  virtual catalog     do_open(const string& __fn, const locale& __loc) const;
+  virtual string do_get(catalog __c, int __set, int __msgid,
+			const string& __dfault) const;
+# ifndef _STLP_NO_WCHAR_T
+  virtual wstring do_get(catalog __c, int __set, int __msgid,
+                             const wstring& __dfault) const;
+# endif
+  virtual void        do_close(catalog __c) const;
+  virtual ~_Messages();
+  bool _M_delete;
+};
+
+class _Messages_impl : public _Messages {
+public:
+
+  _Messages_impl(bool);
+
+  _Messages_impl(bool, _Locale_messages*);
+
+  catalog     do_open(const string& __fn, const locale& __loc) const;
+  string do_get(catalog __c, int __set, int __msgid,
+			const string& __dfault) const;
+# ifndef _STLP_NO_WCHAR_T
+  wstring do_get(catalog __c, int __set, int __msgid,
+		 const wstring& __dfault) const;
+# endif
+  void        do_close(catalog __c) const;
+  
+  ~_Messages_impl();
+
+private:
+  _Locale_messages* _M_message_obj;
+  _Catalog_locale_map* _M_map;
+};
+
+_STLP_END_NAMESPACE
 
 #endif

@@ -15,22 +15,22 @@
  * modified is included with the above copyright notice.
  *
  */
-#ifndef __STL_FSTREAM_C
-#define __STL_FSTREAM_C
+#ifndef _STLP_FSTREAM_C
+#define _STLP_FSTREAM_C
 
-# if defined (__STL_DESIGNATED_DLL) || ! defined (__STL_NO_CUSTOM_IO)
+# if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
-# if defined ( __STL_NESTED_TYPE_PARAM_BUG )
+# if defined ( _STLP_NESTED_TYPE_PARAM_BUG )
 // no wchar_t is supported for this mode
 # define __BF_int_type__ int
 # define __BF_pos_type__ streampos
 # define __BF_off_type__ streamoff
 # else
-# define __BF_int_type__ __STL_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::int_type
-# define __BF_pos_type__ __STL_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::pos_type
-# define __BF_off_type__ __STL_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::off_type
+# define __BF_int_type__ _STLP_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::int_type
+# define __BF_pos_type__ _STLP_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::pos_type
+# define __BF_off_type__ _STLP_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::off_type
 # endif
 
 
@@ -47,8 +47,8 @@ basic_filebuf<_CharT, _Traits>::basic_filebuf()
     _M_int_buf(0), _M_int_buf_EOS(0),
     _M_ext_buf(0), _M_ext_buf_EOS(0),
     _M_ext_buf_converted(0), _M_ext_buf_end(0),
-    _M_state(),
-    _M_end_state(),
+    _M_state(_STLP_DEFAULT_CONSTRUCTED(_State_type)),
+    _M_end_state(_STLP_DEFAULT_CONSTRUCTED(_State_type)),
     _M_mmap_base(0), _M_mmap_len(0),
     _M_saved_eback(0), _M_saved_gptr(0), _M_saved_egptr(0),
     _M_codecvt(0),
@@ -65,7 +65,7 @@ basic_filebuf<_CharT, _Traits>::~basic_filebuf() {
 
 
 template <class _CharT, class _Traits>
-__STL_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::int_type 
+_STLP_TYPENAME_ON_RETURN_TYPE basic_filebuf<_CharT, _Traits>::int_type 
 basic_filebuf<_CharT, _Traits>::underflow() 
 {
   return _Underflow<_CharT, _Traits>::_M_doit(this);
@@ -518,10 +518,11 @@ basic_filebuf<_CharT, _Traits>::_M_underflow_aux()
   // Fill the external buffer.  Start with any leftover characters that
   // didn't get converted last time.
   if (_M_ext_buf_end > _M_ext_buf_converted)
-    // boris : let us use copy_backward to be safe
-    //    _M_ext_buf_end = copy(_M_ext_buf_converted, _M_ext_buf_end, _M_ext_buf);
-    _M_ext_buf_end = copy_backward(_M_ext_buf_converted, _M_ext_buf_end, 
-                                   _M_ext_buf+ (_M_ext_buf_end - _M_ext_buf_converted));
+
+    _M_ext_buf_end = copy(_M_ext_buf_converted, _M_ext_buf_end, _M_ext_buf);
+    // boris : copy_backward did not work
+    //_M_ext_buf_end = copy_backward(_M_ext_buf_converted, _M_ext_buf_end, 
+    //_M_ext_buf+ (_M_ext_buf_end - _M_ext_buf_converted));
   else
     _M_ext_buf_end = _M_ext_buf;
 
@@ -556,10 +557,11 @@ basic_filebuf<_CharT, _Traits>::_M_underflow_aux()
       return _Noconv_input<_Traits>::_M_doit(this);
 
     else if (__status == _Codecvt::error ||
-        (__inext != _M_int_buf && __enext == _M_ext_buf) ||
-        (_M_constant_width &&
-         __inext - _M_int_buf != _M_width * (__enext - _M_ext_buf)) ||
-        (__inext == _M_int_buf && __enext - _M_ext_buf >= _M_max_width))
+             (__inext != _M_int_buf && __enext == _M_ext_buf) ||
+             (_M_constant_width &&
+              //         __inext - _M_int_buf != _M_width * (__enext - _M_ext_buf)) ||
+              (__inext - _M_int_buf) *  _M_width != (__enext - _M_ext_buf)) ||
+             (__inext == _M_int_buf && __enext - _M_ext_buf >= _M_max_width))
       return _M_input_error();
     
     else if (__inext != _M_int_buf) {
@@ -634,7 +636,7 @@ bool basic_filebuf<_CharT, _Traits>::_M_unshift()
 // basic_filebuf<>::overflow() for the reason.)
 template <class _CharT, class _Traits>
 bool 
-basic_filebuf<_CharT, _Traits>::_M_allocate_buffers(_CharT* __buf, int __n)
+basic_filebuf<_CharT, _Traits>::_M_allocate_buffers(_CharT* __buf, streamsize __n)
 {
 
   if (__buf == 0) {
@@ -648,8 +650,8 @@ basic_filebuf<_CharT, _Traits>::_M_allocate_buffers(_CharT* __buf, int __n)
     _M_int_buf_dynamic = false;
   }
   
-  int __ebufsiz = max(__n * max(_M_codecvt->encoding(), 1),
-                      _M_codecvt->max_length());
+  size_t __ebufsiz = (max)(__n * (max)(_M_codecvt->encoding(), 1),
+                      streamsize(_M_codecvt->max_length()));
 
   _M_ext_buf = __STATIC_CAST(char*,malloc(__ebufsiz));
   if (!_M_ext_buf) {
@@ -668,8 +670,8 @@ bool basic_filebuf<_CharT, _Traits>::_M_allocate_buffers()
 {
   // Choose a buffer that's at least 4096 characters long and that's a
   // multiple of the page size.
-  int __default_bufsiz =
-    ((_M_base.__page_size() + 4095) / _M_base.__page_size()) * _M_base.__page_size();
+  streamsize __default_bufsiz =
+    ((_M_base.__page_size() + 4095UL) / _M_base.__page_size()) * _M_base.__page_size();
   return _M_allocate_buffers(0, __default_bufsiz);
 }
 
@@ -725,19 +727,19 @@ void basic_filebuf<_CharT, _Traits>::_M_setup_codecvt(const locale& __loc)
   _M_codecvt = &use_facet<_Codecvt>(__loc) ;
   int __encoding    = _M_codecvt->encoding();
 
-  _M_width          = max(__encoding, 1);
+  _M_width          = (max)(__encoding, 1);
   _M_max_width      = _M_codecvt->max_length();
   _M_constant_width = __encoding > 0;
   _M_always_noconv  = _M_codecvt->always_noconv();
 }
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 # undef __BF_int_type__
 # undef __BF_pos_type__
 # undef __BF_off_type__
 
-# endif /* if defined (__STL_DESIGNATED_DLL) || ! defined (__STL_NO_CUSTOM_IO) */
+# endif /* defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) */
 
-#endif /* __STL_FSTREAM_C */
+#endif /* _STLP_FSTREAM_C */
 

@@ -23,16 +23,10 @@
 // header <sstream> instead.
 
 # include "stlport_prefix.h"
-#include <strstream>
-#include <algorithm>
-#include <new>
-#include <cstdlib>
-#include <cstring>
-#include <climits>
+#include <stl/_strstream.h>
+#include <stl/_algobase.h>
 
-
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 // strstreambuf constructor, destructor.
 
@@ -40,7 +34,7 @@ strstreambuf::strstreambuf(streamsize initial_capacity)
    :  _M_alloc_fun(0), _M_free_fun(0),
      _M_dynamic(true), _M_frozen(false), _M_constant(false)  
 {
-  streamsize n = max(initial_capacity, streamsize(16));
+  streamsize n = (max)(initial_capacity, streamsize(16));
 
   char* buf = _M_alloc(n);
   if (buf) {
@@ -127,7 +121,7 @@ char* strstreambuf::str()
 
 int strstreambuf::pcount() const
 {
-  return pptr() ? pptr() - pbase() : 0;
+  return int(pptr() ? pptr() - pbase() : 0);
 }
 
 strstreambuf::int_type strstreambuf::overflow(int_type c) {
@@ -137,7 +131,7 @@ strstreambuf::int_type strstreambuf::overflow(int_type c) {
   // Try to expand the buffer.
   if (pptr() == epptr() && _M_dynamic && !_M_frozen && !_M_constant) {
     ptrdiff_t old_size = epptr() - pbase();
-    ptrdiff_t new_size = max(2 * old_size, ptrdiff_t(1));
+    ptrdiff_t new_size = (max)(2 * old_size, ptrdiff_t(1));
 
     char* buf = _M_alloc(new_size);
     if (buf) {
@@ -152,10 +146,10 @@ strstreambuf::int_type strstreambuf::overflow(int_type c) {
       }
 
       setp(buf, buf + new_size);
-      pbump(old_size);
+      pbump((int)old_size);
 
       if (reposition_get) 
-        setg(buf, buf + old_get_offset, buf + max(old_get_offset, old_size));
+        setg(buf, buf + old_get_offset, buf + (max)(old_get_offset, old_size));
 
       _M_free(old_buffer);
     }
@@ -254,11 +248,11 @@ strstreambuf::seekoff(off_type off,
   if (do_put) {
     if (seeklow + off < pbase()) {
       setp(seeklow, epptr());
-      pbump(off);
+      pbump((int)off);
     }
     else {
       setp(pbase(), epptr());
-      pbump(off - (pbase() - seeklow));
+      pbump((int)(off - (pbase() - seeklow)));
     }
   }
   if (do_get) {
@@ -424,8 +418,7 @@ char* strstream::str()
   return _M_buf.str();
 }
 
-__STL_END_NAMESPACE
-
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

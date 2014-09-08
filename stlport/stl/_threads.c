@@ -23,70 +23,84 @@
  * modified is included with the above copyright notice.
  *
  */
-#ifndef __STL_THREADS_C
-#define __STL_THREADS_C
+#ifndef _STLP_THREADS_C
+#define _STLP_THREADS_C
 
-# if defined (__BUILDING_STLPORT) || ! defined (__SGI_STL_OWN_IOSTREAMS)
+# if defined (_STLP_EXPOSE_GLOBALS_IMPLEMENTATION)
 
-__STL_BEGIN_NAMESPACE
+# if defined(_STLP_SGI_THREADS)
+#  include <time.h>
+# elif defined (_STLP_UNIX)
+#  include <ctime>
+# if defined (_STLP_USE_NAMESPACES) && ! defined (_STLP_VENDOR_GLOBAL_CSTD)
+using _STLP_VENDOR_CSTD::time_t;
+# endif
+#  include <sys/time.h>
+# endif
 
-# if ( __STL_STATIC_TEMPLATE_DATA > 0 )
+_STLP_BEGIN_NAMESPACE
+
+# if ( _STLP_STATIC_TEMPLATE_DATA > 0 )
  
-#  if defined (__STL_PTHREADS) || defined (__STL_UITHREADS)
+#  if !defined ( _STLP_ATOMIC_EXCHANGE ) && (defined (_STLP_PTHREADS) || defined (_STLP_UITHREADS) || defined (_STLP_OS2THREADS))
 template<int __dummy>
-_STL_STATIC_MUTEX
-_Swap_lock_struct<__dummy>::_S_swap_lock __STL_MUTEX_INITIALIZER;
+_STLP_STATIC_MUTEX
+_Swap_lock_struct<__dummy>::_S_swap_lock _STLP_MUTEX_INITIALIZER;
 #  endif
 
 template <int __inst>
-unsigned _STL_mutex_spin<__inst>::__max = _STL_mutex_spin<__inst>::__low_max;
+unsigned _STLP_mutex_spin<__inst>::__max = _STLP_mutex_spin<__inst>::__low_max;
 
 template <int __inst>
-unsigned _STL_mutex_spin<__inst>::__last = 0;
+unsigned _STLP_mutex_spin<__inst>::__last = 0;
 
-# else /* ( __STL_STATIC_TEMPLATE_DATA > 0 ) */
+# else /* ( _STLP_STATIC_TEMPLATE_DATA > 0 ) */
 
-#  if defined (__STL_PTHREADS) || defined (__STL_UITHREADS)
-__DECLARE_INSTANCE(_STL_STATIC_MUTEX, _Swap_lock_struct<0>::_S_swap_lock, 
-                   __STL_MUTEX_INITIALIZER  );
-#  endif /* __STL_PTHREADS */
+#  if defined (_STLP_PTHREADS) || defined (_STLP_UITHREADS)  || defined (_STLP_OS2THREADS)
+__DECLARE_INSTANCE(_STLP_STATIC_MUTEX, _Swap_lock_struct<0>::_S_swap_lock, 
+                   _STLP_MUTEX_INITIALIZER  );
+#  endif /* _STLP_PTHREADS */
 
-__DECLARE_INSTANCE(unsigned, _STL_mutex_spin<0>::__max,  =30);
-__DECLARE_INSTANCE(unsigned, _STL_mutex_spin<0>::__last, =0);
+__DECLARE_INSTANCE(unsigned, _STLP_mutex_spin<0>::__max,  =30);
+__DECLARE_INSTANCE(unsigned, _STLP_mutex_spin<0>::__last, =0);
 
-# endif /* ( __STL_STATIC_TEMPLATE_DATA > 0 ) */
+# endif /* ( _STLP_STATIC_TEMPLATE_DATA > 0 ) */
 
-#if defined(__STL_SGI_THREADS) || defined(__STL_WIN32THREADS)
+#ifdef _STLP_SPARC_SOLARIS_THREADS
+// underground function in libc.so; we do not want dependance on librt
+extern "C" int __nanosleep(const struct timespec*, struct timespec*);
+# define _STLP_NANOSLEEP __nanosleep
+#else
+# define _STLP_NANOSLEEP nanosleep
+#endif
 
 template <int __inst>
-void __STL_CALL
-_STL_mutex_spin<__inst>::_S_nsec_sleep(int __log_nsec) {
-#     ifdef __STL_SGI_THREADS
-          struct timespec __ts;
-          /* Max sleep is 2**27nsec ~ 60msec      */
-          __ts.tv_sec = 0;
-          __ts.tv_nsec = 1 << __log_nsec;
-          nanosleep(&__ts, 0);
-#     elif defined(__STL_WIN32THREADS)
+void _STLP_CALL
+_STLP_mutex_spin<__inst>::_S_nsec_sleep(int __log_nsec) {
+#     if defined(_STLP_WIN32THREADS)
 	  if (__log_nsec <= 20) {
 	      Sleep(0);
 	  } else {
 	      Sleep(1 << (__log_nsec - 20));
 	  }
-#     else
-#	error unimplemented
+#     elif defined (_STLP_UNIX)
+          timespec __ts;
+          /* Max sleep is 2**27nsec ~ 60msec      */
+          __ts.tv_sec = 0;
+          __ts.tv_nsec = 1 << __log_nsec;
+          _STLP_NANOSLEEP(&__ts, 0);
 #     endif
   }
 
 
 template <int __inst>
-void  __STL_CALL
-_STL_mutex_spin<__inst>::_M_do_lock(volatile unsigned long* __lock)
+void  _STLP_CALL
+_STLP_mutex_spin<__inst>::_M_do_lock(volatile __stl_atomic_t* __lock)
 {
-#if defined(__STL_SGI_THREADS) || defined(__STL_WIN32THREADS)
-  if (_Atomic_swap((unsigned long*)__lock, 1)) {
-    unsigned __my_spin_max = _STL_mutex_spin<0>::__max;
-    unsigned __my_last_spins = _STL_mutex_spin<0>::__last;
+#if defined(_STLP_ATOMIC_EXCHANGE)
+  if (_Atomic_swap(__lock, 1)) {
+    unsigned __my_spin_max = _STLP_mutex_spin<0>::__max;
+    unsigned __my_last_spins = _STLP_mutex_spin<0>::__last;
     volatile unsigned __junk = 17; 	// Value doesn't matter.
     unsigned  __i;
     
@@ -95,26 +109,26 @@ _STL_mutex_spin<__inst>::_M_do_lock(volatile unsigned long* __lock)
         __junk *= __junk; __junk *= __junk;
         __junk *= __junk; __junk *= __junk;
       } else {
-        if (!_Atomic_swap((unsigned long*)__lock, 1)) {
+        if (!_Atomic_swap(__lock, 1)) {
           // got it!
           // Spinning worked.  Thus we're probably not being scheduled
           // against the other process with which we were contending.
           // Thus it makes sense to spin longer the next time.
-          _STL_mutex_spin<0>::__last = __i;
-          _STL_mutex_spin<0>::__max = _STL_mutex_spin<0>::__high_max;
+          _STLP_mutex_spin<0>::__last = __i;
+          _STLP_mutex_spin<0>::__max = _STLP_mutex_spin<0>::__high_max;
 	    return;
         }
       }
     }
     
     // We are probably being scheduled against the other process.  Sleep.
-    _STL_mutex_spin<0>::__max = _STL_mutex_spin<0>::__low_max;
+    _STLP_mutex_spin<0>::__max = _STLP_mutex_spin<0>::__low_max;
     
     for (__i = 0 ;; ++__i) {
       int __log_nsec = __i + 6;
       
       if (__log_nsec > 27) __log_nsec = 27;
-      if (!_Atomic_swap((unsigned long *)__lock, 1)) {
+      if (!_Atomic_swap(__lock, 1)) {
 	  break;
       }
       _S_nsec_sleep(__log_nsec);
@@ -124,12 +138,10 @@ _STL_mutex_spin<__inst>::_M_do_lock(volatile unsigned long* __lock)
 # endif
 }
 
-# endif /* if SGI or WIN */
-
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 # endif /* BUILDING_STLPORT */
-#endif /*  __STL_THREADS_C */
+#endif /*  _STLP_THREADS_C */
 
 // Local Variables:
 // mode:C++

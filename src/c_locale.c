@@ -15,13 +15,20 @@
  * modified is included with the above copyright notice.
  *
  */ 
-# ifdef __STL_REAL_LOCALE_IMPLEMENTED
-#  define __BUILDING_STLPORT 1
 
-#  include <stl/c_locale.h>
+# include "stlport_prefix.h" 
+
+# include <stdlib.h>
+
+# ifdef _STLP_REAL_LOCALE_IMPLEMENTED
+
 #  include <limits.h>
-
-#  if defined (__STL_USE_GLIBC) && ! defined (__CYGWIN__)
+#  include "c_locale.h"
+#  if defined (WIN32) || defined (_WIN32)
+#   include "c_locale_win32/c_locale_win32.c"
+#  elif defined (_STLP_USE_GLIBC) && ! defined (__CYGWIN__)
 #   include "c_locale_glibc/c_locale_glibc.c"
+#  elif defined __ISCPP__
+#   include "c_locale_is/c_locale_is.cpp"
 #  endif
 # endif

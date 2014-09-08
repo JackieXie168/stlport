@@ -17,62 +17,30 @@
  */ 
 
 # include "stlport_prefix.h"
-#include <cstring>
-#include <cstdlib>
-#include <climits>
-#include <cmath>
-#include <cfloat>
+#include <stl/_limits.h>
+#include <stl/_num_get.h>
+#include <stl/_istream.h>
 
-#include <iterator>
-#include <locale>
-#include <limits>
-
-// #include "c_numeric_facets.h"
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // num_get
 
 // Helper functions for _M_do_get_float.
 
-void  __STL_CALL
-__initialize_get_float(const locale& loc,
-                       char& Plus, char& Minus, char& dot_char,
-                       char& pow_e, char& pow_E,
-                       char& sep, string& grouping,
-                       char* /* digits */)
-{
-  const numpunct<char>& fac = (const numpunct<char>&)use_facet<numpunct<char> >(loc);
-  Plus = '+';
-  Minus = '-';
-  dot_char = fac.decimal_point();
-  pow_e = 'e';
-  pow_E = 'E';
-  sep = fac.thousands_sep();
-  grouping = fac.grouping();
-}
+# ifndef _STLP_NO_WCHAR_T
 
-
-# ifndef __STL_NO_WCHAR_T
-
-void  __STL_CALL
-__initialize_get_float(const locale& loc,
-                       wchar_t& Plus, wchar_t& Minus, wchar_t& dot_char,
+void  _STLP_CALL
+_Initialize_get_float( const ctype<wchar_t>& ct,
+                       wchar_t& Plus, wchar_t& Minus,
                        wchar_t& pow_e, wchar_t& pow_E,
-                       wchar_t& sep, string&  grouping,
                        wchar_t* digits)
 {
   char ndigits[11] = "0123456789";
-  const ctype<wchar_t>& ct = use_facet<ctype<wchar_t> >(loc);
-  const numpunct<wchar_t>& np = use_facet<numpunct<wchar_t> >(loc);
   Plus  = ct.widen('+');
   Minus = ct.widen('-');
-  dot_char   = np.decimal_point();
   pow_e = ct.widen('e');
   pow_E = ct.widen('E');
-  sep = np.thousands_sep();
-  grouping = np.grouping();
   ct.widen(ndigits + 0, ndigits + 10, digits);
 }
 
@@ -86,19 +54,18 @@ __initialize_get_float(const locale& loc,
  */
 
 typedef unsigned int uint32;
-# ifdef __STL_LONG_LONG
-typedef unsigned long long uint64;
-# define ULL(x) x##ull
-# elif defined (__STL_MSVC) || defined (__BORLANDC__)
-typedef unsigned __int64   uint64;
-# define ULL(x) uint64(x)
+# if defined (_STLP_MSVC) || defined (__BORLANDC__) || defined (__ICL)
+# define ULL(x) x##Ui64
+typedef unsigned _STLP_LONG_LONG uint64;
+# elif defined (_STLP_LONG_LONG)
+typedef unsigned _STLP_LONG_LONG uint64;
+# define ULL(x) x##ULL
 # elif defined(__MRC__) || defined(__SC__)		//*TY 02/25/2000 - added support for MPW compilers
 # include "uint64.h"		//*TY 03/25/2000 - added 64bit math type definition
 # else
 #  error "there should be some long long type on the system!"
 #  define NUMERIC_NO_64 1
 # endif
-
 
 // Multiplication of two 64-bit integers, giving a 128-bit result.
 // Taken from Algorithm M in Knuth section 4.3.1, with the loop 
@@ -124,8 +91,8 @@ inline void _Stl_mult64(const uint64 u, const uint64 v,
   high = u1 * v1 + w2 + (x >> 32);
 }
 
-  static const uint64 bit11 = ULL(0x7ff);
-  static const uint64 exponent_mask = bit11 << 52;
+# define bit11 ULL(0x7ff)
+# define exponent_mask (bit11 << 52)
 
 inline void _Stl_set_exponent(uint64& val, uint64 exp)
 {
@@ -262,7 +229,7 @@ static const short _Stl_twoexp[80] = {
 # define  NUM_HI_P 11
 # define  NUM_HI_N 13
 
-const uint64 _Stl_HIBITULL = ULL(1) << 63;
+# define _Stl_HIBITULL (ULL(1) << 63)
 
 void _Stl_norm_and_round(uint64& p, int& norm, uint64 prodhi, uint64 prodlo)
 {
@@ -279,7 +246,7 @@ void _Stl_norm_and_round(uint64& p, int& norm, uint64 prodhi, uint64 prodlo)
       p = _Stl_HIBITULL;
       return;
     }
-    p = prodhi<<1 | prodlo>>63; /* normalize */
+    p = (prodhi<<1) | (prodlo>>63); /* normalize */
     norm=1;
     prodlo <<= 1;
   }
@@ -289,10 +256,10 @@ void _Stl_norm_and_round(uint64& p, int& norm, uint64 prodhi, uint64 prodlo)
 
   if( (prodlo & _Stl_HIBITULL) != 0 ) {     /* first guard bit a one */		//*TY 03/25/2000 - added explicit comparison to zero to avoid reliance to the implicit conversion from uint64 to bool
 #if !defined(__SC__)			//*TY 03/25/2000 - 
-    if( (p & ULL(0x1) != 0) ||         /* LSB on, round to even */		//*TY 03/25/2000 - added explicit comparison to zero
+    if( ((p & 0x1) != 0) ||
        prodlo != _Stl_HIBITULL ) {    /* not borderline for round to even */
 #else							//*TY 03/25/2000 - added workaround for SCpp compiler
-	bool b1 = ((p & ULL(0x1)) != 0);
+	bool b1 = ((p & 0x1) != 0);
     if( b1 || prodlo != _Stl_HIBITULL ) {		//*TY 03/25/2000 - SCpp confuses on this particular original boolean expression
 #endif							//*TY 03/25/2000 - 
       /* round */
@@ -348,7 +315,7 @@ void _Stl_tenscale(uint64& p, int exp, int& bexp)
     return;
   }
   while(exp_hi) {               /* scale */
-    hi = min(exp_hi,num_hi);    /* only a few large powers of 10 */
+    hi = (min) (exp_hi,num_hi);    /* only a few large powers of 10 */
     exp_hi -= hi;               /* could iterate in extreme case */
     hi += thi-1;
     _Stl_mult64(p, _Stl_tenpow[hi], prodhi, prodlo);
@@ -372,9 +339,9 @@ void _Stl_tenscale(uint64& p, int exp, int& bexp)
 #if defined(__SC__) || defined(__MRC__)
 
 //*TY 04/06/2000 - powermac's 68K emulator utilizes apple's SANE floating point, which is not compatible with IEEE format.
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 # include <fp.h>
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 inline double _Stl_atod(char *buffer, int ndigit, int dexp)
 {
 	decimal d;	// ref. inside macintosh powerpc numerics p.9-13
@@ -390,6 +357,11 @@ inline double _Stl_atod(char *buffer, int ndigit, int dexp)
 }
 
 #else  /* IEEE representation */
+
+#if 0 // def __ICL
+// turn off optimization here
+#  pragma optimize "off"
+#endif
 
 double _Stl_atod(char *buffer, int ndigit, int dexp)
 {
@@ -481,9 +453,9 @@ double _Stl_atod(char *buffer, int ndigit, int dexp)
       {
            rest = value & ((ULL(1)<< 63)-1);
 #if !defined(__SC__)
-           guard = (uint32) ((value>> 63) & ULL(1) );
+           guard = (uint32) ((value>> 63) & 1 );
 #else
-           guard = to_ulong((value>> 63) & ULL(1) );		//*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
+           guard = to_ulong((value>> 63) & 1 );		//*TY 03/25/2000 - use member function instead of problematic conversion operator utilization
 #endif
            value = 0;
       }
@@ -491,9 +463,9 @@ double _Stl_atod(char *buffer, int ndigit, int dexp)
       {
           rest = value & (((ULL(1) << lead0)-1)-1);
 #if !defined(__SC__)
-          guard = (uint32) (((value>> lead0)-1) & ULL(1));
+          guard = (uint32) (((value>> lead0)-1) & 1);
 #else		//*TY 03/25/2000 - 
-          guard = to_ulong(((value>> lead0)-1) & ULL(1)); 
+          guard = to_ulong(((value>> lead0)-1) & 1); 
 #endif		//*TY 03/25/2000 - 
           value >>= /*(uint64)*/ lead0; /* exponent is zero */
       }
@@ -512,7 +484,7 @@ double _Stl_atod(char *buffer, int ndigit, int dexp)
   else {                        /* not zero or denorm */
     /* Round to 53 bits */
 
-    rest = value & (ULL(1)<<10)-1;
+    rest = value & (1<<10)-1;
     value >>= 10;
 #if !defined(__SC__)
     guard = (uint32) value & 1;
@@ -671,6 +643,7 @@ double _Stl_string_to_double(const char * s) {
 }
 
 
+#ifndef _STLP_NO_LONG_DOUBLE
 /*
  * __string_to_long_double is just lifted from atold, the difference being
  * that we just use '.' for the decimal point, rather than let it
@@ -793,23 +766,26 @@ _Stl_string_to_long_double(const char * s) {
 
   return x;
 }
+#endif
 
-void  __STL_CALL
+void  _STLP_CALL
 __string_to_float(const string& v, float& val) {
     val = _Stl_string_to_double(v.data());
 }
 
-void  __STL_CALL
+void  _STLP_CALL
 __string_to_float(const string& v, double& val) {
     val = _Stl_string_to_double(v.data());
 }
 
-void  __STL_CALL
+#ifndef _STLP_NO_LONG_DOUBLE
+void  _STLP_CALL
 __string_to_float(const string& v, long double& val) {
     val = _Stl_string_to_long_double(v.data());
 }
+#endif
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

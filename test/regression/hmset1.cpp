@@ -20,10 +20,9 @@
 #if !defined (STLPORT) || defined(__STL_USE_NAMESPACES)
 using namespace std;
 #endif
-
-typedef hash_multiset<char, hash<char>, equal_to<char> > hmset;
 #endif
 
+typedef hash_multiset<char, hash<char>, equal_to<char> > hmset;
 // __STL_TYPE_TRAITS_POD_SPECIALIZE(_Hashtable_node<char>*);
 
 

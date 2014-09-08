@@ -13,120 +13,115 @@
  *
  */
 
-#ifndef __STLPORT_NEW
-# define __STLPORT_NEW
+#ifndef _STLP_NEW_HEADER
+# define _STLP_NEW_HEADER
 
-# ifndef __STL_OUTERMOST_HEADER_ID
-#  define __STL_OUTERMOST_HEADER_ID 0x447
+# ifndef _STLP_OUTERMOST_HEADER_ID
+#  define _STLP_OUTERMOST_HEADER_ID 0x447
 #  include <stl/_prolog.h>
 # endif
 
-#ifdef __STL_WINCE
+// # include <stl/_new.h>
 
-inline void* __STL_CALL __stl_new(size_t __n) {
+#ifdef _STLP_WINCE
+
+inline void* _STLP_CALL __stl_new(size_t __n) {
   return ::malloc(__n);
 }
 
-inline void __STL_CALL __stl_delete(void* __p) {
+inline void _STLP_CALL __stl_delete(void* __p) {
   free(__p);
 }
 
 #else
 
+#ifndef _STLP_CSTDDEF
 // size_t
 # include <cstddef>
+#endif
 
 #if defined (__BORLANDC__) && (__BORLANDC__ > 0x520)
 // new.h uses ::malloc ;(
 # include <cstdlib>
-using __STL_VENDOR_CSTD::malloc;
+using _STLP_VENDOR_CSTD::malloc;
 #endif
 
-# if !defined (__STL_NO_NEW_NEW_HEADER)
-#  if ( defined (__GNUC__) && (__GNUC_MINOR__ >= 8 )) || ( defined (__MVS__) && ! defined (__GNUC__))
-#    include __STL_NATIVE_C_HEADER(new)
-#   else
-#    include __STL_NATIVE_HEADER(new)
-#   endif
+# if !defined (_STLP_NO_NEW_NEW_HEADER)
+#   include _STLP_NATIVE_CPP_RUNTIME_HEADER(new)
 #  else
-#  if ( defined (__MVS__) && ! defined (__GNUC__))
-#    include __STL_NATIVE_C_HEADER(new.h)
-#  else
-#    include __STL_NATIVE_HEADER(new.h)
-#  endif
+#   include  <new.h>
 # endif
 
-# ifndef __STL_NO_BAD_ALLOC
-#  ifdef __STL_USE_OWN_NAMESPACE
-    __STL_BEGIN_NAMESPACE
-    using __STL_VENDOR_EXCEPT_STD::bad_alloc;
-    using __STL_VENDOR_EXCEPT_STD::nothrow_t;
-    using __STL_VENDOR_EXCEPT_STD::nothrow;
+# ifndef _STLP_NO_BAD_ALLOC
+#  ifdef _STLP_USE_OWN_NAMESPACE
+    _STLP_BEGIN_NAMESPACE
+    using _STLP_VENDOR_EXCEPT_STD::bad_alloc;
+    using _STLP_VENDOR_EXCEPT_STD::nothrow_t;
+    using _STLP_VENDOR_EXCEPT_STD::nothrow;
 
-#  if defined (__STL_GLOBAL_NEW_HANDLER)
+#  if defined (_STLP_GLOBAL_NEW_HANDLER)
     using ::new_handler;
     using ::set_new_handler;
 #  else
-    using __STL_VENDOR_EXCEPT_STD::new_handler;
-    using __STL_VENDOR_EXCEPT_STD::set_new_handler;
+    using _STLP_VENDOR_EXCEPT_STD::new_handler;
+    using _STLP_VENDOR_EXCEPT_STD::set_new_handler;
 #  endif
     
-    __STL_END_NAMESPACE
+    _STLP_END_NAMESPACE
 
-#  endif /* __STL_OWN_NAMESPACE */
-# else /* __STL_NO_BAD_ALLOC */
+#  endif /* _STLP_OWN_NAMESPACE */
+
+# else /* _STLP_NO_BAD_ALLOC */
 
 #  include <exception>
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 class nothrow_t {};
 
-# ifdef __SGI_STL_OWN_IOSTREAMS
-extern nothrow_t nothrow;
+# ifdef _STLP_OWN_IOSTREAMS
+extern _STLP_DECLSPEC const nothrow_t nothrow;
 # else
 #  define nothrow nothrow_t()
 # endif
 
-class bad_alloc : public __STL_EXCEPTION_BASE { 
+class bad_alloc : public _STLP_EXCEPTION_BASE { 
 public:
-  bad_alloc () __STL_NOTHROW { }
-  bad_alloc(const bad_alloc&) __STL_NOTHROW { }
-  bad_alloc& operator=(const bad_alloc&) __STL_NOTHROW {return *this;}
-  ~bad_alloc () __STL_NOTHROW { }
-  const char* what() const __STL_NOTHROW { return "bad alloc"; }
+  bad_alloc () _STLP_NOTHROW_INHERENTLY { }
+  bad_alloc(const bad_alloc&) _STLP_NOTHROW_INHERENTLY { }
+  bad_alloc& operator=(const bad_alloc&) _STLP_NOTHROW_INHERENTLY {return *this;}
+  ~bad_alloc () _STLP_NOTHROW_INHERENTLY { }
+  const char* what() const _STLP_NOTHROW_INHERENTLY { return "bad alloc"; }
 };
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
-#endif /* __STL_NO_BAD_ALLOC */
+#endif /* _STLP_NO_BAD_ALLOC */
 
-__STL_BEGIN_NAMESPACE
-inline void*  __STL_CALL __stl_new(size_t __n) {
+# if defined (_STLP_NO_NEW_NEW_HEADER) || defined (_STLP_NO_BAD_ALLOC) && ! defined (_STLP_CHECK_NULL_ALLOC)
+#  define _STLP_CHECK_NULL_ALLOC(__x) void* __y = __x; if (__y == 0) _STLP_THROW(bad_alloc()); return __y
+# else
+#  define _STLP_CHECK_NULL_ALLOC(__x) return __x
+# endif
+
+_STLP_BEGIN_NAMESPACE
 #if (( defined(__IBMCPP__)|| defined(__OS400__) || defined (__xlC__) || defined (qTidyHeap)) && defined(__DEBUG_ALLOC__) )
-  return ::operator __STL_NEW(__n, __FILE__, __LINE__);
+inline void*  _STLP_CALL __stl_new(size_t __n) {  _STLP_CHECK_NULL_ALLOC(::operator _STLP_NEW(__n, __FILE__, __LINE__)); }
+inline void _STLP_CALL __stl_delete(void* __p) { ::operator delete(__p, __FILE__, __LINE__); }
 #else
-  return ::operator __STL_NEW(__n);
+inline void*  _STLP_CALL __stl_new(size_t __n)   { _STLP_CHECK_NULL_ALLOC(::operator _STLP_NEW(__n)); }
+inline void   _STLP_CALL __stl_delete(void* __p) { ::operator delete(__p); }
 #endif
-}
-
-inline void __STL_CALL __stl_delete(void* __p) {
-#if (( defined(__IBMCPP__) || defined(__OS400__)|| defined (__xlC__) || defined (qTidyHeap))  && defined(__DEBUG_ALLOC__) )
-  ::operator delete(__p, __FILE__, __LINE__);
-#else
-  ::operator delete(__p);
-#endif
-}
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 #endif /* WINCE */
 
-# if (__STL_OUTERMOST_HEADER_ID == 0x447)
+# if (_STLP_OUTERMOST_HEADER_ID == 0x447)
 #  include <stl/_epilog.h>
-#  undef __STL_OUTERMOST_HEADER_ID
+#  undef _STLP_OUTERMOST_HEADER_ID
 # endif
 
-#endif /* __STLPORT_NEW */
+#endif /* _STLP_NEW */
 
 // Local Variables:
 // mode:C++

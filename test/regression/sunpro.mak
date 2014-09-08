@@ -9,7 +9,7 @@ VPATH = .
 
 
 # PWD is here because SC5 wants absolute path ;(
-STL_INCL=-I${PWD}/../../stlport/SC5
+STL_INCL=-I${PWD}/../../stlport
 
 LIST  = stl_test.cpp accum1.cpp accum2.cpp \
 	adjdiff0.cpp adjdiff1.cpp adjdiff2.cpp \
@@ -129,22 +129,24 @@ CXX = $(CC)
 # DEBUG_FLAGS=-g
 # DEBUG_FLAGS=-O
 
-# DEBUG_FLAGS=-D__STL_DEBUG
+# DEBUG_FLAGS=-D_STLP_DEBUG
 
 # DEBUG_FLAGS=-compat=4
 
 
-CXXFLAGS = +w2 -pta ${STL_INCL} ${DEBUG_FLAGS} -I. -D__STL_NO_SGI_IOSTREAMS 
+CXXFLAGS = +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -D_STLP_NO_OWN_IOSTREAMS -D_STLP_HAS_NO_NEW_IOSTREAMS
+# CXXFLAGS = +w2 ${STL_INCL} ${DEBUG_FLAGS} -I. -D_STLP_NO_OWN_IOSTREAMS
 
 
-LIBS = -lm 
+
+LIBS = -lm -liostream 
 LIBSTDCXX = 
 
 check: $(TEST)
 
 $(TEST) : $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) $(OBJECTS) $(LIBS) -o $(TEST_EXE)
-	echo 'a string' | $(TEST_EXE) > $(TEST)
+	echo 'a string' | ./$(TEST_EXE) > $(TEST)
 
 SUFFIXES: .cpp.o.exe.out.res
 
@@ -169,11 +171,11 @@ $(STAT_MODULE): stat.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 %.s: %.cpp
-	$(CXX) $(CXXFLAGS) -O5 -D__STL_USE_MALLOC -S -pto $<  -o $@
+	$(CXX) $(CXXFLAGS) -O5 -D_STLP_USE_MALLOC -S -pto $<  -o $@
 
-#	$(CXX) $(CXXFLAGS) -O5 -D__STL_USE_MALLOC -noex -D__STL_NO_EXCEPTIONS -S -pto $<  -o $@
+#	$(CXX) $(CXXFLAGS) -O5 -D_STLP_USE_MALLOC -noex -D_STLP_NO_EXCEPTIONS -S -pto $<  -o $@
 
-#	$(CXX) $(CXXFLAGS) -O4 -noex -D__STL_NO_EXCEPTIONS -D__STL_NO_EXCEPTIONS -S -pta $<  -o $@
+#	$(CXX) $(CXXFLAGS) -O4 -noex -D_STLP_NO_EXCEPTIONS -D_STLP_NO_EXCEPTIONS -S -pta $<  -o $@
 
 clean:
 	-rm -fr *.exe *.o *.rpo *.obj *.out Templates.DB SunWS_cache

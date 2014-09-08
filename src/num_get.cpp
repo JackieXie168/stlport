@@ -16,31 +16,25 @@
  *
  */ 
 # include "stlport_prefix.h"
-#include <cstring>
-#include <cstdlib>
-#include <climits>
-#include <cmath>
-#include <cfloat>
+#include <stl/_num_get.h>
+#include <stl/_istream.h>
+#include <stl/_algo.h>
 
-#include <iterator>
-#include <locale>
-#include <limits>
-#include <ostream>
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // num_get
 
-// Helper functions for _M_do_get_integer.
 
-void  __STL_CALL
-__initialize_get_digit(wchar_t* digits, wchar_t* xdigits,
+static char narrow_digits[11]  = "0123456789";
+static char narrow_xdigits[13] = "aAbBcCdDeEfF";
+
+# ifndef _STLP_NO_WCHAR_T 
+
+void  _STLP_CALL
+_Initialize_get_digit(wchar_t* digits, wchar_t* xdigits,
                        const ctype<wchar_t>& ct)
 {
-  char narrow_digits[11]  = "0123456789";
-  char narrow_xdigits[13] = "aAbBcCdDeEfF";
-
   ct.widen(narrow_digits + 0,  narrow_digits + 10,  digits);
   ct.widen(narrow_xdigits + 0, narrow_xdigits + 10, xdigits);
 }
@@ -48,9 +42,9 @@ __initialize_get_digit(wchar_t* digits, wchar_t* xdigits,
 // Return either the digit corresponding to c, or a negative number if
 // if c isn't a digit.  We return -1 if c is the separator character, and
 // -2 if it's some other non-digit.
-int __get_digit(wchar_t c,
-                const wchar_t* digits, const wchar_t* xdigits,
-                wchar_t separator)
+int _STLP_CALL __get_digit(wchar_t c,
+                           const wchar_t* digits, const wchar_t* xdigits,
+                           wchar_t separator)
 {
   // Test if it's the separator.
   if (c == separator)
@@ -61,15 +55,17 @@ int __get_digit(wchar_t c,
   // Test if it's a decimal digit.
   p = find(digits, digits + 10, c);
   if (p != digits + 10)
-    return p - digits;
+    return (int)(p - digits);
 
   // Test if it's a hex digit.
   p = find(xdigits, xdigits + 12, c);
   if (p != xdigits + 12)
-    return 10 + (xdigits - p) / 2;
+    return (int)(10 + (xdigits - p) / 2);
   else
     return -2;                  // It's not a digit and not the separator.
 }
+
+# endif /* _STLP_NO_WCHAR_T */
 
 // __valid_grouping compares two strings, one representing the
 // group sizes encountered when reading an integer, and the other
@@ -80,27 +76,28 @@ int __get_digit(wchar_t c,
 // the first string must be equal to the corresponding term in the
 // second, except for the last, which must be less than or equal.
 
-bool  __STL_CALL
-__valid_grouping(const string& group_sizes,
-                 const string& prescribed_grouping)
+// boris : this takes reversed first string !
+bool  _STLP_CALL
+__valid_grouping(const char * first1, const char * last1, 
+                 const char * first2, const char * last2)
 {
-  const char * first1 = group_sizes.data();
-  const char * last1  = first1 + group_sizes.size();
-  const char * first2 = prescribed_grouping.data();
-  const char * last2  = first2 + prescribed_grouping.size();
-
   if (first1 == last1 || first2 == last2) return true;
 
   --last1; --last2;
 
   while (first1 != last1) {
-    if (*first1 != *first2)
+    if (*last1 != *first2)
       return false;
-    ++first1;
+    --last1;
     if (first2 != last2) ++first2;
   }
-  return *first1 <= *first2;
+
+  return *last1 <= *first2;
 }
+
+// this needed for some compilers to make sure sumbols are extern
+extern const unsigned char __digit_val_table[];
+extern const char __narrow_atoms[];
 
 
 const unsigned char __digit_val_table[128] = 
@@ -119,8 +116,55 @@ const char __narrow_atoms[5] = {'+', '-', '0', 'x', 'X'};
 
 // index is actually a char
 
+# ifndef _STLP_NO_WCHAR_T
 
-__STL_END_NAMESPACE
+// Similar, except return the character itself instead of the numeric
+// value.  Used for floating-point input.
+bool  _STLP_CALL __get_fdigit(wchar_t& c, const wchar_t* digits)
+{
+  const wchar_t* p = find(digits, digits + 10, c);
+  if (p != digits + 10) {
+    c = (char)('0' + (p - digits));
+    return true;
+  }
+  else
+    return false;
+}
+
+bool  _STLP_CALL __get_fdigit_or_sep(wchar_t& c, wchar_t sep,
+                                     const wchar_t * digits)
+{
+  if (c == sep) {
+    c = (char)',';
+    return true;
+  }
+  else
+    return __get_fdigit(c, digits);
+}
+
+//----------------------------------------------------------------------
+// Force instantiation of of num_get<>
+
+#if !defined(_STLP_NO_FORCE_INSTANTIATE)
+template class _STLP_CLASS_DECLSPEC  istreambuf_iterator<wchar_t, char_traits<wchar_t> >;
+template class num_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// template class num_get<wchar_t, const wchar_t*>;
+#endif
+
+# endif /* _STLP_NO_WCHAR_T */
+
+//----------------------------------------------------------------------
+// Force instantiation of of num_get<>
+
+#if !defined(_STLP_NO_FORCE_INSTANTIATE)
+template class _STLP_CLASS_DECLSPEC istreambuf_iterator<char, char_traits<char> >;
+// template class num_get<char, const char*>;
+template class num_get<char, istreambuf_iterator<char, char_traits<char> > >;
+#endif
+ 
+// basic_streambuf<char, char_traits<char> >* _STLP_CALL _M_get_istreambuf(basic_istream<char, char_traits<char> >& ) ;
+
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

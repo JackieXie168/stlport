@@ -12,80 +12,85 @@
  *
  */
 
-#ifndef __STL_RANGE_ERRORS_H
-#define __STL_RANGE_ERRORS_H
+#ifndef _STLP_RANGE_ERRORS_H
+#define _STLP_RANGE_ERRORS_H
 
 // A few places in the STL throw range errors, using standard exception
 // classes defined in <stdexcept>.  This header file provides functions
 // to throw those exception objects.
 
-// __STL_DONT_THROW_RANGE_ERRORS is a hook so that users can disable
+// _STLP_DONT_THROW_RANGE_ERRORS is a hook so that users can disable
 // this exception throwing.
-#if defined(__STL_CAN_THROW_RANGE_ERRORS) && \
-    defined(__STL_USE_EXCEPTIONS) && \
-    !defined(__STL_DONT_THROW_RANGE_ERRORS)
-# define __STL_THROW_RANGE_ERRORS
+#if defined(_STLP_CAN_THROW_RANGE_ERRORS) && defined(_STLP_USE_EXCEPTIONS) \
+    && !defined(_STLP_DONT_THROW_RANGE_ERRORS)
+# define _STLP_THROW_RANGE_ERRORS
 #endif
 
-// For the SGI 7.3 compiler, declare these functions here and define them
-// elsewhere.
-#if defined(__STL_THROW_RANGE_ERRORS) && defined ( __SGI_STL_OWN_IOSTREAMS ) || \
-    ( defined(__sgi) && !defined(__GNUC__) && \
-    _COMPILER_VERSION >= 730 && defined(_STANDARD_C_PLUS_PLUS))
-#  define __STL_EXTERN_RANGE_ERRORS
+// For the STLport iostreams, only declaration here, definition is in the lib
+
+#if defined ( _STLP_OWN_IOSTREAMS  ) && ! defined (_STLP_EXTERN_RANGE_ERRORS) 
+#  define _STLP_EXTERN_RANGE_ERRORS
 # endif
 
-#if defined (__STL_EXTERN_RANGE_ERRORS)
+#if defined (_STLP_EXTERN_RANGE_ERRORS)
+_STLP_BEGIN_NAMESPACE
+void  _STLP_DECLSPEC _STLP_CALL __stl_throw_range_error(const char* __msg);
+void  _STLP_DECLSPEC _STLP_CALL __stl_throw_out_of_range(const char* __msg);
+void  _STLP_DECLSPEC _STLP_CALL __stl_throw_length_error(const char* __msg);
+void  _STLP_DECLSPEC _STLP_CALL __stl_throw_invalid_argument(const char* __msg);
+void  _STLP_DECLSPEC _STLP_CALL __stl_throw_overflow_error(const char* __msg);
+_STLP_END_NAMESPACE
+#else
 
-__STL_BEGIN_NAMESPACE
-void  __STL_DECLSPEC __STL_CALL __stl_throw_range_error(const char* __msg);
-void  __STL_DECLSPEC __STL_CALL __stl_throw_out_of_range(const char* __msg);
-void  __STL_DECLSPEC __STL_CALL __stl_throw_length_error(const char* __msg);
-__STL_END_NAMESPACE
-
-// For other compilers where we're throwing range errors, include the
-// stdexcept header and throw the appropriate exceptions directly.
-#elif defined(__STL_THROW_RANGE_ERRORS)
-
-# ifndef __SGI_STDEXCEPT
+#if defined(_STLP_THROW_RANGE_ERRORS)
+# ifndef _STLP_STDEXCEPT
 #  include <stdexcept>
 # endif
-
-#ifndef __SGI_STL_STRING
+# ifndef _STLP_STRING
 #  include <string>
+# endif
+# define _STLP_THROW_MSG(ex,msg)  throw ex(string(msg))
+#else
+# if defined (_STLP_WINCE)
+#  define _STLP_THROW_MSG(ex,msg)  TerminateProcess(GetCurrentProcess(), 0)
+# else
+#  include <cstdlib>
+#  include <cstdio>
+#  define _STLP_THROW_MSG(ex,msg)  puts(msg),_STLP_ABORT()
+# endif
 #endif
 
-__STL_BEGIN_NAMESPACE
+// For wrapper mode and throwing range errors, include the
+// stdexcept header and throw the appropriate exceptions directly.
 
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_range_error(const char* __msg) { 
-  throw range_error(string(__msg)); 
+_STLP_BEGIN_NAMESPACE
+inline void _STLP_DECLSPEC _STLP_CALL __stl_throw_range_error(const char* __msg) { 
+  _STLP_THROW_MSG(range_error, __msg); 
 }
 
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_out_of_range(const char* __msg) { 
-  throw out_of_range(string(__msg)); 
+inline void _STLP_DECLSPEC _STLP_CALL __stl_throw_out_of_range(const char* __msg) { 
+  _STLP_THROW_MSG(out_of_range, __msg); 
 }
 
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_length_error(const char* __msg) { 
-  throw length_error(string(__msg)); 
+inline void _STLP_DECLSPEC _STLP_CALL __stl_throw_length_error(const char* __msg) { 
+  _STLP_THROW_MSG(length_error, __msg); 
 }
 
-__STL_END_NAMESPACE
+inline void _STLP_DECLSPEC _STLP_CALL __stl_throw_invalid_argument(const char* __msg) { 
+  _STLP_THROW_MSG(invalid_argument, __msg); 
+}
 
-// Otherwise, define inline functions that do nothing.
-#else 
+inline void _STLP_DECLSPEC _STLP_CALL __stl_throw_overflow_error(const char* __msg) { 
+  _STLP_THROW_MSG(overflow_error, __msg); 
+}
+_STLP_END_NAMESPACE
 
-# include <cstdlib>
+# undef _STLP_THROW_MSG
 
-__STL_BEGIN_NAMESPACE
+# endif /* EXTERN_RANGE_ERRORS */
 
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_range_error(const char*) { abort(); }
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_length_error(const char*) { abort();}
-inline void __STL_DECLSPEC __STL_CALL __stl_throw_out_of_range(const char*) { abort(); }
-__STL_END_NAMESPACE
 
-#endif
-
-#endif /* __STL_RANGE_ERRORS_H */
+#endif /* _STLP_RANGE_ERRORS_H */
 
 // Local Variables:
 // mode:C++

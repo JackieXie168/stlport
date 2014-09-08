@@ -1,27 +1,25 @@
-#ifndef __STL_STRING_IO_C
-#define __STL_STRING_IO_C
+#ifndef _STLP_STRING_IO_C
+#define _STLP_STRING_IO_C
 
-# ifdef __STL_DEBUG
+# ifdef _STLP_DEBUG
 #  define basic_string _Nondebug_string
 # endif
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
-#if defined (__STL_USE_NEW_IOSTREAMS)
+# if defined (_STLP_OWN_IOSTREAMS)
+#  define _STLP_USING_IO
+# else
+#  define _STLP_USING_IO _STLP_USING_VENDOR_STD
+# endif
 
-#if !(defined(__MRC__)||defined(__SC__))		//*TY 02/27/2000 - mpw compilers can not handle complex template arguments
+#if defined (_STLP_USE_NEW_IOSTREAMS)
+
 template <class _CharT, class _Traits>
-bool __STL_CALL
-__sgi_string_fill(basic_ostream<_CharT, _Traits>& __os,
+bool _STLP_CALL
+__stlp_string_fill(basic_ostream<_CharT, _Traits>& __os,
                   basic_streambuf<_CharT, _Traits>* __buf,
                   size_t __n)
-#else											//*TY 02/27/2000 - added workaround for MPW compilers
-template <class _CharT, class _Traits, class _Buf>		//*TY 02/27/2000 - added _Buf
-bool __STL_CALL
-__sgi_string_fill(basic_ostream<_CharT, _Traits>& __os,
-                  _Buf* __buf,		//*TY 02/27/2000 - simplified parameter type
-                  size_t __n)
-#endif											//*TY 02/27/2000 - 
 {
   _CharT __f = __os.fill();
   size_t __i;
@@ -31,13 +29,14 @@ __sgi_string_fill(basic_ostream<_CharT, _Traits>& __os,
     __ok = __ok && !_Traits::eq_int_type(__buf->sputc(__f), _Traits::eof());
   return __ok;
 }
+
 template <class _CharT, class _Traits, class _Alloc>
-basic_ostream<_CharT, _Traits>& __STL_CALL
+basic_ostream<_CharT, _Traits>& _STLP_CALL
 operator<<(basic_ostream<_CharT, _Traits>& __os, 
            const basic_string<_CharT,_Traits,_Alloc>& __s)
 {
 
-  __STL_USING_VENDOR_STD
+  _STLP_USING_IO
   typedef basic_ostream<_CharT, _Traits> __ostream;
   typename __ostream::sentry __sentry(__os);
   bool __ok = false;
@@ -50,17 +49,17 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
     const size_t __w = __os.width(0);
     basic_streambuf<_CharT, _Traits>* __buf = __os.rdbuf();
 
-    if (__w > 0 && __n < __w) {
+    if (__n < __w) {
       __pad_len = __w - __n;
     }
     
     if (!__left)
-      __ok = __sgi_string_fill(__os, __buf, __pad_len);    
+      __ok = __stlp_string_fill(__os, __buf, __pad_len);    
 
     __ok = __ok && (__buf->sputn(__s.data(), streamsize(__n)) == streamsize(__n));
 
     if (__left)
-      __ok = __ok && __sgi_string_fill(__os, __buf, __pad_len);
+      __ok = __ok && __stlp_string_fill(__os, __buf, __pad_len);
   }
 
   if (!__ok)
@@ -68,35 +67,32 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
 
   return __os;
 }
-
+ 
 template <class _CharT, class _Traits, class _Alloc>
-basic_istream<_CharT, _Traits>& __STL_CALL 
+basic_istream<_CharT, _Traits>& _STLP_CALL 
 operator>>(basic_istream<_CharT, _Traits>& __is,
            basic_string<_CharT,_Traits, _Alloc>& __s)
 {
-# ifndef __STL_HAS_NO_NAMESPACES
-#  ifdef __SGI_STL_OWN_IOSTREAMS    
-  using __STL_VENDOR_CSTD::size_t;
-#  else
-  using namespace __STL_VENDOR_STD;
-#  endif  
-# endif
-  
+  _STLP_USING_IO
   typedef basic_istream<_CharT, _Traits> __istream;
   typename __istream::sentry __sentry(__is);
 
   if (__sentry) {
     basic_streambuf<_CharT, _Traits>* __buf = __is.rdbuf();
     typedef ctype<_CharT> _C_type;
-    const locale& __loc = __is.getloc();
-#ifdef __SGI_STL_OWN_IOSTREAMS
-    const _C_type& _Ctype = use_facet<_C_type>(__loc);
+
+#ifdef _STLP_OWN_IOSTREAMS
+    //    const _C_type& _Ctype = use_facet<_C_type>(__loc);
+    const _C_type& _Ctype = *(const _C_type*)__is._M_ctype_facet();
 #else
-# if defined (__STL_MSVC) && (__STL_MSVC <= 1200 )
+# if defined (_STLP_MSVC) && (_STLP_MSVC <= 1200 ) || defined (__ICL)
+    const locale& __loc = __is.getloc();
     const _C_type& _Ctype = use_facet(__loc , ( _C_type * ) 0, true);
 # elif defined (__SUNPRO_CC)
+    const locale& __loc = __is.getloc();
     const _C_type& _Ctype = use_facet(__loc , ( _C_type * ) 0);
 # else
+    const locale& __loc = __is.getloc();
     const _C_type& _Ctype = use_facet<_C_type>(__loc);
 # endif
 #endif
@@ -138,12 +134,12 @@ operator>>(basic_istream<_CharT, _Traits>& __is,
 }
 
 template <class _CharT, class _Traits, class _Alloc>    
-basic_istream<_CharT, _Traits>& __STL_CALL 
+basic_istream<_CharT, _Traits>& _STLP_CALL 
 getline(basic_istream<_CharT, _Traits>& __is,
         basic_string<_CharT,_Traits,_Alloc>& __s,
         _CharT __delim)
 {
-  __STL_USING_VENDOR_STD
+  _STLP_USING_IO
   typedef basic_istream<_CharT, _Traits> __istream;
   size_t __nread = 0;
   typename basic_istream<_CharT, _Traits>::sentry __sentry(__is, true);
@@ -173,13 +169,15 @@ getline(basic_istream<_CharT, _Traits>& __is,
   return __is;
 }
 
-#elif ! defined ( __STL_USE_NO_IOSTREAMS )
+#elif ! defined ( _STLP_USE_NO_IOSTREAMS )
+
+// (reg) For Watcom IO, _OSTREAM_DLL tells if ostream class is in .exe or in .dll
 
 template <class _CharT, class _Traits, class _Alloc>
-ostream&  __STL_CALL operator<<(ostream& __os, 
+_OSTREAM_DLL&  _STLP_CALL operator<<(_OSTREAM_DLL& __os, 
                     const basic_string<_CharT,_Traits,_Alloc>& __s)
 {
-  __STL_USING_VENDOR_STD
+  _STLP_USING_IO
   streambuf* __buf = __os.rdbuf();
   if (__buf) {
     size_t __n = __s.size();
@@ -187,18 +185,17 @@ ostream&  __STL_CALL operator<<(ostream& __os,
     const bool __left = (__os.flags() & ios::left) !=0;
     const size_t __w = __os.width();
 
-    if (__w > 0) {
-      __n = min(__w, __n);
-      __pad_len = __w - __n;
-    }
+    if (__n < __w) { 
+      __pad_len = __w - __n; 
+    } 
     
     if (!__left)
-      __sgi_string_fill(__os, __buf, __pad_len);
+      __stlp_string_fill(__os, __buf, __pad_len);
   
     const size_t __nwritten = __buf->sputn(__s.data(), __n);
 
     if (__left)
-      __sgi_string_fill(__os, __buf, __pad_len);
+      __stlp_string_fill(__os, __buf, __pad_len);
 
     if (__nwritten != __n)
       __os.clear(__os.rdstate() | ios::failbit);
@@ -212,9 +209,9 @@ ostream&  __STL_CALL operator<<(ostream& __os,
 }
 
 template <class _CharT, class _Traits, class _Alloc>
-istream& __STL_CALL operator>>(istream& __is, basic_string<_CharT,_Traits,_Alloc>& __s)
+_ISTREAM_DLL& _STLP_CALL operator>>(_ISTREAM_DLL& __is, basic_string<_CharT,_Traits,_Alloc>& __s)
 {
-  __STL_USING_VENDOR_STD
+  _STLP_USING_IO
   if (!__is)
     return __is;
 
@@ -282,11 +279,11 @@ istream& __STL_CALL operator>>(istream& __is, basic_string<_CharT,_Traits,_Alloc
 }
 
 template <class _CharT, class _Traits, class _Alloc>    
-istream& __STL_CALL getline(istream& __is,
+_ISTREAM_DLL& _STLP_CALL getline(_ISTREAM_DLL& __is,
                  basic_string<_CharT,_Traits,_Alloc>& __s,
                  _CharT __delim)
 {
-  __STL_USING_VENDOR_STD
+  _STLP_USING_IO
   streambuf* __buf = __is.rdbuf();
   if (__buf) {
     size_t __nread = 0;
@@ -319,10 +316,11 @@ istream& __STL_CALL getline(istream& __is,
   return __is;
 }
 
-# endif /* __STL_NEW_IOSTREAMS */
+# endif /* _STLP_NEW_IOSTREAMS */
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
+// # undef _STLP_USING_IO
 # undef basic_string
 
 #endif

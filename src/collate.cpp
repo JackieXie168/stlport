@@ -17,42 +17,18 @@
  */ 
 # include "stlport_prefix.h"
 
-#include <string>
+#include "stl/_collate.h"
 
-//*TY 05/01/2000 - removed unnecessary workaround
-//#if defined(__MRC__)||defined(__SC__)		//*TY 03/04/2000 - added workaround for MPW compilers; to force its instantiation which the compiler forget to do so implicitly
-//template void std::_String_base<wchar_t,allocator<wchar_t> >::_M_throw_length_error() const;
-//#endif		//*TY 03/04/2000 - 
-
-#include <locale>
-
-#include <algorithm>
-#include <vector>
-
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 // collate<char>
 
-collate<char>::collate(size_t refs)
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-  : locale::facet(refs)
-#else					//*TY 04/29/2000 - 
-  : _facet(refs)		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-{}
-
-collate<char>::~collate()
-{}
+collate<char>::~collate() {}
 
 int collate<char>::do_compare(const char* low1, const char* high1,
                               const char* low2, const char* high2) const
 {
   return __lexicographical_compare_3way(low1, high1, low2, high2);
-}
-
-string collate<char>::transform(const char* low, const char* high) const
-{
-  return do_transform(low, high);
 }
 
 string collate<char>::do_transform(const char* low, const char* high) const
@@ -67,8 +43,38 @@ long collate<char>::do_hash(const char* low, const char* high) const {
   return result;
 }
 
-__STL_END_NAMESPACE
 
+
+
+# ifndef _STLP_NO_WCHAR_T
+// collate<wchar_t>
+
+collate<wchar_t>::~collate() {}
+
+int
+collate<wchar_t>::do_compare(const wchar_t* low1, const wchar_t* high1,
+                             const wchar_t* low2, const wchar_t* high2) const
+{
+  return __lexicographical_compare_3way(low1, high1, low2, high2);
+}
+
+
+wstring
+collate<wchar_t>::do_transform(const wchar_t* low, const wchar_t* high) const
+{
+  return wstring(low, high);
+}
+
+long collate<wchar_t>::do_hash(const wchar_t* low, const wchar_t* high) const
+{
+  unsigned long result = 0;
+  for ( ; low < high; ++low)
+    result = 5 * result + *low;
+  return result;
+}
+# endif
+
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

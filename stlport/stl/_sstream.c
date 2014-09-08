@@ -15,21 +15,21 @@
  * modified is included with the above copyright notice.
  *
  */ 
-#ifndef __STL_SSTREAM_C
-#define __STL_SSTREAM_C
+#ifndef _STLP_SSTREAM_C
+#define _STLP_SSTREAM_C
 
-# if defined (__STL_DESIGNATED_DLL) || ! defined (__STL_NO_CUSTOM_IO)
+# if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 
-# if defined ( __STL_NESTED_TYPE_PARAM_BUG )
+# if defined ( _STLP_NESTED_TYPE_PARAM_BUG )
 // no wint_t is supported for this mode
 # define __BSB_int_type__ int
 # define __BSB_pos_type__ streampos
 # else
-# define __BSB_int_type__ __STL_TYPENAME_ON_RETURN_TYPE basic_stringbuf<_CharT, _Traits, _Alloc>::int_type
-# define __BSB_pos_type__ __STL_TYPENAME_ON_RETURN_TYPE basic_stringbuf<_CharT, _Traits, _Alloc>::pos_type
+# define __BSB_int_type__ _STLP_TYPENAME_ON_RETURN_TYPE basic_stringbuf<_CharT, _Traits, _Alloc>::int_type
+# define __BSB_pos_type__ _STLP_TYPENAME_ON_RETURN_TYPE basic_stringbuf<_CharT, _Traits, _Alloc>::pos_type
 # endif
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // Non-inline stringbuf member functions.
@@ -166,7 +166,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::overflow(int_type __c)
 
           this->setg(__data_ptr, __data_ptr + __offset, __data_ptr+__data_size);
           this->setp(__data_ptr, __data_ptr + __data_size);
-          this->pbump(__data_size);
+          this->pbump((int)__data_size);
           return __c;
         }
         else {
@@ -197,7 +197,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::xsputn(const char_type* __s,
       ptrdiff_t __avail = _M_str.data() + _M_str.size() - this->pptr();
       if (__avail > __n) {
         _Traits::copy(this->pptr(), __s, __n);
-        this->pbump(__n);
+        this->pbump((int)__n);
         return __n;
       }
       else {
@@ -219,7 +219,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::xsputn(const char_type* __s,
 
       this->setg(__data_ptr, __data_ptr + __get_offset, __data_ptr+__data_size);
       this->setp(__data_ptr, __data_ptr + __data_size);
-      this->pbump(__data_size);
+      this->pbump((int)__data_size);
     }
     else {
       _M_append_buffer();
@@ -246,7 +246,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::_M_xsputnc(char_type __c,
       ptrdiff_t __avail = _M_str.data() + _M_str.size() - this->pptr();
       if (__avail > __n) {
         _Traits::assign(this->pptr(), __n, __c);
-        this->pbump(__n);
+        this->pbump((int)__n);
         return __n;
       }
       else {
@@ -267,7 +267,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::_M_xsputnc(char_type __c,
 
       this->setg(__data_ptr, __data_ptr + __get_offset, __data_ptr+__data_size);
       this->setp(__data_ptr, __data_ptr + __data_size);
-      this->pbump(__data_size);
+      this->pbump((int)__data_size);
 
     }
     else {
@@ -319,7 +319,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::setbuf(_CharT*, streamsize __n)
 
     if (__do_put_area) {
       this->setp(__data_ptr, __data_ptr+__data_size);
-      this->pbump(__offp);
+      this->pbump((int)__offp);
     }
   }
 
@@ -387,7 +387,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>::seekoff(off_type __off,
       return pos_type(off_type(-1));
     else {
       this->setp(this->pbase(), this->pbase() + __n);
-      this->pbump(__off);
+      this->pbump((int)__off);
     }
   }
 
@@ -424,7 +424,7 @@ basic_stringbuf<_CharT, _Traits, _Alloc>
     size_t __data_size = _M_str.size();
     
     this->setp(__data_ptr, __data_ptr+__data_size);
-    this->pbump(__n);
+    this->pbump((int)__n);
   }
 
   return __pos;
@@ -528,12 +528,11 @@ template <class _CharT, class _Traits, class _Alloc>
 basic_stringstream<_CharT, _Traits, _Alloc>::~basic_stringstream()
 {}
 
-__STL_END_NAMESPACE
-
+_STLP_END_NAMESPACE
 
 # undef __BSB_int_type__
 # undef __BSB_pos_type__
 
-# endif /* defined (__STL_DESIGNATED_DLL) || ! defined (__STL_NO_CUSTOM_IO) */
+# endif /* EXPOSE */
 
-#endif /* __STL_SSTREAM_C */
+#endif /* _STLP_SSTREAM_C */

@@ -17,18 +17,13 @@
  */ 
 # include "stlport_prefix.h"
 
-#include <iterator>
-#include <cstring>
-#include <cstdlib>
+#include <stl/_monetary.h>
+#include <stl/_istream.h>
 
-#include <locale>
-// #include <algorithm> // for copy
+_STLP_BEGIN_NAMESPACE
 
-
-__STL_BEGIN_NAMESPACE
-
-void __init_monetary_formats(money_base::pattern& pos_format,
-			     money_base::pattern& neg_format) {
+static void _Init_monetary_formats(money_base::pattern& pos_format,
+				   money_base::pattern& neg_format) {
   pos_format.field[0] = (char) money_base::symbol;
   pos_format.field[1] = (char) money_base::sign;
   pos_format.field[2] = (char) money_base::none;
@@ -40,205 +35,114 @@ void __init_monetary_formats(money_base::pattern& pos_format,
   neg_format.field[3] = (char) money_base::value;
 }
 
-void __init_monetary_formats(money_base::pattern& pos_format,
-			     money_base::pattern& neg_format,
-			     _Locale_monetary * monetary) {
-  switch (_Locale_p_sign_posn(monetary)) {
-    case 0: case 1:
-      pos_format.field[0] = (char) money_base::sign;
-      if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[1] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[2] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::symbol;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }       
-      break;
-    case 2:
-      if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  pos_format.field[1] = (char) money_base::value;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[1] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  pos_format.field[1] = (char) money_base::symbol;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      break;
-    case 3:
-      if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::sign;
-	pos_format.field[1] = (char) money_base::symbol;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[2] = (char) money_base::space;
-	  pos_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  pos_format.field[2] = (char) money_base::value;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	pos_format.field[0] = (char) money_base::value;
-	pos_format.field[1] = (char) money_base::sign;
-	pos_format.field[2] = (char) money_base::symbol;
-	pos_format.field[3] = (char) money_base::none;
-      }
-      break;
-    case 4: default:
-      if (_Locale_p_cs_precedes(monetary)) {
-	pos_format.field[0] = (char) money_base::symbol;
-	pos_format.field[1] = (char) money_base::sign;
-	pos_format.field[2] = (char) money_base::value;
-	pos_format.field[3] = (char) money_base::none;
-      }
-      else {
-	pos_format.field[0] = (char) money_base::value;
-	if (_Locale_p_sep_by_space(monetary)) {
-	  pos_format.field[1] = (char) money_base::space;
-	  pos_format.field[2] = (char) money_base::symbol;
-	  pos_format.field[3] = (char) money_base::sign;
-	}
-        else {
-	  pos_format.field[1] = (char) money_base::symbol;
-	  pos_format.field[2] = (char) money_base::sign;
-	  pos_format.field[3] = (char) money_base::none;
-	}
-      }
-    break;
-  }
+// This is being used throughout the library
+string _S_empty_string("");
+# ifndef _STLP_NO_WCHAR_T
+wstring _S_empty_wstring(L"");
+# endif
 
-  switch (_Locale_n_sign_posn(monetary)) {
-    case 0: case 1:
-      neg_format.field[0] = (char) money_base::sign;
-      if (_Locale_n_cs_precedes(monetary)) {
-        neg_format.field[1] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[2] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::symbol;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }       
-      break;
-    case 2:
-      if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  neg_format.field[1] = (char) money_base::value;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[1] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-	else {
-	  neg_format.field[1] = (char) money_base::symbol;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      break;
-    case 3:
-      if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::sign;
-	neg_format.field[1] = (char) money_base::symbol;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[2] = (char) money_base::space;
-	  neg_format.field[3] = (char) money_base::value;
-	}
-	else {
-	  neg_format.field[2] = (char) money_base::value;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      else {
-	neg_format.field[0] = (char) money_base::value;
-	neg_format.field[1] = (char) money_base::sign;
-	neg_format.field[2] = (char) money_base::symbol;
-	neg_format.field[3] = (char) money_base::none;
-      }
-      break;
-    case 4: default:
-      if (_Locale_n_cs_precedes(monetary)) {
-	neg_format.field[0] = (char) money_base::symbol;
-	neg_format.field[1] = (char) money_base::sign;
-	neg_format.field[2] = (char) money_base::value;
-	neg_format.field[3] = (char) money_base::none;
-      }
-      else {
-	neg_format.field[0] = (char) money_base::value;
-	if (_Locale_n_sep_by_space(monetary)) {
-	  neg_format.field[1] = (char) money_base::space;
-	  neg_format.field[2] = (char) money_base::symbol;
-	  neg_format.field[3] = (char) money_base::sign;
-	}
-        else {
-	  neg_format.field[1] = (char) money_base::symbol;
-	  neg_format.field[2] = (char) money_base::sign;
-	  neg_format.field[3] = (char) money_base::none;
-	}
-      }
-      break;
-  }
+//
+// moneypunct<>
+//
+
+moneypunct<char, true>::moneypunct(size_t __refs) : _BaseFacet(__refs) { 
+    _Init_monetary_formats(_M_pos_format, _M_neg_format); 
 }
+moneypunct<char, true>::~moneypunct() {}
 
-__STL_END_NAMESPACE  
+char moneypunct<char, true>::do_decimal_point() const {return ' ';}
+char moneypunct<char, true>::do_thousands_sep() const {return ' ';}
+string moneypunct<char, true>::do_grouping() const { return _S_empty_string; }
+string moneypunct<char, true>::do_curr_symbol() const { return _S_empty_string; }
+string moneypunct<char, true>::do_positive_sign() const { return _S_empty_string; }
+string moneypunct<char, true>::do_negative_sign() const { return _S_empty_string; }
+money_base::pattern moneypunct<char, true>::do_pos_format() const  {return _M_pos_format;}
+money_base::pattern moneypunct<char, true>::do_neg_format() const {return _M_neg_format;}
+int moneypunct<char, true>::do_frac_digits() const {return 0;}
+
+moneypunct<char, false>::moneypunct(size_t __refs) : _BaseFacet(__refs) { 
+    _Init_monetary_formats(_M_pos_format, _M_neg_format); 
+}
+moneypunct<char, false>::~moneypunct() {}
+
+char moneypunct<char, false>::do_decimal_point() const {return ' ';}
+char moneypunct<char, false>::do_thousands_sep() const {return ' ';}
+
+string moneypunct<char, false>::do_grouping() const { return _S_empty_string; }
+string moneypunct<char, false>::do_curr_symbol() const { return _S_empty_string; }
+string moneypunct<char, false>::do_positive_sign() const { return _S_empty_string; }
+string moneypunct<char, false>::do_negative_sign() const { return _S_empty_string; }
+money_base::pattern moneypunct<char, false>::do_pos_format() const {return _M_pos_format;}
+money_base::pattern moneypunct<char, false>::do_neg_format() const {return _M_neg_format;}
+int moneypunct<char, false>::do_frac_digits() const {return 0;}
+
+
+# ifndef _STLP_NO_WCHAR_T
+
+moneypunct<wchar_t, true>::moneypunct(size_t __refs) : _BaseFacet(__refs) { 
+    _Init_monetary_formats(_M_pos_format, _M_neg_format); 
+}
+moneypunct<wchar_t, true>::~moneypunct() {}
+
+wchar_t moneypunct<wchar_t, true>::do_decimal_point() const {return L' ';}
+wchar_t moneypunct<wchar_t, true>::do_thousands_sep() const {return L' ';}
+string moneypunct<wchar_t, true>::do_grouping() const {return _S_empty_string;}
+
+wstring moneypunct<wchar_t, true>::do_curr_symbol() const
+  {return _S_empty_wstring;}
+wstring moneypunct<wchar_t, true>::do_positive_sign() const
+  {return _S_empty_wstring;}
+wstring moneypunct<wchar_t, true>::do_negative_sign() const
+  {return _S_empty_wstring;}
+int moneypunct<wchar_t, true>::do_frac_digits() const {return 0;}
+money_base::pattern moneypunct<wchar_t, true>::do_pos_format() const
+  {return _M_pos_format;}
+money_base::pattern moneypunct<wchar_t, true>::do_neg_format() const
+  {return _M_neg_format;}
+
+moneypunct<wchar_t, false>::moneypunct(size_t __refs) : _BaseFacet(__refs) { 
+    _Init_monetary_formats(_M_pos_format, _M_neg_format); 
+}
+moneypunct<wchar_t, false>::~moneypunct() {}
+
+wchar_t moneypunct<wchar_t, false>::do_decimal_point() const {return L' ';}
+wchar_t moneypunct<wchar_t, false>::do_thousands_sep() const {return L' ';}
+string moneypunct<wchar_t, false>::do_grouping() const { return _S_empty_string;}
+wstring moneypunct<wchar_t, false>::do_curr_symbol() const
+  {return _S_empty_wstring;}
+wstring moneypunct<wchar_t, false>::do_positive_sign() const
+  {return _S_empty_wstring;}
+wstring moneypunct<wchar_t, false>::do_negative_sign() const
+  {return _S_empty_wstring;}
+int moneypunct<wchar_t, false>::do_frac_digits() const {return 0;}
+
+money_base::pattern moneypunct<wchar_t, false>::do_pos_format() const
+  {return _M_pos_format;}
+money_base::pattern moneypunct<wchar_t, false>::do_neg_format() const
+  {return _M_neg_format;}
+
+# endif /* WCHAR_T */
+
+//
+// Instantiations
+//
+
+# if !defined(_STLP_NO_FORCE_INSTANTIATE)
+
+template class money_get<char, istreambuf_iterator<char, char_traits<char> > >;
+template class money_put<char, ostreambuf_iterator<char, char_traits<char> > >;
+// template class money_put<char, char*>;
+
+#ifndef _STLP_NO_WCHAR_T
+template class money_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+template class money_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// template class money_put<wchar_t, wchar_t*>;
+// template class money_get<wchar_t, const wchar_t*>;
+#endif
+
+# endif
+
+_STLP_END_NAMESPACE  
 
 // Local Variables:
 // mode:C++

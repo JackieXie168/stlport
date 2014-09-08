@@ -16,91 +16,32 @@
  *
  */ 
 
+# include "stlport_prefix.h"
 # include "num_put.h"
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // num_put
 
-// Helper functions for _M_do_put_integer
+extern const char __hex_char_table_lo[];
+extern const char __hex_char_table_hi[];
 
-void __STL_CALL
-__make_integer_conversion_spec(char * 	       cvtspec, 
-				    ios_base::fmtflags flags,
-				    bool 	       is_signed,
-				    bool 	       is_long_long) 
-{
-  *cvtspec++ = '%';
-  if (flags & ios_base::showpos)  *cvtspec++ = '+';
-  if (flags & ios_base::showbase) *cvtspec++ = '#';
+const char __hex_char_table_lo[18] = "0123456789abcdefx"; 
+const char __hex_char_table_hi[18] = "0123456789ABCDEFX";
 
-  *cvtspec++ = 'l';             // %l... for long, %ll... for unsigned long.
-  if (is_long_long)             // We never construct a conversion specifier
-    *cvtspec++ = 'l';           // for any type shorter than long.
-
-  switch (flags & ios_base::basefield) {
-    case ios_base::oct:
-      *cvtspec++ = 'o'; break;
-    case ios_base::hex:
-      *cvtspec++ = flags & ios_base::uppercase ? 'X' : 'x'; break;
-    default:
-      *cvtspec++ = is_signed ? 'd' : 'u';
-  }
-
-  *cvtspec++ = 0;
-}
-
-char* __STL_CALL
+char* _STLP_CALL
 __write_integer(char* buf, ios_base::fmtflags flags, long x)
 {
-  char cvtspec[64];
-  __make_integer_conversion_spec(cvtspec, flags, true, false);
-  sprintf(buf, cvtspec, x);
-  return buf + strlen(buf);
+  char tmp[64];
+  char* bufend = tmp+64;
+  char* beg = __write_integer_backward(bufend, flags, x);
+  return copy(beg, bufend, buf);
 }
 
-char* __STL_CALL
-__write_integer(char* buf, ios_base::fmtflags flags, unsigned long x)
-{
-  char cvtspec[64];
-  __make_integer_conversion_spec(cvtspec, flags, false, false);
-  sprintf(buf, cvtspec, x);
-  return buf + strlen(buf);
-}
+///-------------------------------------
 
-#ifdef __STL_LONG_LONG
-
-char* __STL_CALL
-__write_integer(char* buf, ios_base::fmtflags flags, long long x)
-{
-  char cvtspec[64];
-  __make_integer_conversion_spec(cvtspec, flags, true, true);
-  sprintf(buf, cvtspec, x);
-  return buf + strlen(buf);
-}
-
-char* __STL_CALL
-__write_integer(char* buf, ios_base::fmtflags flags, unsigned long long x)
-{
-  char cvtspec[64];
-  __make_integer_conversion_spec(cvtspec, flags, false, true);
-  sprintf(buf, cvtspec, x);
-  return buf + strlen(buf);
-}
-
-#endif /* __STL_LONG_LONG */
-
-
-ptrdiff_t __STL_CALL
-__insert_grouping(char* first, char* last, const string& grouping,
-                  char separator, int basechars)
-{
-  return __insert_grouping_aux(first, last, grouping, separator,
-		               '+', '-', basechars);
-}
-
-ptrdiff_t __STL_CALL
+ptrdiff_t _STLP_CALL
 __insert_grouping(char * first, char * last, const string& grouping,
 		  char separator, char Plus, char Minus, int basechars)
 {
@@ -108,9 +49,9 @@ __insert_grouping(char * first, char * last, const string& grouping,
 			       separator, Plus, Minus, basechars);
 }
 
-# ifndef __STL_NO_WCHAR_T
+# ifndef _STLP_NO_WCHAR_T
 
-ptrdiff_t __STL_CALL
+ptrdiff_t _STLP_CALL
 __insert_grouping(wchar_t* first, wchar_t* last, const string& grouping,
                   wchar_t separator, wchar_t Plus, wchar_t Minus,
 		  int basechars)
@@ -121,7 +62,21 @@ __insert_grouping(wchar_t* first, wchar_t* last, const string& grouping,
 
 # endif
 
-__STL_END_NAMESPACE
+
+//----------------------------------------------------------------------
+// Force instantiation of num_put<>
+#if !defined(_STLP_NO_FORCE_INSTANTIATE)
+template class _STLP_CLASS_DECLSPEC ostreambuf_iterator<char, char_traits<char> >;
+// template class num_put<char, char*>;
+template class num_put<char, ostreambuf_iterator<char, char_traits<char> > >;
+# ifndef _STLP_NO_WCHAR_T
+template class ostreambuf_iterator<wchar_t, char_traits<wchar_t> >;
+template class num_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// template class num_put<wchar_t, wchar_t*>;
+# endif /* INSTANTIATE_WIDE_STREAMS */
+#endif
+
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

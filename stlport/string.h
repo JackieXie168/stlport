@@ -13,20 +13,20 @@
  *
  */
 
-# ifndef __STL_OUTERMOST_HEADER_ID
-#  define __STL_OUTERMOST_HEADER_ID 0x269
+# ifndef _STLP_OUTERMOST_HEADER_ID
+#  define _STLP_OUTERMOST_HEADER_ID 0x269
 #  include <stl/_prolog.h>
 # endif
 
-#   include __STL_NATIVE_C_HEADER(string.h)
+#   include _STLP_NATIVE_C_HEADER(string.h)
 
-# if defined (__BORLANDC__) && defined (__STL_IMPORT_VENDOR_CSTD)
+# if defined (__BORLANDC__) && defined (_STLP_IMPORT_VENDOR_CSTD)
 #  include <using/cstring>
 # endif /* BORLAND */
 
-# if (__STL_OUTERMOST_HEADER_ID == 0x269)
+# if (_STLP_OUTERMOST_HEADER_ID == 0x269)
 #  include <stl/_epilog.h>
-#  undef __STL_OUTERMOST_HEADER_ID
+#  undef _STLP_OUTERMOST_HEADER_ID
 # endif
 
 // Local Variables:

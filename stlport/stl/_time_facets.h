@@ -20,13 +20,17 @@
 // file directly.
 
 
-#ifndef __SGI_STL_INTERNAL_TIME_FACETS_H
-#define __SGI_STL_INTERNAL_TIME_FACETS_H
+#ifndef _STLP_INTERNAL_TIME_FACETS_H
+#define _STLP_INTERNAL_TIME_FACETS_H
 
-__STL_BEGIN_NAMESPACE
+#ifndef _STLP_CTIME
+# include <ctime>                // Needed (for struct tm) by time facets
+#endif
 
-_Locale_time* __STL_CALL __acquire_time(const char* __name);
-void          __STL_CALL __release_time(_Locale_time* __time);
+#include <stl/c_locale.h>
+#include <stl/_ios_base.h>
+
+_STLP_BEGIN_NAMESPACE
 
 // Template functions used by time_get
 
@@ -65,14 +69,14 @@ void          __STL_CALL __release_time(_Locale_time* __time);
 // as well as the am/pm designator.  The month and weekday tables
 // have the all the abbreviated names before all the full names.
 // The _Time_Info tables are initialized using the non-template
-// function __init_timeinfo, which has two overloadings:  one
+// function _Init_timeinfo, which has two overloadings:  one
 // with a single reference parameter for the table to be initialized,
 // and one with a second _Locale_time * parameter.  The first form
 // is called by the default constructor and the second by a special
 // constructor invoked from the _byname subclass constructor to
 // construct the base class.
 
-class __STL_CLASS_DECLSPEC _Time_Info {
+class _STLP_CLASS_DECLSPEC _Time_Info {
 public:
   string _M_dayname[14];
   string _M_monthname[24];
@@ -80,12 +84,14 @@ public:
   string _M_time_format;
   string _M_date_format;
   string _M_date_time_format;
+  string _M_long_date_format;
+  string _M_long_date_time_format;
 };
 
-void __STL_CALL __init_timeinfo(_Time_Info&);
-void __STL_CALL __init_timeinfo(_Time_Info&, _Locale_time*);
+void _STLP_CALL _Init_timeinfo(_Time_Info&);
+void _STLP_CALL _Init_timeinfo(_Time_Info&, _Locale_time*);
 
-class __STL_CLASS_DECLSPEC time_base {
+class _STLP_CLASS_DECLSPEC time_base {
 public:
   enum dateorder {no_order, dmy, mdy, ymd, ydm};
 };
@@ -94,22 +100,14 @@ public:
 template <class _Ch, __DFL_TMPL_PARAM( _InIt , istreambuf_iterator<_Ch>) >
 class time_get : public locale::facet, public time_base 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
+
 public:
   typedef _Ch   char_type;
   typedef _InIt iter_type;
 
-  explicit time_get(size_t __refs = 0) 
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-  : locale::facet(__refs)
-#else					//*TY 04/29/2000 - 
-  : _facet(__refs)		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-  {
-      __init_timeinfo(_M_timeinfo);
+  explicit time_get(size_t __refs = 0)   : _BaseFacet(__refs) {
+      _Init_timeinfo(_M_timeinfo);
   }
   dateorder date_order() const { return do_date_order(); }
   iter_type get_time(iter_type __s, iter_type  __end, ios_base&  __str,
@@ -128,18 +126,12 @@ public:
                      ios_base::iostate&  __err, tm* __t) const
     { return do_get_year(__s,  __end,  __str,  __err, __t); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
 
 protected:
   _Time_Info _M_timeinfo;
 
-  time_get(_Locale_time *, size_t __refs) 
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-  : locale::facet(__refs)
-#else					//*TY 04/29/2000 - 
-  : _facet(__refs)		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-  {}
+  time_get(_Locale_time *, size_t __refs) : _BaseFacet(__refs) {}
 
   ~time_get() {}
 
@@ -167,8 +159,10 @@ protected:
                                 tm* __t) const;
 };
 
-time_base::dateorder __STL_CALL
+time_base::dateorder _STLP_CALL
 __get_date_order(_Locale_time*);
+_Locale_time* _STLP_CALL __acquire_time(const char* __name);
+void          _STLP_CALL __release_time(_Locale_time* __time);
 
 template <class _Ch, __DFL_TMPL_PARAM( _InIt , istreambuf_iterator<_Ch>) >
 class time_get_byname : public time_get<_Ch, _InIt> 
@@ -180,7 +174,7 @@ public:
   explicit time_get_byname(const char* __name, size_t __refs = 0)
     : time_get<_Ch, _InIt>((_Locale_time*) 0, __refs),
       _M_time(__acquire_time(__name))
-    { __init_timeinfo(this->_M_timeinfo, this->_M_time); }
+    { _Init_timeinfo(this->_M_timeinfo, this->_M_time); }
 
 protected:
   ~time_get_byname() { __release_time(_M_time); }
@@ -199,41 +193,32 @@ private:
 // format.  As indicated by the foregoing remark, this will never be
 // 'x', 'X', or 'c'.
 
-char * __STL_CALL
-__write_formatted_time(char * __buf, char __format,
+char * _STLP_CALL
+__write_formatted_time(char * __buf, char __format, char __modifier,
                        const _Time_Info& __table, const tm* __t);
 
 template <class _OuIt>
-inline _OuIt __STL_CALL __put_time(char * __first, char * __last, _OuIt __out,
-                                   const locale& /* __loc */, char) {
+inline _OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out,
+                                   const ios_base& /* __loc */, char) {
     return copy(__first, __last, __out);
 }
 
-# ifndef __STL_NO_WCHAR_T
+# ifndef _STLP_NO_WCHAR_T
 template <class _OuIt>
-_OuIt __STL_CALL __put_time(char * __first, char * __last, _OuIt __out,
-                            const locale& __loc, wchar_t);
+_OuIt _STLP_CALL __put_time(char * __first, char * __last, _OuIt __out,
+                            const ios_base& __s, wchar_t);
 # endif
 
 template<class _Ch, __DFL_TMPL_PARAM( _OutputIter , ostreambuf_iterator<_Ch> ) >
-class time_put : public locale::facet 
+class time_put : public locale::facet, public time_base
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef _Ch      char_type;
   typedef _OutputIter iter_type;
 
-  explicit time_put(size_t __refs = 0) 
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-  : locale::facet(__refs)
-#else					//*TY 04/29/2000 - 
-  : _facet(__refs)		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-  {
-    __init_timeinfo(_M_timeinfo);
+  explicit time_put(size_t __refs = 0) : _BaseFacet(__refs) {
+    _Init_timeinfo(_M_timeinfo);
   }
 
   _OutputIter put(iter_type __s, ios_base& __f, _Ch __fill,
@@ -245,19 +230,13 @@ public:
     return do_put(__s, __f,  __fill, __tmb, __format, __modifier); 
   }
   
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
   
 protected:
   _Time_Info _M_timeinfo;
 
-  time_put(_Locale_time* /*__time*/, size_t __refs)		//*TY 03/30/2000 - removed unused parameter id
-#if !(defined(__MRC__) || defined(__SC__) )		//*TY 04/29/2000 - added workaround for mpw
-    : locale::facet(__refs)
-#else					//*TY 04/29/2000 - 
-    : _facet(__refs)		//*TY 04/29/2000 - they forget to look into the nested class for the ctor
-#endif					//*TY 04/29/2000 - 
-	{
-    //    __init_timeinfo(_M_timeinfo, __time);
+  time_put(_Locale_time* /*__time*/, size_t __refs) : _BaseFacet(__refs) {
+    //    _Init_timeinfo(_M_timeinfo, __time);
   }
 
   ~time_put() {}
@@ -269,7 +248,7 @@ protected:
 template <class _Ch, __DFL_TMPL_PARAM( _InIt , ostreambuf_iterator<_Ch> ) >
 class time_put_byname : public time_put<_Ch, _InIt> 
 {
-  friend class _Locale_impl;
+  friend class _Locale;
 public:
   typedef time_base::dateorder dateorder;
   typedef _InIt iter_type;
@@ -278,7 +257,7 @@ public:
   explicit time_put_byname(const char * __name, size_t __refs = 0)
     : time_put<_Ch, _InIt>((_Locale_time*) 0, __refs),
     _M_time(__acquire_time(__name))
-  { __init_timeinfo(this->_M_timeinfo, this->_M_time); }
+  { _Init_timeinfo(this->_M_timeinfo, this->_M_time); }
   
 protected:
   ~time_put_byname() { __release_time(_M_time); }
@@ -287,15 +266,50 @@ private:
   _Locale_time* _M_time;
 };
 
-__STL_END_NAMESPACE
+# ifdef _STLP_USE_TEMPLATE_EXPORT
+_STLP_EXPORT_TEMPLATE_CLASS time_get<char, istreambuf_iterator<char, char_traits<char> > >;
+_STLP_EXPORT_TEMPLATE_CLASS time_put<char, ostreambuf_iterator<char, char_traits<char> > >;
+// _STLP_EXPORT_TEMPLATE_CLASS time_get<char, const char*>;
+// _STLP_EXPORT_TEMPLATE_CLASS time_put<char, char*>;
+#  ifndef _STLP_NO_WCHAR_T
+_STLP_EXPORT_TEMPLATE_CLASS time_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+_STLP_EXPORT_TEMPLATE_CLASS time_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >;
+// _STLP_EXPORT_TEMPLATE_CLASS time_get<wchar_t, const wchar_t*>;
+// _STLP_EXPORT_TEMPLATE_CLASS time_put<wchar_t, wchar_t*>;
+#  endif /* INSTANTIATE_WIDE_STREAMS */
 
-# if !defined (__STL_LINK_TIME_INSTANTIATION)
+# endif
+
+# if defined (__BORLANDC__) && defined (_RTLDLL)
+inline void _Stl_loc_init_time_facets() {
+  
+  time_get<char, istreambuf_iterator<char, char_traits<char> > >::id._M_index                      = 16;
+  time_get<char, const char*>::id._M_index         = 17;
+  time_put<char, ostreambuf_iterator<char, char_traits<char> > >::id._M_index                      = 18;
+  time_put<char, char*>::id._M_index               = 19;
+  
+# ifndef _STLP_NO_WCHAR_T
+  
+  time_get<wchar_t, istreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id._M_index                   = 35;
+  time_get<wchar_t, const wchar_t*>::id._M_index   = 36;
+  time_put<wchar_t, ostreambuf_iterator<wchar_t, char_traits<wchar_t> > >::id._M_index                   = 37;
+  time_put<wchar_t, wchar_t*>::id._M_index         = 38;
+  
+# endif
+  
+}
+# endif
+
+_STLP_END_NAMESPACE
+
+#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
 #  include <stl/_time_facets.c>
 # endif
 
-#endif /* __SGI_STL_INTERNAL_TIME_FACETS_H */
+#endif /* _STLP_INTERNAL_TIME_FACETS_H */
 
 // Local Variables:
 // mode:C++
 // End:
+
 

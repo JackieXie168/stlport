@@ -1,18 +1,28 @@
-#if defined(__sgi) && !defined(__GNUC__) && !defined(_STANDARD_C_PLUS_PLUS)
-#error This header file requires the -LANG:std option
+
+#ifndef _STLP_INTERNAL_STREAMBUF
+#include <stl/_streambuf.h>
+#endif
+#ifndef _STLP_ISTREAM
+#include <istream>              // Includes <ostream>, <ios>, <iosfwd>
+#endif
+#ifndef _STLP_STRING_H
+#include <stl/_string.h>
 #endif
 
-#include <streambuf>
-#include <istream>              // Includes <ostream>, <ios>, <iosfwd>
-#include <string>
+_STLP_BEGIN_NAMESPACE
 
-__STL_BEGIN_NAMESPACE
+#ifndef _STLP_USE_NAMESPACES
+# define strstream _STLP_strstream 
+# define ostrstream _STLP_ostrstream
+# define istrstream _STLP_istrstream
+# define strstreambuf _STLP_strstreambuf
+#endif
 
 //----------------------------------------------------------------------
 // Class strstreambuf, a streambuf class that manages an array of char.
 // Note that this class is not a template.
 
-class __STL_CLASS_DECLSPEC strstreambuf : public basic_streambuf<char, char_traits<char> >
+class _STLP_CLASS_DECLSPEC strstreambuf : public basic_streambuf<char, char_traits<char> >
 {
 public:                         // Types.
   typedef char_traits<char>              _Traits;
@@ -21,7 +31,7 @@ public:                         // Types.
   typedef void (*__free_fn)(void*);
 public:                         // Constructor, destructor
 
-  explicit strstreambuf(streamsize __initial_capacity = 0);
+  explicit strstreambuf(streamsize _Initial_capacity = 0);
 
   strstreambuf(__alloc_fn, __free_fn);
 
@@ -69,7 +79,7 @@ private:                        // Data members.
 //----------------------------------------------------------------------
 // Class istrstream, an istream that manages a strstreambuf.
 
-class __STL_CLASS_DECLSPEC istrstream : public basic_istream<char, char_traits<char> >
+class _STLP_CLASS_DECLSPEC istrstream : public basic_istream<char, char_traits<char> >
 {
 public:
   explicit istrstream(char*);
@@ -88,7 +98,7 @@ private:
 //----------------------------------------------------------------------
 // Class ostrstream
 
-class __STL_CLASS_DECLSPEC ostrstream : public basic_ostream<char, char_traits<char> >
+class _STLP_CLASS_DECLSPEC ostrstream : public basic_ostream<char, char_traits<char> >
 {
 public:
   ostrstream();
@@ -107,7 +117,7 @@ private:
 //----------------------------------------------------------------------
 // Class strstream
 
-class __STL_CLASS_DECLSPEC strstream : public basic_iostream<char, char_traits<char> >
+class _STLP_CLASS_DECLSPEC strstream : public basic_iostream<char, char_traits<char> >
 {
 public:
   typedef char                        char_type;
@@ -128,4 +138,4 @@ private:
   strstreambuf _M_buf;
 };
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE

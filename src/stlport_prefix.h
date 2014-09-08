@@ -3,9 +3,32 @@
 
 # define __BUILDING_STLPORT 1
 
-// Please add extra compilation switches for particular compilers here
+# if defined (_WIN32) || defined (WIN32)
+#  ifdef __cplusplus
+#   define WIN32_LEAN_AND_MEAN
+#   define NOSERVICE
+#  endif
+#  if ! defined (__CYGWIN__)
+#   define _STLP_REAL_LOCALE_IMPLEMENTED
+#  endif
+# endif
+
+#   undef _STLP_NO_FORCE_INSTANTIATE
+
+/* Please add extra compilation switches for particular compilers here */
 
 # include <stl/_config.h>
+
+# if defined (_STLP_USE_TEMPLATE_EXPORT) && defined (_STLP_USE_DECLSPEC) && ! defined (_STLP_EXPOSE_GLOBALS_IMPLEMENTATION)
+#  define _STLP_EXPOSE_GLOBALS_IMPLEMENTATION
+# endif
+
+# ifdef __cplusplus
+
+# include <ctime>
+# if defined (_STLP_USE_NAMESPACES) && ! defined (_STLP_VENDOR_GLOBAL_CSTD)
+using _STLP_VENDOR_CSTD::time_t;
+# endif
 
 // This section is only for compilers that support precompiled headers !
 // Currently there are : Visual C++
@@ -13,8 +36,8 @@
 // the platform makefile when addinf compilers to this list, otherwise 
 // this will result in worse build performance.
 
-# if defined (__STL_MSVC)
-# ifndef __STL_USE_DECLSPEC
+# if defined (_STLP_MSVC) || defined (__ICL)
+# ifndef _STLP_USE_DECLSPEC
 # include <climits>
 # include <cmath>
 # include <cstdlib>
@@ -33,13 +56,22 @@
 # include <stdexcept>
 # include <string>
 // # include <locale>
-# endif
 
-# ifdef __STL_MSVC
+# ifdef _STLP_MSVC
 #  pragma hdrstop
 # endif
 
+# endif
 
 # endif /* precompiler headers */
 
+# if defined (_STLP_FUNCTION_TMPL_PARTIAL_ORDER) || defined (__BORLANDC__)
+#  define _STLP_OPERATOR_SPEC _STLP_DECLSPEC 
+# else
+#  define _STLP_OPERATOR_SPEC _STLP_TEMPLATE_NULL _STLP_DECLSPEC
+# endif
+
+# endif /* __cplusplus */
+
 #endif /* PREFIX */
+

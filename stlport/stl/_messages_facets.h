@@ -21,13 +21,22 @@
 // file directly.
 
 
-#ifndef __SGI_STL_INTERNAL_MESSAGES_H
-#define __SGI_STL_INTERNAL_MESSAGES_H
+#ifndef _STLP_INTERNAL_MESSAGES_H
+#define _STLP_INTERNAL_MESSAGES_H
 
-__STL_BEGIN_NAMESPACE
+#ifndef _STLP_IOS_BASE_H
+# include <stl/_ios_base.h>
+#endif
 
-// Forward declaration of an opaque type.
-struct _Catalog_locale_map;
+# ifndef _STLP_C_LOCALE_H
+#  include <stl/c_locale.h>
+# endif
+
+#ifndef _STLP_STRING_H
+# include <stl/_string.h>
+#endif
+
+_STLP_BEGIN_NAMESPACE
 
 // messages facets
 
@@ -38,33 +47,33 @@ public:
 
 template <class _CharT> class messages {};
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC messages<char> : public locale::facet, public messages_base 
+class _Messages;
+
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC messages<char> : public locale::facet, public messages_base 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef messages_base::catalog catalog;
   typedef char                   char_type;
   typedef string    string_type;
 
-
   explicit messages(size_t __refs = 0);
 
-  inline catalog open(const string& __fn, const locale& __loc) const
+  catalog open(const string& __fn, const locale& __loc) const
     { return do_open(__fn, __loc); }
-  inline string_type get(catalog __c, int __set, int __msgid,
-                         const string_type& __dfault) const
+  string_type get(catalog __c, int __set, int __msgid,
+		  const string_type& __dfault) const
     { return do_get(__c, __set, __msgid, __dfault); }
   inline void close(catalog __c) const
     { do_close(__c); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
+
+  messages(_Messages*);
 
 protected:
-  messages(size_t, _Locale_messages*);
+   messages(size_t, _Locale_messages*);
   ~messages();
 
   virtual catalog     do_open(const string& __fn, const locale& __loc) const;
@@ -75,24 +84,22 @@ protected:
   void _M_initialize(const char* __name);
 
 private:
-  _Locale_messages* _M_message_obj;
+  _Messages* _M_impl;
 };
 
-# if !defined (__STL_NO_WCHAR_T)
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC messages<wchar_t> : public locale::facet, public messages_base 
+# if !defined (_STLP_NO_WCHAR_T)
+
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC messages<wchar_t> : public locale::facet, public messages_base 
 {
-  friend class _Locale_impl;
-#if defined(__MRC__) || defined(__SC__)	//*TY 04/29/2000 - added workaround for mpw
-  typedef locale::facet _facet;			//*TY 04/29/2000 - they forget to look into nested class for the ctor.
-#endif									//*TY 04/29/2000 - 
+  friend class _Locale;
 public:
   typedef messages_base::catalog catalog;
   typedef wchar_t                char_type;
   typedef wstring  string_type;
 
   explicit messages(size_t __refs = 0);
-
+  
   inline catalog open(const string& __fn, const locale& __loc) const
     { return do_open(__fn, __loc); }
   inline string_type get(catalog __c, int __set, int __msgid,
@@ -101,9 +108,12 @@ public:
   inline void close(catalog __c) const
     { do_close(__c); }
 
-  __STL_STATIC_MEMBER_DECLSPEC static locale::id id;
+  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
+
+  messages(_Messages*);
 
 protected:
+
   messages(size_t, _Locale_messages*);
   ~messages();
 
@@ -115,16 +125,15 @@ protected:
   void _M_initialize(const char* __name);
 
 private:
-  _Locale_messages* _M_message_obj;
-  _Catalog_locale_map* _M_map;
+  _Messages* _M_impl;
 };
 
 # endif /* WCHAR_T */
 
 template <class _CharT> class messages_byname {};
 
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC messages_byname<char> : public messages<char> {
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC messages_byname<char> : public messages<char> {
 public:
   typedef messages_base::catalog catalog;
   typedef string     string_type;
@@ -135,9 +144,9 @@ protected:
   ~messages_byname();
 };
 
-# ifndef __STL_NO_WCHAR_T
-__STL_TEMPLATE_NULL
-class __STL_CLASS_DECLSPEC messages_byname<wchar_t> : public messages<wchar_t> {
+# ifndef _STLP_NO_WCHAR_T
+_STLP_TEMPLATE_NULL
+class _STLP_CLASS_DECLSPEC messages_byname<wchar_t> : public messages<wchar_t> {
 public:
   typedef messages_base::catalog catalog;
   typedef wstring                string_type;
@@ -149,9 +158,9 @@ protected:
 };
 # endif /* WCHAR_T */
 
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
-#endif /* __SGI_STL_INTERNAL_MESSAGES_H */
+#endif /* _STLP_INTERNAL_MESSAGES_H */
 
 // Local Variables:
 // mode:C++

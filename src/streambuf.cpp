@@ -18,7 +18,7 @@
 # include "stlport_prefix.h"
 
 
-#include <streambuf>
+#include <stl/_streambuf.h>
 #include <stl/_algobase.h>
 
 // Implementation of non-inline member functions of class
@@ -30,18 +30,9 @@
 #  define FILE_CAST(x) x
 # endif
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
-locale basic_streambuf<char, char_traits<char> >::pubimbue(const locale& loc)
-{
-  this->imbue(loc);
-  locale tmp = _M_locale;
-  _M_locale = loc;
-  return tmp;
-}
-
-basic_streambuf<char, char_traits<char> >::~basic_streambuf() {}
-
+#if !(defined(__MVS__) || defined(__OS400__))
 // The default constructor.
 basic_streambuf<char, char_traits<char> >::basic_streambuf()
   : _M_get(FILE_CAST(_M_default_get)), 
@@ -52,6 +43,9 @@ basic_streambuf<char, char_traits<char> >::basic_streambuf()
   _FILE_I_set(_M_get, 0, 0, 0);
   _FILE_O_set(_M_put, 0, 0, 0);
 }
+# endif
+
+basic_streambuf<char, char_traits<char> >::~basic_streambuf() {}
 
 // This constructor is an extension.  It is for streambuf subclasses that
 // are synchronized with C stdio files.
@@ -68,6 +62,8 @@ basic_streambuf<char, char_traits<char> >
   if (&_M_put == &FILE_CAST(_M_default_put))
     _FILE_O_set(_M_put, 0, 0, 0);      
 }
+
+// virtual functions
 
 void basic_streambuf<char, char_traits<char> >::imbue(const locale&)
 {}
@@ -110,7 +106,7 @@ streamsize basic_streambuf<char, char_traits<char> >
 
   while (result < n) {
     if (_FILE_I_avail(_M_get) > 0) {
-      size_t chunk = min(__STATIC_CAST(size_t,_FILE_I_avail(_M_get)),
+      size_t chunk = (min) (__STATIC_CAST(size_t,_FILE_I_avail(_M_get)),
                          __STATIC_CAST(size_t,n - result));
       traits_type::copy(s, _FILE_I_next(_M_get), chunk);
       result += chunk;
@@ -120,9 +116,9 @@ streamsize basic_streambuf<char, char_traits<char> >
     else {
       int_type c = sbumpc();
       if (c != eof) {
-        s[result] = c;
+        *s = c;
         ++result;
-        ++s;
+	++s;
       }
       else
         break; 
@@ -162,12 +158,12 @@ streamsize basic_streambuf<char, char_traits<char> >
 
   while (result < n) {
     if (_FILE_O_avail(_M_put) > 0) {
-      size_t chunk = min(__STATIC_CAST(size_t,_FILE_O_avail(_M_put)),
+      size_t chunk = (min) (__STATIC_CAST(size_t,_FILE_O_avail(_M_put)),
                          __STATIC_CAST(size_t,n - result));
       traits_type::copy(_FILE_O_next(_M_put), s, chunk);
       result += chunk;
       s += chunk;
-      _FILE_O_bump(_M_put, chunk);
+      _FILE_O_bump(_M_put, (int)chunk);
     }
 
     else if (this->overflow(traits_type::to_int_type(*s)) != eof) {
@@ -188,11 +184,11 @@ streamsize basic_streambuf<char, char_traits<char> >
 
   while (result < n) {
     if (_FILE_O_avail(_M_put) > 0) {
-      size_t chunk = min(__STATIC_CAST(size_t,_FILE_O_avail(_M_put)),
+      size_t chunk = (min) (__STATIC_CAST(size_t,_FILE_O_avail(_M_put)),
                          __STATIC_CAST(size_t,n - result));
       traits_type::assign(_FILE_O_next(_M_put), chunk, c);
       result += chunk;
-      _FILE_O_bump(_M_put, chunk);
+      _FILE_O_bump(_M_put, (int)chunk);
     }
 
     else if (this->overflow(traits_type::to_int_type(c)) != eof)
@@ -222,22 +218,27 @@ basic_streambuf<char, char_traits<char> >::_M_snextc_aux()
   }
 }
 
+
+locale basic_streambuf<char, char_traits<char> >::pubimbue(const locale& loc)
+{
+  this->imbue(loc);
+  locale tmp = _M_locale;
+  _M_locale = loc;
+  return tmp;
+}
+
 //----------------------------------------------------------------------
 // Force instantiation of basic_streambuf
 
 // not basic_streambuf<char>, because it's specialized.
 
-#if !defined(__STL_NO_FORCE_INSTANTIATE)
-#if !defined (__STL_NO_WCHAR_T)
+#if !defined(_STLP_NO_FORCE_INSTANTIATE)
+#if !defined (_STLP_NO_WCHAR_T)
 template class basic_streambuf<wchar_t, char_traits<wchar_t> >;
 #endif /* INSTANTIATE_WIDE_STREAMS */
 #endif
 
-//static void __dummy_inst() {
-//  basic_streambuf<char, char_traits<char> >* buf;
-//}
-
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 // Local Variables:
 // mode:C++

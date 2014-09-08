@@ -5,8 +5,8 @@
 #
 # compiler
 #
-CC = gcc
-CXX = c++
+CC = gcc 
+CXX = c++ -pthreads -fexceptions
 
 #
 # Basename for libraries
@@ -19,7 +19,7 @@ LIB_BASENAME = libstlport_gcc
 #
 LINK=ar cr
 # 2.95 flag
-DYN_LINK=gcc -shared -o
+DYN_LINK=c++ -pthreads -fexceptions -shared -o
 
 OBJEXT=o
 DYNEXT=so
@@ -28,8 +28,9 @@ RM=rm -rf
 PATH_SEP=/
 MKDIR=mkdir -p
 COMP=GCC$(ARCH)
+INSTALL_STEP = install_unix 
 
-all: all_dynamic all_static
+all:  all_dynamic all_static symbolic_links 
 
 include common_macros.mak
 
@@ -43,8 +44,8 @@ CXXFLAGS_RELEASE_dynamic = $(CXXFLAGS_COMMON) -O2 -fPIC
 CXXFLAGS_DEBUG_static = $(CXXFLAGS_COMMON) -g
 CXXFLAGS_DEBUG_dynamic = $(CXXFLAGS_COMMON) -g -fPIC
 
-CXXFLAGS_STLDEBUG_static = $(CXXFLAGS_DEBUG_static) -D__STL_DEBUG
-CXXFLAGS_STLDEBUG_dynamic = $(CXXFLAGS_DEBUG_dynamic) -D__STL_DEBUG -fPIC
+CXXFLAGS_STLDEBUG_static = $(CXXFLAGS_DEBUG_static) -D_STLP_DEBUG
+CXXFLAGS_STLDEBUG_dynamic = $(CXXFLAGS_DEBUG_dynamic) -D_STLP_DEBUG
 
 include common_percent_rules.mak
 include common_rules.mak

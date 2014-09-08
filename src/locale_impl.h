@@ -21,60 +21,53 @@
 
 #include <clocale>             // C locale header file.
 #include <vector>
-#include <locale>
+#include <string>
+#include <stl/_locale.h>
+#include "c_locale.h"
 
-__STL_BEGIN_NAMESPACE
+_STLP_BEGIN_NAMESPACE
 
 //----------------------------------------------------------------------
 // Class _Locale_impl
-
-class __STL_CLASS_DECLSPEC _Locale_impl : public _Refcount_Base
+// This is the base class which implements access only and is supposed to 
+// be used for classic locale only
+class _STLP_CLASS_DECLSPEC _Locale_impl
 {
 public:
-  _Locale_impl(size_t n, const char* s) : _Refcount_Base(1), facets(n, (void*)0 ), name(s) {}
-  _Locale_impl(const _Locale_impl&);
-  ~_Locale_impl();
+  _Locale_impl(const char* s);
+  //  _Locale_impl(const _Locale_impl&);
+  virtual ~_Locale_impl();
 
-  void remove(size_t index);
-  locale::facet* insert(locale::facet*, size_t index, bool do_incr);
-  void insert(_Locale_impl* from, const locale::id& n);
+  virtual void incr();
+  virtual void decr();
 
-// Helper functions for byname construction of locales.
-  void insert_ctype_facets(const char* name);
-  void insert_numeric_facets(const char* name);
-  void insert_time_facets(const char* name);
-  void insert_collate_facets(const char* name);
-  void insert_monetary_facets(const char* name);
-  void insert_messages_facets(const char* name);
+  size_t size() const { return _M_size; }
+
+  static _Locale_impl* make_classic_locale();
   
-  vector<void*> facets;
+  locale::facet** facets;
+  size_t _M_size;
+
   basic_string<char, char_traits<char>, allocator<char> > name;
+
+  static void _STLP_CALL _M_throw_bad_cast();
 
 private:
   void operator=(const _Locale_impl&);
 };
 
-template <class Facet>
-inline locale::facet* 
-_Locale_impl_insert(_Locale_impl* __that, Facet* f) {
-  return __that->insert(f, Facet::id._M_index, false);
+inline _Locale_impl*  _STLP_CALL _S_copy_impl(_Locale_impl* I) {
+    _STLP_ASSERT( I != 0 );
+    I->incr();
+    return I;
 }
 
-size_t _Stl_loc_get_index(locale::id& id);
-void _Stl_loc_assign_ids();
-_Locale_impl* _Stl_loc_make_classic_locale();
-void _Stl_loc_combine_names(_Locale_impl* L,
-                            const char* name1, const char* name2,
-                            locale::category c);
-
 extern _Locale_impl*   _Stl_loc_global_impl;
-extern locale*         _Stl_loc_classic_locale;
-extern _STL_STATIC_MUTEX _Stl_loc_global_locale_lock;
+// extern locale*         _Stl_loc_classic_locale;
+extern _STLP_STATIC_MUTEX _Stl_loc_global_locale_lock;
 
-// this is really from locale.cpp
-_Locale_numeric*  __STL_CALL __acquire_numeric(const char* name);
-void  __STL_CALL __release_numeric(_Locale_numeric* cat);
-
-__STL_END_NAMESPACE
+_STLP_END_NAMESPACE
 
 #endif
+
+

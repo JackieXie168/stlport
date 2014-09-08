@@ -1,11 +1,14 @@
 // STLport configuration file
 // It is internal STLport header - DO NOT include it directly
 
-#  define __STL_DLLEXPORT_NEEDS_PREDECLARATION 1
+# if (__ICL >= 450)
+#  define _STLP_DLLEXPORT_NEEDS_PREDECLARATION 1
+# endif
+
+# define _STLP_IMPORT_TEMPLATE_KEYWORD extern
 
 # include <config/stl_msvc.h>
 
-// debug mode problems in <algorithm>
-# define __STL_NAMESPACE_FUNCTION_AMBIGUITY_BUG 1
-# define __STL_LONG_LONG 1
+# undef  _STLP_LONG_LONG
+# define _STLP_LONG_LONG long long
 
