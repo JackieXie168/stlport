@@ -1,6 +1,6 @@
 *************************************************************
-*                 STLport 3.12.2 README file
-*                Last updated : April 11, 1999.
+*                 STLport 3.12.3 README file
+*                Last updated : April 18, 1999.
 *************************************************************
 
 Copyright (c) 1999 Boris Fomitchev
@@ -98,6 +98,8 @@ STLport was reported to work with the following compilers:
     OS 390 CC 1.x-2.x compilers (auto-recognized).
 
     Apple MRC compiler
+
+    IBM TPF C++ compiler
 
 *************************************************************
 Known problems

@@ -190,15 +190,32 @@ struct _Slist_iterator : public _Slist_iterator_base
     _M_incr();
     return __tmp;
   }
-  bool operator==(const _Self& __x) const {
-    __stl_debug_check(__check_same_owner_or_null(*this,__x));                         
-    return _M_node == __x._M_node;
-  }
-  bool operator!=(const _Self& __x) const {
-    __stl_debug_check(__check_same_owner_or_null(*this,__x));                         
-    return _M_node != __x._M_node;
-  }
 };
+
+
+template<class _Tp, class _Ref, class _Ptr, class _Ref1, class _Ptr1>
+inline  bool operator==(const _Slist_iterator<_Tp, _Ref, _Ptr>& __x,
+			const _Slist_iterator<_Tp, _Ref1, _Ptr1>& __y ) { 
+  __stl_debug_check(__check_same_owner_or_null(__x, __y));                         
+  return __x._M_node == __y._M_node; 
+}
+
+#ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
+
+template<class _Tp, class _Ref, class _Ptr>
+inline  bool operator!=(const _Slist_iterator<_Tp, _Ref, _Ptr>& __x,
+			const _Slist_iterator<_Tp, _Ref, _Ptr>& __y ) { 
+    __stl_debug_check(__check_same_owner_or_null(__x,__y));                         
+    return __x._M_node != __y._M_node; 
+}
+
+template<class _Tp>
+inline  bool operator!=(const _Slist_iterator<_Tp, _Tp&, _Tp*>& __x,
+			const _Slist_iterator<_Tp, const _Tp&, const _Tp*>& __y ) { 
+    __stl_debug_check(__check_same_owner_or_null(__x,__y));                         
+    return __x._M_node != __y._M_node; 
+}
+#endif
 
 #ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
 

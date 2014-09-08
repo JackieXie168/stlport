@@ -165,12 +165,13 @@ public:
   size_type size() const { return _M_t.size(); }
   size_type max_size() const { return _M_t.max_size(); }
   _Tp& operator[](const key_type& __k) {
-    iterator __i = lower_bound(__k);
+    iterator __i = this->lower_bound(__k);
     // __i->first is greater than or equivalent to __k.
-    if (__i == end() || key_comp()(__k, (*__i).first))
+    if (__i == _M_t.end() || (key_comp()(__k, (*__i).first)))
       __i = insert(__i, value_type(__k, _Tp()));
     return (*__i).second;
   }
+
   void swap(map<_Key,_Tp,_Compare,_Alloc>& __x) { _M_t.swap(__x._M_t); }
 
   // insert/erase

@@ -45,10 +45,10 @@ __STL_END_NAMESPACE
 # if defined  (__STL_USE_NAMESPACES) && ! defined (__STL_BROKEN_USING_DIRECTIVE)
 
 __STL_BEGIN_NAMESPACE
-using __STL_VENDOR_STD::ostream;
-using __STL_VENDOR_STD::endl;
-using __STL_VENDOR_STD::ends;
-using __STL_VENDOR_STD::flush;
+using ::ostream;
+using ::endl;
+using ::ends;
+using ::flush;
 __STL_END_NAMESPACE
 
 #   endif /* __STL_NAMESPACE */

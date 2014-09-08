@@ -132,7 +132,8 @@ struct _Hashtable_iterator
       __stl_debug_check(__check_same_owner_or_null(*this,__it));
     return _M_cur != __it._M_cur; 
   }
-
+  inline bool operator==(const const_iterator& __it) const;
+  inline bool operator!=(const const_iterator& __it) const;
 };
 
 
@@ -196,6 +197,24 @@ struct _Hashtable_const_iterator
     return _M_cur != __it._M_cur; 
   }
 };
+
+template <class _Val, class _Key, class _HF,
+          class _ExK, class _EqK, class _All>
+inline bool 
+_Hashtable_iterator<_Val, _Key, _HF, _ExK, _EqK, _All>::operator==
+(const _Hashtable_const_iterator<_Val, _Key, _HF, _ExK, _EqK, _All>& __it) const { 
+    __stl_debug_check(__check_same_owner_or_null(*this,__it));
+    return _M_cur == __it._M_cur; 
+}
+
+template <class _Val, class _Key, class _HF,
+          class _ExK, class _EqK, class _All>
+inline bool 
+_Hashtable_iterator<_Val, _Key, _HF, _ExK, _EqK, _All>::operator!=
+(const _Hashtable_const_iterator<_Val, _Key, _HF, _ExK, _EqK, _All>& __it) const { 
+  __stl_debug_check(__check_same_owner_or_null(*this,__it));
+  return _M_cur != __it._M_cur; 
+}
 
 // Note: assumes long is at least 32 bits.
 # define __stl_num_primes  28

@@ -206,19 +206,20 @@ public:
   pair<const_iterator,const_iterator> equal_range(const key_type& __x) const {
     return _M_t.equal_range(__x);
   }
-  const _Rep_type& _Get_tree() const { return _M_t; }
 };
 
 template <class _Key, class _Tp, class _Compare, class _Alloc>
 inline bool operator==(const multimap<_Key,_Tp,_Compare,_Alloc>& __x, 
                        const multimap<_Key,_Tp,_Compare,_Alloc>& __y) {
-  return __x._Get_tree() == __y._Get_tree();
+  return __x.size() == __y.size() &&
+         equal(__x.begin(), __x.end(), __y.begin());
 }
 
 template <class _Key, class _Tp, class _Compare, class _Alloc>
 inline bool operator<(const multimap<_Key,_Tp,_Compare,_Alloc>& __x, 
                       const multimap<_Key,_Tp,_Compare,_Alloc>& __y) {
-  return __x._Get_tree() < __y._Get_tree();
+  return lexicographical_compare(__x.begin(), __x.end(), 
+                                 __y.begin(), __y.end());
 }
 
 #ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER

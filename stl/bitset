@@ -280,7 +280,7 @@ unsigned long _Base_bitset<_Nw, _WordT>::_M_do_to_ulong() const
 
     unsigned long __result = 0;
     for (size_t __i = 0; __i < __min_nwords; ++__i) {
-      __result |= __STATIC_CAST(unsigned long,
+      __result |= __STATIC_CAST(const unsigned long,
          _M_w[__i]) << (__i * sizeof(_WordT) * CHAR_BIT);
     }
     return __result;
@@ -1225,21 +1225,16 @@ public:
 		  size_t __pos = 0,
 		  size_t __n = (size_t)-1) : _BS_SUPER(__s, __pos, __n) {}
   ~bitset() {}
+#  if defined (__STL_BASE_MATCH_BUG)
+  bool operator==(const bitset<_Nb>& __y) {
+    return operator == ((const _Super&)*this,(const _Super&)__y);
+  }
+  bool operator<(const bitset<_Nb>& __y) {
+    return operator < ((const _Super&)*this,(const _Super&)__y);
+  }
+#  endif /* __STL_BASE_MATCH_BUG */
 };
 
-#  if defined (__STL_BASE_MATCH_BUG)
-template <class _Nb>
-    inline bool operator==(const bitset<_Nb>& __x, const bitset<_Nb>& __y) {
-    typedef  __bitset__<_Nb,__stl_ulong> _Super;
-    return operator == ((const _Super&)__x,(const _Super&)__y);
-}
-
-template <class _Nb>
-    inline bool operator<(const bitset<_Nb>& __x, const bitset<_Nb>& __y) {
-    typedef  __bitset__<_Nb,__stl_ulong> _Super;
-    return operator < ((const _Super&)__x,(const _Super&)__y);
-}
-#  endif /* __STL_BASE_MATCH_BUG */
 #  undef _BS_SUPER
 
 # endif /* __STL_DEFAULT_TEMPLATE_PARAM */

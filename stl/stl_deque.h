@@ -244,20 +244,6 @@ struct _Deque_iterator {
 
   reference operator[](difference_type __n) const { return *(*this + __n); }
 
-  bool operator==(const _Self& __x) const { 
-    __stl_debug_check(__check_same_owner_or_null(*this,__x));    
-    return _M_cur == __x._M_cur; 
-  }
-  bool operator!=(const _Self& __x) const { return !(*this == __x); }
-  bool operator<(const _Self& __x) const {
-    __stl_debug_check(__check_same_owner(*this,__x));    
-    return (_M_node == __x._M_node) ? 
-      (_M_cur < __x._M_cur) : (_M_node < __x._M_node);
-  }
-  bool operator>(const _Self& __x) const  { return __x < *this; }
-  bool operator<=(const _Self& __x) const { return !(__x < *this); }
-  bool operator>=(const _Self& __x) const { return !(*this < __x); }
-
   void _M_set_node(_Map_pointer __new_node) {
     _M_node = __new_node;
     _M_first = *__new_node;
@@ -286,6 +272,73 @@ distance_type(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>&) {
 }
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
+template <class _Tp, class _Ref, class _Ptr, class _Ref1, class _Ptr1, class __bufsiz>
+inline bool 
+operator==(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+	   const _Deque_iterator<_Tp,_Ref1,_Ptr1,__bufsiz>& __y) { 
+    __stl_debug_check(__check_same_owner_or_null(__x, __y));    
+    return __x._M_cur == __y._M_cur; 
+}
+
+template <class _Tp, class _Ref, class _Ptr, class _Ref1, class _Ptr1, class __bufsiz>
+inline bool 
+operator<(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+	  const _Deque_iterator<_Tp,_Ref1,_Ptr1,__bufsiz>& __y) { 
+    __stl_debug_check(__check_same_owner(__x, __y));    
+    return (__x._M_node == __y._M_node) ? 
+      (__x._M_cur < __y._M_cur) : (__x._M_node < __y._M_node);
+}
+
+#ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
+
+template <class _Tp, class _Ref, class _Ptr, class __bufsiz>
+inline bool 
+operator!=(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+	   const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __y) { 
+    __stl_debug_check(__check_same_owner_or_null(__x, __y));    
+    return __x._M_cur != __y._M_cur; 
+}
+template <class _Tp, class _Ref, class _Ptr, class __bufsiz>
+inline bool 
+operator>(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+	  const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __y) { 
+    return __y < __x;
+}
+template <class _Tp, class _Ref, class _Ptr, class __bufsiz>
+inline bool operator>=(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+		       const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __y) { 
+    return !(__x < __y);
+}
+template <class _Tp, class _Ref, class _Ptr, class __bufsiz>
+inline bool operator<=(const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __x,
+		       const _Deque_iterator<_Tp,_Ref,_Ptr,__bufsiz>& __y) { 
+    return !(__y < __x);
+}
+
+template <class _Tp, class __bufsiz>
+inline bool operator!=(const _Deque_iterator<_Tp,_Tp&,_Tp*,__bufsiz>& __x,
+		       const _Deque_iterator<_Tp, const _Tp&, const _Tp*,__bufsiz>& __y) { 
+    __stl_debug_check(__check_same_owner_or_null(__x, __y));    
+    return __x._M_cur != __y._M_cur; 
+}
+template <class _Tp, class __bufsiz>
+inline bool operator>(const _Deque_iterator<_Tp,_Tp&, _Tp*, __bufsiz>& __x,
+		      const _Deque_iterator<_Tp,const _Tp&,const _Tp*,__bufsiz>& __y) { 
+    return __y < __x;
+}
+template <class _Tp, class __bufsiz>
+inline bool operator>=(const _Deque_iterator<_Tp,_Tp&,_Tp*,__bufsiz>& __x,
+		       const _Deque_iterator<_Tp,const _Tp&,const _Tp*,__bufsiz>& __y) { 
+    return !(__x < __y);
+}
+template <class _Tp, class __bufsiz>
+inline bool operator<=(const _Deque_iterator<_Tp,_Tp&,_Tp*,__bufsiz>& __x,
+		       const _Deque_iterator<_Tp,const _Tp&,const _Tp*,__bufsiz>& __y) { 
+    return !(__y < __x);
+}
+# endif
+
+
 # ifdef __STL_DEBUG
 template <class _Tp, class _Ref, class _Ptr, class __bufsiz>
 #ifdef __STL_INLINE_NAME_RESOLUTION_BUG
@@ -302,7 +355,7 @@ bool _Deque_iterator<_Tp, _Ref, _Ptr, __bufsiz>::_Dereferenceable() const
   const iterator* __start = (const iterator*)(_Owner()->_Owner());
   const iterator* __finish = __start+1;
   
-  __stl_verbose_return(this->operator<(*__finish) && this->operator>=(*__start),
+  __stl_verbose_return( *(iterator*)this < *__finish && *(iterator*)this >= *__start ,
 		       __STL_MSG_NOT_DEREFERENCEABLE);    
   return true;
 }
@@ -317,8 +370,8 @@ bool _Deque_iterator<_Tp, _Ref, _Ptr, __bufsiz>::_Nonsingular() const {
   // for _Deque_iterator, we are not able to restore full deque structure
   const iterator* __start = (const iterator*)(_Owner()->_Owner());
   const iterator* __finish = __start+1;
-  __stl_verbose_return(this->operator<=(*__finish) && 
-		       this->operator>=(*__start),
+  __stl_verbose_return(*(iterator*)this <= *__finish && 
+		       *(iterator*)this >= *__start,
 		       __STL_MSG_SINGULAR_ITERATOR);    
   return true;
 }

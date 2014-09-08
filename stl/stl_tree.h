@@ -105,7 +105,6 @@ struct _Rb_tree_node : public _Rb_tree_node_base
   _Value _M_value_field;
 };
 
-
 struct _Rb_tree_base_iterator
 # if defined ( __STL_DEBUG )
     : public __owned_link 
@@ -169,6 +168,17 @@ struct _Rb_tree_base_iterator
   }
 };
 
+inline bool operator==(const _Rb_tree_base_iterator& __x,
+                       const _Rb_tree_base_iterator& __y) {
+  return __x._M_node == __y._M_node;
+}
+
+inline bool operator!=(const _Rb_tree_base_iterator& __x,
+                       const _Rb_tree_base_iterator& __y) {
+  return __x._M_node != __y._M_node;
+}
+
+
 template <class _Value, class _Ref, class _Ptr>
 struct _Rb_tree_iterator : public _Rb_tree_base_iterator
 {
@@ -217,20 +227,7 @@ struct _Rb_tree_iterator : public _Rb_tree_base_iterator
   }
 };
 
-template <class _Value, class _Ref, class _Ptr>
-inline bool operator==(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
-                       const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
-  __stl_debug_check(__check_same_owner_or_null(__x,__y));                         
-  return __x._M_node == __y._M_node;
-}
-
-# ifdef __STL_CLASS_PARTIAL_SPECIALIZATION
-template <class _Value, class _Ref, class _Ptr>
-inline bool operator!=(const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __x,
-                       const _Rb_tree_iterator<_Value, _Ref, _Ptr>& __y) {
-  return __x._M_node != __y._M_node;
-}
-# else
+# ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
 inline bidirectional_iterator_tag
 iterator_category(const _Rb_tree_base_iterator&) {
   return bidirectional_iterator_tag();

@@ -12,6 +12,7 @@
 
 #   define __STL_NO_EXCEPTION_HEADER 1
 #   define __STL_NO_BAD_ALLOC 1
+#   define __SGI_STL_NO_ARROW_OPERATOR 1
 
 // Get rid of Watcom's min and max macros 
 #undef min 

@@ -102,16 +102,9 @@ inline pair<_T1, _T2> make_pair(const _T1& __x, const _T2& __y)
 
 __STL_END_NAMESPACE
 
-# if defined ( __STL_CLASS_PARTIAL_SPECIALIZATION )
 #  ifndef __TYPE_TRAITS_H
 #   include <type_traits.h>
 #  endif
-// __STL_BEGIN_NAMESPACE -- dwa 10/23/98
-template <class _T1, class _T2>
-struct __type_traits< __STD::pair<_T1,_T2> > : 
-    public __type_traits_compose<_T1,_T2> {};
-// __STL_END_NAMESPACE -- dwa 10/23/98
-# endif
 
 #endif /* __SGI_STL_INTERNAL_PAIR_H */
 

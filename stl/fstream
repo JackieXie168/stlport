@@ -53,10 +53,10 @@ __STL_END_NAMESPACE
 
 __STL_BEGIN_NAMESPACE
 
-using __STL_VENDOR_STD::streambuf;
-using __STL_VENDOR_STD::ifstream;
-using __STL_VENDOR_STD::ofstream;
-using __STL_VENDOR_STD::fstream;
+using ::streambuf;
+using ::ifstream;
+using ::ofstream;
+using ::fstream;
 
 __STL_END_NAMESPACE
 

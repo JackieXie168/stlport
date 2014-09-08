@@ -599,12 +599,6 @@ private:
 #  define __PROTECTED protected
 #endif
 
-#  ifdef __STL_FULL_SPEC_SYNTAX
-#   define __STL_FULL_SPECIALIZATION template<>
-#  else
-#   define __STL_FULL_SPECIALIZATION
-#  endif
-
 // SGI terms
 
 # if ! defined (__STL_BOOL_KEYWORD)
@@ -624,6 +618,13 @@ private:
 # ifdef __STL_FULL_SPEC_SYNTAX
 #  define __STL_PARTIAL_SPECIALIZATION_SYNTAX 1
 # endif
+
+#  ifdef __STL_PARTIAL_SPECIALIZATION_SYNTAX
+#   define __STL_FULL_SPECIALIZATION template<>
+#  else
+#   define __STL_FULL_SPECIALIZATION
+#  endif
+
 # define __STL_TEMPLATE_NULL __STL_FULL_SPECIALIZATION
 
 # ifdef __STL_FUNC_PARTIAL_ORDERING
@@ -659,7 +660,13 @@ private:
     _Self& operator=(const _Super& __x) {                       \
         *(_Super*)this = __x;                                   \
         return *this;                                           \
+    } \
+    __derived_name(const _Self& __x) : _Super(__x) {}          \
+    _Self& operator=(const _Self& __x) {                       \
+        *(_Super*)this = __x;                                   \
+        return *this;                                           \
     }
+
 
 # define __IMPORT_WITH_ITERATORS(_Super) \
 __IMPORT_CONTAINER_TYPEDEFS(_Super) __IMPORT_ITERATORS(_Super)

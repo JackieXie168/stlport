@@ -69,6 +69,7 @@
 # define __STL_DEFAULT_PARAM_CONSTRUCTOR_BUG 1
 #      define __STL_BOGUS_TEMPLATE_TYPE_MATCHING_BUG 1
 # define __STL_MPW_EXTRA_CONST const  
+# define __SGI_STL_NO_ARROW_OPERATOR 1
 # endif // defined (__SC__) && (__SC__ >= 0x882)
 
 // Apple MPW MrCpp 4.1.0
@@ -149,4 +150,6 @@
 # define __STL_DEFAULT_PARAM_CONSTRUCTOR_BUG 1
 #      define __STL_BOGUS_TEMPLATE_TYPE_MATCHING_BUG 1
 # define __STL_MPW_EXTRA_CONST const
+# define __SGI_STL_NO_ARROW_OPERATOR 1
 # endif // defined (__MRC__)
+

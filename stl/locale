@@ -23,7 +23,7 @@
 __STL_BEGIN_NAMESPACE
 
 // from <cwchar>
-using __STL_VENDOR_STD::mbstate_t;
+using __STL_VENDOR_CSTD::mbstate_t;
 
 // _lib.locale_, locale:
 using __STL_VENDOR_STD::locale;

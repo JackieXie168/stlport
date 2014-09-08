@@ -1,79 +1,71 @@
+Below is a list of changes done since 3.12 release :
+
+1999-04-18   Boris Fomitchev  <fbp@stlport.org>
+All compilers affected:
+	* stl_tree.h - operators == and != generalized to be able to take (iterator,const_iterator) parameters.
+        * stl_hashtable.h, stl_list.h, stl_slist.h, stl_deque.h - likewise
+        * stl_tree.h - guard for != operator fixed (from __STL_CLASS_PARTIAL_SPECIALIZATION __STL_FUNCTION_TMPL_PARTIAL_ORDER )
+        * locale - mbstate fixed to CSTD::
+        * stl_pair.h - type_traits specialization for pair removed
+	* stl_config.h - __STL_TEMPLATE_NULL setting fixed
+
+Only compilers without default template parameters affected:
+	* stl_config.h - IMPORT_SUPER_COPY_ASSIGNMENT fixed
+Only specific compilers affected:
+	* string  : changed access specifiers for using decl. for HP aCC.
+	* config/stl_map.h : operator [] fixed for Watcom C++
+	* config/stl_ibm.h : added __STL_TRIVIAL_DESTRUCTOR_BUG switch
+	* config/stl_apple.h - added  __SGI_STL_NO_ARROW_OPERATOR switch
+	* config/stl_watcom.h - likewise
+	* config/stl_sco.h - __STL_MEMBER_TEMPLATE_CLASSES disabled, __STL_BOOL_KEYWORD added
+
 1999-04-11   Boris Fomitchev  <fbp@stlport.org>
 
 	* Intel Reference (ICL) compiler configuration added
-
 	* config/stl_sco.h, stl_config.h, stl_threads.h - SCO UDK C++ compiler configuration added
-
 	* config/stl_watcom.h - fixed configuration.
-
 	* "unconfigure" script added
-
 	* <string> : fixed !=, etc. operators, typo in "append"
-
 	* char_traits.h - static_cast<> relaxed due to some compiler bugs
-
 	* stl_iterator.h - use of fail() eliminated for istream_iterator.
-
 	* _REENTRANT setting fixed for VC++/BC, "bool" setting fixed for VC.
-
 	* ropeimpl.h - disabled wchar_t specialization for _Rope_insert_char_consumer
-
 	* __STL_NO_SIGNED workaround fixed
 
 1999-03-28   Boris Fomitchev  <fbp@stlport.org>
 
 	*  stl_config.h:717 - fixed Visual Age C++ problem with "bool" definition.
-
 	* Patch 01 released.
 
 1999-03-26  Boris Fomitchev  <fbp@stlport.org>
 
 	* Merged changes from SGI STL 3.13.
-	 
 	* stl/config/stl_msvc.h, stl/config/stl_bc.h - set _REENTRANT if MT is on
-
 	* stl_construct.h - added type casts for SHRED_BYTE
-
 	* test/test/stl_test.ibm390.exp - fixed
-	
 	* test/eh/Prefix.h - fixed EH_NO_EXCEPTIONS selection
-	
 	* stl_multiset.h, stl_hash_map.h, stl_vector.h, stl_slist.h, stl_set.h
           stl_multimap.h, stl_map.h, stl_list.h, stl_hash_set.h, stl_deque.h, stl_config.h :
 	  Made super::pointer and super::const_ponter available in wrappers that are used
 	  for compilers with limited default templates.
-	
 	*  stl/char_traits.h:30 - guarded wchar.h inclusion with __STL_WCHAR_T
-
 	*  test/test/sunpro.mak - fixed include path
-
 	*  stl/bitset:1220 - removed extra typedefs import
-
 	*  stl/config/stl_gcc.h   - fixed __STL_USE_EXCEPTION setting for GCC, moved to stl_confix.h
- 	
 	*  stl/config/stl_hpacc.h - disabled __STL_USE_SGI_ALLOCATORS switch, 
 	   __STL_NO_SIGNED_BUILTINS introduced for older versions.
 	
 1999-03-25  Boris Fomitchev  <fbp@stlport.org>
-
 	* <string> - added conversions from/to std::basic_string for __STL_USE_OWN_NAMESPACE case.
-
 	* <string> - _Reserve_t() workarounds refined
-
 1999-03-23  Boris Fomitchev  <fbp@stlport.org>
-
 	* <stl_pair.h> - pair<> copy constructor enabled regardless of __STL_MEMBER_TEMPLATES. 
-
 	* <iosfwd> - removed istream_iterator/ostream_iterator forward declarations (for standard)
-	
 	* <stl_iterator.h> - default args for istream_iterator/ostream_iterator restored (for VC++ 6.0)
-
 	* <config/stl_confix.h>, <stl_config.h> - 
 	__STL_DEFAULTCHAR macro/typedef intoduced to work around VC++ 6.0 internal compiler bug.
-
 	* <stl_iterator.h> - default "char" changed for __STL_DEFAULTCHAR  
    	for istream_iterator/ostream_iterator (for VC++ 6.0)
-
 	* <iostream> - <ios> inclusion for VC 4.2 made only for it.
 
 

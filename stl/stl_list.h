@@ -91,14 +91,6 @@ struct _List_iterator {
   _List_iterator(const iterator& __x) : _M_node(__x._M_node) {}
 # endif
 
-  bool operator==(const _Self& __x) const { 
-    __stl_debug_check(__check_same_owner_or_null(*this,__x));                         
-    return _M_node == __x._M_node; 
-  }
-  bool operator!=(const _Self& __x) const { 
-    __stl_debug_check(__check_same_owner_or_null(*this,__x));                         
-    return _M_node != __x._M_node; 
-  }
   reference operator*() const { 
             __stl_verbose_assert(_Valid() && _M_node!=_Owner_node(), 
 				 __STL_MSG_NOT_DEREFERENCEABLE); 
@@ -130,6 +122,30 @@ struct _List_iterator {
     return __tmp;
   }
 };
+
+template<class _Tp, class _Ref, class _Ptr, class _Ref1, class _Ptr1>
+inline  bool operator==(const _List_iterator<_Tp, _Ref, _Ptr>& __x,
+			const _List_iterator<_Tp, _Ref1, _Ptr1>& __y ) { 
+__stl_debug_check(__check_same_owner_or_null(__x,__y));                         
+return __x._M_node == __y._M_node; 
+  }
+
+#ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
+
+template<class _Tp, class _Ref, class _Ptr>
+inline  bool operator!=(const _List_iterator<_Tp, _Ref, _Ptr>& __x,
+			const _List_iterator<_Tp, _Ref, _Ptr>& __y ) { 
+    __stl_debug_check(__check_same_owner_or_null(__x, __y));                         
+    return __x._M_node != __y._M_node; 
+  }
+
+template<class _Tp>
+inline  bool operator!=(const _List_iterator<_Tp, _Tp&, _Tp*>& __x,
+			const _List_iterator<_Tp, const _Tp&, const _Tp*>& __y ) { 
+    __stl_debug_check(__check_same_owner_or_null(__x, __y));                         
+    return __x._M_node != __y._M_node; 
+}
+#endif
 
 #ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
 
@@ -973,13 +989,13 @@ public:
 #  if defined (__STL_BASE_MATCH_BUG)
 template <class _Tp>
 inline bool operator==(const list<_Tp>& __x, const list<_Tp>& __y) {
-    typedef typename list<_Tp>::_Super _Super;
+    typedef __list__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) > _Super;
     return operator == ((const _Super&)__x,(const _Super&)__y);
 }
 
 template <class _Tp>
 inline bool operator<(const list<_Tp>& __x, const list<_Tp>& __y) {
-    typedef typename list<_Tp>::_Super _Super;
+    typedef __list__<_Tp, __STL_DEFAULT_ALLOCATOR(_Tp) > _Super;
     return operator < ((const _Super&)__x,(const _Super&)__y);
 }
 #  endif

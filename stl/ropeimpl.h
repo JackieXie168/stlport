@@ -1504,7 +1504,7 @@ rope<_CharT, _Alloc>::rope(size_t __n, _CharT __c,
 
 # if ( __STL_STATIC_TEMPLATE_DATA > 0 )
 template<class _CharT, class _Alloc>
-_CharT rope<_CharT,_Alloc>::_S_empty_c_str[1];
+_CharT rope<_CharT,_Alloc>::_S_empty_c_str[1] = { _CharT() };
 # else
 __DECLARE_INSTANCE(char, crope::_S_empty_c_str[1], ={0});
 # ifdef __STL_WCHAR_T

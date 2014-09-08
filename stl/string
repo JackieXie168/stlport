@@ -469,7 +469,7 @@ private:                        // Protected members inherited from base.
   // fbp : used to optimize char/wchar_t cases, and to simplify
   // __STL_DEFAULT_CONSTRUCTOR_BUG problem workaround
   typedef typename _Is_integer<_CharT>::_Integral _Char_Is_Integral;
-protected:
+public:
 #if defined( __STL_HAS_NAMESPACES )
   __STL_USING_BASE_MEMBER _String_base<_CharT,_Alloc>::_M_allocate;
   __STL_USING_BASE_MEMBER _String_base<_CharT,_Alloc>::_M_deallocate;
