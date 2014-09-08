@@ -27,7 +27,7 @@
 #  include <stl/_string_fwd.h>
 #endif
 
-#ifndef _STLP_INTERNAL_FUNCTION_BASE_H
+#ifndef _STLP_INTERNAL_FUNCTION_H
 #  include <stl/_function.h>
 #endif
 
@@ -1339,7 +1339,13 @@ struct __move_traits<basic_string<_CharT, _Traits, _Alloc> > {
   //Completness depends on the allocator:
   typedef typename __move_traits<_Alloc>::complete complete;
 };
-#endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
+/*#else
+ * There is no need to specialize for string and wstring in this case
+ * as the default __move_traits will already tell that string is movable
+ * but not complete. We cannot define is as complete as nothing guaranty
+ * that the STLport user hasn't specialized allocator<char> or wchar_t.
+ */
+#endif
 
 template <class _CharT, class _Traits, class _Alloc> 
 void _STLP_CALL _S_string_copy(const basic_string<_CharT,_Traits,_Alloc>& __s,

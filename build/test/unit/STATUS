@@ -62,18 +62,18 @@ Notes:                          Same as notes for release (above)
 
 
 =======================================================================
-Operational environment:   Linux 2.6.12.1/SMP glibc 2.2.5, IA32
+Operational environment:   Linux 2.6.12/SMP glibc 2.2.5, IA32
 =======================================================================
 
 -----------------------------------------------------------------------
 Compiler:                       gcc 3.4.2
 -----------------------------------------------------------------------
-Date:                           2005-07-26
+Date:                           2005-09-05
 STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       ptr (Petr Ovtchenkov)
-Status (release-shared):        All pass (328 tests)
+Status (release-shared):        All pass (331 tests)
 Notes:
-Status (stldbg-shared):         All pass (328 tests)
+Status (stldbg-shared):         All pass (331 tests)
 Notes:
 
 
@@ -321,34 +321,14 @@ Operational environment:        Windows XP Professionnal 2002 SP2
 -----------------------------------------------------------------------
 Compiler:                       Visual C++ 6 SP5
 -----------------------------------------------------------------------
-Date:                           2005-06-28
-STLP Version:                   current CVS STLPORT_5_0 branch
-Reporter:                       dums (Francois Dumont)
-Status (release-shared):        All pass (323 tests)
-Notes:
-Status (dbg-shared):            All pass (323 tests)
-Notes:
-Status (stldbg-shared):         All pass (323 tests)
-Notes:
-Status (release-static):        All pass (323 tests)
-Notes:
-Status (dbg-static):            All pass (323 tests)
-Notes:
-Status (stldbg-static):         All pass (323 tests)
-Notes:
-
------------------------------------------------------------------------
-Compiler:                       Visual C++ 2005 Beta2 Version 8.0.50215-4400
------------------------------------------------------------------------
-Date:                           2005-06-28
+Date:                           2005-08-31
 STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       dums (Francois Dumont)
 Status (release-shared):        All pass (326 tests)
 Notes:
-Status (dbg-shared):            Runtime fail
-Notes:                          Microsoft do not grant the msvcp80d.dll file
-                                in their free package.
-Status (stldbg-shared):         Idem dbg-shared.
+Status (dbg-shared):            All pass (326 tests)
+Notes:
+Status (stldbg-shared):         All pass (326 tests)
 Notes:
 Status (release-static):        All pass (326 tests)
 Notes:
@@ -358,30 +338,92 @@ Status (stldbg-static):         All pass (326 tests)
 Notes:
 
 -----------------------------------------------------------------------
-Compiler:                       g++ 3.4.4 (cygwin special)
+Compiler:                       Visual C++ 2005 Beta2 Version 8.0.50215-4400
 -----------------------------------------------------------------------
-Date:                           2005-07-22
+Date:                           2005-08-31
 STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       dums (Francois Dumont)
-Status (release-shared):        1 failure (328 tests)
+Status (release-shared):        All pass (329 tests)
+Notes:
+Status (dbg-shared):            Runtime fail
+Notes:                          Microsoft do not grant the msvcp80d.dll file
+                                in their free package.
+Status (stldbg-shared):         Idem dbg-shared.
+Notes:
+Status (release-static):        All pass (329 tests)
+Notes:
+Status (dbg-static):            All pass (329 tests)
+Notes:
+Status (stldbg-static):         All pass (329 tests)
+Notes:
+
+-----------------------------------------------------------------------
+Compiler:                       Windows Server 2003 SP1 Platform SDK
+                                (cross compiling for AMD64)
+				Tests run under Windows XP Pro 64
+-----------------------------------------------------------------------
+Date:                           2005-08-16
+STLP Version:                   current CVS STLPORT_5_0 branch
+Reporter:                       Henrik Goldman (hg@x-formation.com, www.x-formation.com)
+Status (release-shared):        All pass (327 tests)
+Notes:
+Status (dbg-shared):            All pass (327 tests)
+Notes:
+Status (stldbg-shared):         All pass (327 tests)
+Notes:
+Status (release-static):        All pass (327 tests)
+Notes:
+Status (dbg-static):            All pass (327 tests)
+Notes:
+Status (stldbg-static):         All pass (327 tests)
+Notes:
+
+-----------------------------------------------------------------------
+Compiler:                       Visual C++ 2005 (Beta2) (8.0)
+                                (cross compiling for AMD64)
+				Tests run under Windows XP Pro 64
+-----------------------------------------------------------------------
+Date:                           2005-08-16
+STLP Version:                   current CVS STLPORT_5_0 branch
+Reporter:                       Henrik Goldman (hg@x-formation.com, www.x-formation.com)
+Status (release-shared):        All pass (327 tests)
+Notes:
+Status (dbg-shared):            All pass (327 tests)
+Notes:
+Status (stldbg-shared):         All pass (327 tests)
+Notes:
+Status (release-static):        All pass (327 tests)
+Notes:
+Status (dbg-static):            All pass (327 tests)
+Notes:
+Status (stldbg-static):         All pass (327 tests)
+Notes:
+
+-----------------------------------------------------------------------
+Compiler:                       g++ 3.4.4 (cygwin special)
+-----------------------------------------------------------------------
+Date:                           2005-08-31
+STLP Version:                   current CVS STLPORT_5_0 branch
+Reporter:                       dums (Francois Dumont)
+Status (release-shared):        1 failure (331 tests)
 Notes:                          ExceptionTest::uncaught_exception fails when all tests
                                 are run but succeed with the -t=ExceptionTest option.
-Status (dbg-shared):            1 failure (328 tests)
+Status (dbg-shared):            1 failure (331 tests)
 Notes:                          Idem release-shared.
-Status (stldbg-shared):         1 failure (328 tests)
+Status (stldbg-shared):         1 failure (331 tests)
 Notes:                          Idem release-shared.
 
 -----------------------------------------------------------------------
 Compiler:                       g++ 3.4.1 (mingw special)
----------------------------------------------6-------------------------
-Date:                           2005-07-22
-STLP Version:                   current CVS S6LPORT_5_0 branch
+-----------------------------------------------------------------------
+Date:                           2005-08-31
+STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       dums (Francois Dumont)
-Status (release-shared):        1 failure (328 tests)
+Status (release-shared):        1 failure (331 tests)
 Notes:                          Idem cygwin report above.
-Status (dbg-shared):            1 failure (328 tests)
+Status (dbg-shared):            1 failure (331 tests)
 Notes:                          Idem cygwin report above.
-Status (stldbg-shared):         1 failure (328 tests)
+Status (stldbg-shared):         1 failure (331 tests)
 Notes:                          Idem cygwin report above.
 
 =======================================================================
@@ -411,39 +453,39 @@ Notes:
 -----------------------------------------------------------------------
 Compiler:                       Visual C++ .Net 2002 (7.0)
 -----------------------------------------------------------------------
-Date:                           2005-06-13
+Date:                           2005-09-02
 STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       dums (Francois Dumont)
-Status (release-shared):        All pass (323 tests)
+Status (release-shared):        All pass (324 tests)
 Notes:
-Status (dbg-shared):            All pass (323 tests)
+Status (dbg-shared):            All pass (324 tests)
 Notes:
-Status (stldbg-shared):         All pass (323 tests)
+Status (stldbg-shared):         All pass (324 tests)
 Notes:
-Status (release-static):        All pass (323 tests)
+Status (release-static):        All pass (324 tests)
 Notes:
-Status (dbg-static):            All pass (323 tests)
+Status (dbg-static):            All pass (324 tests)
 Notes:
-Status (stldbg-static):         All pass (323 tests)
+Status (stldbg-static):         All pass (324 tests)
 Notes:
 
 -----------------------------------------------------------------------
 Compiler:                       Visual C++ .Net 2003 (7.1)
 -----------------------------------------------------------------------
-Date:                           2005-06-10
+Date:                           2005-09-02
 STLP Version:                   current CVS STLPORT_5_0 branch
 Reporter:                       dums (Francois Dumont)
-Status (release-shared):        All pass (325 tests)
+Status (release-shared):        All pass (329 tests)
 Notes:
-Status (dbg-shared):            All pass (325 tests)
+Status (dbg-shared):            All pass (329 tests)
 Notes:
-Status (stldbg-shared):         All pass (325 tests)
+Status (stldbg-shared):         All pass (329 tests)
 Notes:
-Status (release-static):        All pass (325 tests)
+Status (release-static):        All pass (329 tests)
 Notes:
-Status (dbg-static):            All pass (325 tests)
+Status (dbg-static):            All pass (329 tests)
 Notes:
-Status (stldbg-static):         All pass (325 tests)
+Status (stldbg-static):         All pass (329 tests)
 Notes:
 
 -----------------------------------------------------------------------

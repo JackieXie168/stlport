@@ -33,8 +33,8 @@
  * Use this switch for embedded systems where no iostreams are available
  * at all. STLport own iostreams will also get disabled automatically then.
  * You can either use STLport iostreams, or no iostreams.
- * If you want iostreams, you have to compile library in ../src and supply resulting
- * library at link time.
+ * If you want iostreams, you have to compile library in ../build/lib
+ * and supply resulting library at link time.
  */
 /*
 #define _STLP_NO_IOSTREAMS 1
@@ -45,7 +45,8 @@
  * That gets you checked iterators/ranges in the manner
  * of "Safe STL". Very useful for debugging. Thread-safe.
  * Please do not forget to link proper STLport library flavor
- * (e.g libstlport_gcc_stldebug.a) when you set this flag in STLport iostreams mode.
+ * (e.g libstlportstlg.so or libstlportstlg.a) when you set this flag
+ * in STLport iostreams mode.
  */
 /*
 #define   _STLP_DEBUG 1
@@ -132,7 +133,7 @@
  * will be filled if _STLP_DEBUG_ALLOC or _STLP_DEBUG_UNINITIALIZED is defined. 
  * Choose a value which is likely to cause a noticeable problem if dereferenced 
  * or otherwise abused. A good value may already be defined for your platform; see
- * stl_config.h
+ * stl/_config.h
  */
 /*
 #define _STLP_SHRED_BYTE 0xA3
@@ -183,6 +184,16 @@
  */
 /*
 #define _STLP_NEW_PLATFORM_SDK 1
+*/
+
+/*
+ * For the same reason as the one above we are not able to detect easily use
+ * of the compiler coming with the Platform SDK instead of the one coming with
+ * a Microsoft Visual Studio release. This change native C/C++ library location
+ * and implementation, please define this to get correct STLport configuration.
+ */
+/*
+#define _STLP_USING_PLATFORM_SDK_COMPILER 1
 */
 
 /*
@@ -297,7 +308,8 @@
 
 /*==========================================================*/
 
-/* Local Variables:
- * mode: C++
- * End:
- */
+/*
+  Local Variables:
+  mode: C++
+  End:
+*/

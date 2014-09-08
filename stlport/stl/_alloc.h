@@ -423,7 +423,14 @@ typedef __node_alloc<true, 0>  __multithreaded_alloc;
 // to refer to a template member of a dependent type.
 
 template <class _Tp>
-class allocator {
+class allocator 
+#if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
+/* A small helper struct to recognize STLport allocator implementation
+ * from any user specialization one.
+ */
+  : public __stlport_class<allocator<_Tp> > 
+#endif
+{
 public:
 
   typedef _Tp        value_type;
@@ -613,17 +620,15 @@ _STLP_EXPORT_TEMPLATE_CLASS _STLP_alloc_proxy<void**, void*, allocator<void*> >;
 #if defined (_STLP_CLASS_PARTIAL_SPECIALIZATION)
 template <class _Tp>
 struct __type_traits<allocator<_Tp> > {
-  typedef __true_type   has_trivial_default_constructor;
-  typedef __true_type   has_trivial_copy_constructor;
-  typedef __true_type   has_trivial_assignment_operator;
-  typedef __true_type   has_trivial_destructor;
-  typedef __false_type  is_POD_type;
+  typedef typename _IsSTLportClass<allocator<_Tp> >::_Ret _STLportAlloc;
+  //The default allocator implementation which is recognize thanks to the
+  //__stlport_class inheritance is the stateless object so:
+  typedef _STLportAlloc has_trivial_default_constructor;
+  typedef _STLportAlloc has_trivial_copy_constructor;
+  typedef _STLportAlloc has_trivial_assignment_operator;
+  typedef _STLportAlloc has_trivial_destructor;
+  typedef _STLportAlloc is_POD_type;
 };
-
-template <class _Value, class _Tp, class _Alloc>
-struct __move_traits<_STLP_alloc_proxy<_Value, _Tp, _Alloc> > :
-  __move_traits_help2<_Value, _Alloc>
-{};
 #endif /* _STLP_CLASS_PARTIAL_SPECIALIZATION */
 
 _STLP_END_NAMESPACE

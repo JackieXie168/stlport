@@ -1,10 +1,21 @@
 // STLport configuration file
 // It is internal STLport header - DO NOT include it directly
-// Microsoft Visual C++ 4.0, 4.1, 4.2, 5.0, 6.0, 7.0, 7.1, ICL
+// Microsoft Visual C++ 6.0, 7.0, 7.1, 8.0 Beta, ICL
 
-#if defined (_M_IA64)
+#if defined (_STLP_USING_PLATFORM_SDK_COMPILER)
+/* This is 64 bits platform SDK specific settings. There is no clear way to 
+ * recognize the SDK coming with a compiler from the one freely available.
+ * For the moment we hope that there is only one SDK for 64 bits windows so
+ * we simply detect it using the _WIN64 macro.
+ */
 #  define _STLP_NATIVE_INCLUDE_PATH ../crt
+#  define _STLP_VENDOR_GLOBAL_CSTD
+#  define _STLP_VENDOR_TERMINATE_STD
 #  define _STLP_GLOBAL_NEW_HANDLER
+#  if (_MSC_VER <= 1400)
+//We hope this bug will be fixed in future versions.
+#    define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
+#  endif
 #endif
 
 #define _STLP_CALL __cdecl
@@ -18,10 +29,6 @@
 // these switches depend on compiler flags
 #ifndef _CPPUNWIND
 #  define _STLP_DONT_USE_EXCEPTIONS 1
-#endif
-
-#ifndef _STLP_MSVC
-#  define _STLP_VENDOR_UNEXPECTED_STD
 #endif
 
 #if defined (_MT) && !defined (_STLP_NO_THREADS) && !defined (_REENTRANT)
@@ -84,6 +91,10 @@
 
 #  if (_STLP_MSVC >= 1200)
 #    define _STLP_HAS_NATIVE_FLOAT_ABS 1
+#  endif
+
+#  if (_STLP_MSVC == 1300)
+#    define _STLP_NO_MOVE_SEMANTIC
 #  endif
 
 #  if (_STLP_MSVC < 1300)
@@ -151,7 +162,7 @@
 #  define _STLP_GLOBAL_NEW_HANDLER 1
 #  define _STLP_DONT_SUPPORT_REBIND_MEMBER_TEMPLATE 1
 #  define _STLP_NEW_DONT_THROW_BAD_ALLOC 1
-#  define _STLP_VENDOR_UNEXPECTED_STD 1
+#  define _STLP_VENDOR_UNEXPECTED_STD
 #endif
 
 #if (_STLP_MSVC > 1100)
@@ -319,7 +330,7 @@ typedef char __stl_char;
 #  if defined (_STLP_VERBOSE_AUTO_LINK)
 #    pragma message ("STLport: Auto linking to "_STLP_STLPORT_LIB)
 #  endif
-#  pragma comment (lib , _STLP_STLPORT_LIB)
+#  pragma comment (lib, _STLP_STLPORT_LIB)
 
 #  undef _STLP_STLPORT_LIB
 #  undef _STLP_LIB_OPTIM_MODE
@@ -328,6 +339,19 @@ typedef char __stl_char;
 #  undef _STLP_STRINGIZE
 
 #endif /* _STLP_DONT_USE_AUTO_LINK */
+
+#if defined (_STLP_USING_PLATFORM_SDK_COMPILER)
+/* The Windows 64 bits SDK required for the moment link to bufferoverflowU.lib for
+ * additional buffer overrun checks. Rather than require the STLport build system and
+ * users to explicitely link with it we use the MSVC auto link feature.
+ */
+#  if !defined (_STLP_DONT_USE_AUTO_LINK) || defined (__BUILDING_STLPORT)
+#    pragma comment (lib, "bufferoverflowU.lib")
+#    if defined (_STLP_VERBOSE_AUTO_LINK)
+#      pragma message ("STLport: Auto linking to bufferoverflowU.lib")
+#    endif
+#  endif
+#endif
 
 // Local Variables:
 // mode:C++

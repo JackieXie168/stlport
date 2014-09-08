@@ -219,6 +219,12 @@ typedef unsigned int wint_t;
 #  endif
 #endif
 
+#ifdef __hpux
+#  define _STLP_NO_VENDOR_STDLIB_L /* no llabs */
+  /* No *f math fuctions variants (i.e. sqrtf, fabsf, etc.) */
+#  define _STLP_NO_VENDOR_MATH_F
+#endif
+
 #if (__GNUC__ >= 3)
 #  ifndef _STLP_HAS_NO_NEW_C_HEADERS
 /*

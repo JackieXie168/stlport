@@ -66,7 +66,7 @@ iterators invalidated are those referring to the deleted node.
 #  include <stl/_construct.h> 
 #endif
 
-#ifndef _STLP_INTERNAL_FUNCTION_H
+#ifndef _STLP_INTERNAL_FUNCTION_BASE_H
 #  include <stl/_function_base.h> 
 #endif
 
@@ -240,7 +240,7 @@ protected:
     _M_empty_initialize();
   }
   _Rb_tree_base(__move_source<_Self> src) :
-    _M_header(_AsMoveSource<_AllocProxy>(src.get()._M_header)) {
+    _M_header(__move_source<_AllocProxy>(src.get()._M_header)) {
     _M_rebind(&src.get()._M_header._M_data);
     src.get()._M_empty_initialize();
   }
@@ -283,9 +283,9 @@ protected:
 public:
   typedef _Key key_type;
   typedef _Value value_type;
-  typedef value_type* pointer;
+  typedef typename _Traits::pointer pointer;
   typedef const value_type* const_pointer;
-  typedef value_type& reference;
+  typedef typename _Traits::reference reference;
   typedef const value_type& const_reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -388,7 +388,8 @@ public:
 
   _Rb_tree(__move_source<_Self> src)
     : _Rb_tree_base<_Value, _Alloc>(__move_source<_Base>(src.get())),
-      _M_node_count(src.get()._M_node_count), _M_key_compare(_AsMoveSource(src.get()._M_key_compare)) {
+      _M_node_count(src.get()._M_node_count),
+      _M_key_compare(_AsMoveSource(src.get()._M_key_compare)) {
     src.get()._M_node_count = 0;
   }
 
@@ -623,7 +624,13 @@ public:
 # include <stl/_relops_cont.h>
 # undef _STLP_TEMPLATE_CONTAINER
 # undef _STLP_TEMPLATE_HEADER
-         
+
+#ifdef _STLP_CLASS_PARTIAL_SPECIALIZATION
+template <class _Key, class _Compare, class _Value, class _KeyOfValue, class _Traits, class _Alloc>
+struct __move_traits<_Rb_tree<_Key, _Compare, _Value, _KeyOfValue, _Traits, _Alloc> >
+  : __move_traits_help2<_Compare, _Alloc> {};
+#endif
+
 _STLP_END_NAMESPACE
 
 # if !defined (_STLP_LINK_TIME_INSTANTIATION)

@@ -642,9 +642,17 @@ namespace __std_alias = std;
 #  if defined (_STLP_USE_OWN_NAMESPACE)
 #    if !defined (_STLP_DEBUG)
 #      if !defined (_STLP_USING_CROSS_NATIVE_RUNTIME_LIB)
-#        define _STLP_STD_NAME  stlp_std
+#        ifndef _STLP_THREADS
+#          define _STLP_STD_NAME  stlpmtx_std
+#        else
+#          define _STLP_STD_NAME  stlp_std
+#        endif
 #      else
-#        define _STLP_STD_NAME  stlpx_std
+#        ifndef _STLP_THREADS
+#          define _STLP_STD_NAME  stlpxmtx_std
+#        else
+#          define _STLP_STD_NAME  stlpx_std
+#        endif
 #      endif
 #    else
 /*
@@ -653,9 +661,17 @@ namespace __std_alias = std;
  * than runtime.
  */
 #      if !defined (_STLP_USING_CROSS_NATIVE_RUNTIME_LIB)
-#        define _STLP_STD_NAME  stlpd_std
+#        ifndef _STLP_THREADS
+#          define _STLP_STD_NAME  stlpdmtx_std
+#        else
+#          define _STLP_STD_NAME  stlpd_std
+#        endif
 #      else
-#        define _STLP_STD_NAME  stlpdx_std
+#        ifndef _STLP_THREADS
+#          define _STLP_STD_NAME  stlpdxmtx_std
+#        else
+#          define _STLP_STD_NAME  stlpdx_std
+#        endif
 #      endif
 #    endif
 namespace _STLP_STD_NAME { }
@@ -691,12 +707,6 @@ namespace _STLP_PRIV_NAME {
 #    define _STLP_MOVE_TO_STD_NAMESPACE }
 #  endif
 
-/* Backward compatibility:
- */
-namespace _STL = _STLP_STD_NAME;
-#undef __STLPORT_NAMESPACE
-#define __STLPORT_NAMESPACE _STLP_STD_NAME
-
 /* decide whether or not we use separate namespace for rel ops */
 #  if defined(_STLP_NO_RELOPS_NAMESPACE)
 #    define _STLP_BEGIN_RELOPS_NAMESPACE _STLP_BEGIN_NAMESPACE namespace rel_ops {}
@@ -709,6 +719,18 @@ namespace _STL = _STLP_STD_NAME;
 #  endif /* Use std::rel_ops namespace */
 
 #  define _STLP_STD ::_STLP_STD_NAME
+
+/* Official STLport namespace when std is not redefined.
+ * Here we don't use a macro as stlport is used as file name by boost
+ * and folder name under beos:
+ */
+namespace stlport = _STLP_STD_NAME;
+
+/* Backward compatibility:
+ */
+namespace _STL = _STLP_STD_NAME;
+#undef __STLPORT_NAMESPACE
+#define __STLPORT_NAMESPACE _STLP_STD_NAME
 
 #else /* _STLP_USE_NAMESPACES */
 /* STLport is being put into global namespace */

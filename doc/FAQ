@@ -23,6 +23,7 @@ are looked for in /usr/include/3.3.1. Is it a STLport bug?
 Q3.1 Do I need to build library to use STLport?
 Q3.2 During library compilation with MS VC++ 6.0 I see following error report:...
 Q3.3 Does anybody success in building STLport on OS Y with compiler K n.n?
+Q3.4 Does STLport support cross-compilation?
 
 Q4 Installation
 
@@ -283,6 +284,24 @@ A3.3 See report about results of regression tests here: build/test/unit/STATUS.
 
 ========================================================================
 
+Q3.4 Does STLport support cross-compilation?
+
+A3.4 In case of gcc, use something like following sequence:
+
+  (cd build/lib; ./configure --target=${CROSSTARGET}; \
+     export PATH=${BASECROSS}/bin:${PATH}; make -f gcc.mak install-release-shared)
+
+where CROSSTARGET is gcc's cross prefix (something like 'i586-pc-linux-gnu',
+if C++ cross compiler named as 'i586-pc-linux-gnu-c++'), BASECROSS is base of
+cross-compiler's location (i.e. ${BASECROSS}/bin in case above is a location
+of 'i586-pc-linux-gnu-c++').
+
+In case of non-gcc crosses, we need hands-made target system identification.
+The sample of such compiler (supported by STLport) is MetroWerks Codewarrior
+for Novell Netware (mwccnlm).
+
+========================================================================
+
 Q4.1 I tried "make -f gcc.mak install", but it install nothing into
 /usr/local/. How I can install headers into /usr/local/include and
 libs into /usr/local/lib?
@@ -308,13 +327,28 @@ A5.0
   0. Ensure that this is a really bug (standard violation, incorrect
      behaviour with correct usage);
   1. Ensure that bug is in STLport, not in your code;
-  2. Write short test that demonstrate this bug;
-  3. Write bug description and test here
+  2. Ensure that you correctly build STLport---build and run unit tests
+     (build/test/unit) first with default settings, than with you settings
+     (if you change ones);
+  3. Write short test that demonstrate this bug;
+  4. Make sure that this test case really new, i.e. not covered by unit tests
+     (test/unit/*);
+  5. Compare you results with reported runs of unit tests (build/test/unit/STATUS);
+  6. Write bug description and test here
      http://www.stlport.com/cgi-bin/forum/dcboard.cgi?az=list&forum=DCForumID6&conf=DCConfID1
      (for stable, fixed release) or here
      http://www.stlport.com/cgi-bin/forum/dcboard.cgi?az=list&forum=DCForumID5&conf=DCConfID1
-     (for betas). Don't foget to describe you operational environment, compiler
-     version and STLport version.
+     (for betas).
+
+     DON'T FORGET TO DESCRIBE:
+
+       - YOU OPERATIONAL ENVIRONMENT,
+       - COMPILER VERSION,
+       - STLPORT VERSION,
+       - RESULT OF UNIT TESTS.
+
+     Keep in mind, that bug MUST be reproduced by other people, so give
+     enough information (but compactly, give only essential information).
 
 ========================================================================
 
