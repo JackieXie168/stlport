@@ -24,6 +24,10 @@
 #ifndef _STLP_INTERNAL_THREADS_H
 #define _STLP_INTERNAL_THREADS_H
 
+#if defined(__SunOS_5_11) || defined(__SunOS_5_10)
+#  include <sys/types.h>
+#endif
+
 // Supported threading models are native SGI, pthreads, uithreads
 // (similar to pthreads, but based on an earlier draft of the Posix
 // threads standard), and Win32 threads.  Uithread support by Jochen
@@ -108,7 +112,7 @@ typedef size_t __stl_atomic_t;
 #      endif
 #    endif // _STLP_USE_PTHREAD_SPINLOCK
 
-#    if defined (__GNUC__) && defined (__i386__)
+#    if (defined (__GNUC__) && defined (__i386__)) || (defined(_SunOS_5_11) || defined(__SunOS_5_10)) && (defined(__i386) || defined(__amd64))
 
 #      if !defined (_STLP_ATOMIC_INCREMENT)
 inline long _STLP_atomic_increment_gcc_x86(long volatile* p) {
@@ -150,6 +154,7 @@ inline long _STLP_atomic_add_gcc_x86(long volatile* p, long addend) {
 #      endif
 
 #    endif /* if defined(__GNUC__) && defined(__i386__) */
+/*           || (defined(_SunOS_5_11) || (defined(__SunOS_5_10)) && (defined(__i386) || defined(__amd64))) */
 
 #  elif defined (_STLP_WIN32THREADS)
 
@@ -184,6 +189,18 @@ inline long _STLP_atomic_add_gcc_x86(long volatile* p, long addend) {
 #  elif defined(_STLP_SPARC_SOLARIS_THREADS)
 
 #    include <stl/_sparc_atomic.h>
+
+#  elif defined(_STLP_AMD_SOLARIS_THREADS)
+#     include <atomic.h>
+
+  inline __stl_atomic_t stlp_atomic_increment(volatile __stl_atomic_t* __ptr) { atomic_inc_ulong((unsigned long*)__ptr); return(*__ptr);}
+#  define _STLP_ATOMIC_INCREMENT(__pvalue1) stlp_atomic_increment(__pvalue1)
+
+  inline __stl_atomic_t stlp_atomic_decrement(volatile __stl_atomic_t* __ptr) { atomic_dec_ulong((unsigned long *)__ptr); return(*__ptr);}
+#  define _STLP_ATOMIC_DECREMENT(__pvalue1) stlp_atomic_decrement(__pvalue1)
+
+  inline __stl_atomic_t stlp_atomic_exchange(volatile __stl_atomic_t* __target, __stl_atomic_t __val) {atomic_swap_ulong((unsigned long *)__target,(unsigned long)__val); return *__target;}
+#  define _STLP_ATOMIC_EXCHANGE(__pvalue1, __value2) stlp_atomic_exchange(__pvalue1,__value2)
 
 #  elif defined (_STLP_UITHREADS)
 
