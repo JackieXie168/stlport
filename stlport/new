@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 1999 
+ * Boris Fomitchev
+ *
+ * This material is provided "as is", with absolutely no warranty expressed
+ * or implied. Any use is at your own risk.
+ *
+ * Permission to use or copy this software for any purpose is hereby granted 
+ * without fee, provided the above notices are retained on all copies.
+ * Permission to modify the code and to distribute modified code is granted,
+ * provided the above notices are retained, and a notice that the code was
+ * modified is included with the above copyright notice.
+ *
+ */
+
+#ifndef __STLPORT_NEW
+
+# ifndef __STL_CONFIG_H
+#  include <stl_config.h>
+# endif
+
+# if defined (__IN_STLPORT_NEW) || !defined (__STL_NO_NEW_NEW_HEADER)
+#   if defined (__GNUC__) && (__GNUC_MINOR__ >= 8 )
+#    include <../include/new>
+#   else
+#    include __STL_NATIVE_HEADER(new)
+#   endif
+#  else
+#   define __IN_STLPORT_NEW
+#   include <new.h>
+#   undef  __IN_STLPORT_NEW
+# endif
+
+#ifndef __IN_STLPORT_NEW
+
+# ifndef __STL_NO_BAD_ALLOC
+#  ifdef __STL_USE_OWN_NAMESPACE
+__STL_BEGIN_NAMESPACE
+using __STL_VENDOR_STD::bad_alloc;
+__STL_END_NAMESPACE
+#  endif /* __STL_OWN_NAMESPACE */
+#   else /* __STL_NO_BAD_ALLOC */
+#    include <stl_exception.h>
+__STL_BEGIN_NAMESPACE
+class bad_alloc : public __STL_EXCEPTION_BASE { 
+public:
+  bad_alloc () __STL_NOTHROW { }
+  bad_alloc(const bad_alloc&) __STL_NOTHROW { }
+  bad_alloc& operator=(const bad_alloc&) __STL_NOTHROW {return *this;}
+  ~bad_alloc () __STL_NOTHROW { }
+  const char* what() const __STL_NOTHROW { return "bad alloc"; }
+};
+__STL_END_NAMESPACE
+#endif /* __STL_NO_BAD_ALLOC */
+
+__STL_BEGIN_NAMESPACE
+inline void* __stl_new(size_t __n) {
+#if (( defined(__IBMCPP__)|| defined(__OS400__) || defined (qTidyHeap)) && defined(__DEBUG_ALLOC__) )
+  return ::operator __STL_NEW(__n, __FILE__, __LINE__);
+#else
+  return ::operator __STL_NEW(__n);
+#endif
+}
+
+inline void __stl_delete(void* __p) {
+#if (( defined(__IBMCPP__) || defined(__OS400__))  && defined(__DEBUG_ALLOC__) ) // Added
+  ::operator delete(__p, __FILE__, __LINE__);
+#else
+  ::operator delete(__p);
+#endif
+}
+__STL_END_NAMESPACE
+#endif
+
+#define __STLPORT_NEW
+
+#endif /* __STLPORT_NEW */
+
+// Local Variables:
+// mode:C++
+// End:
