@@ -2,6 +2,7 @@
 // It is internal STLport header - DO NOT include it directly
 // Microsoft Visual C++ 4.0, 4.1, 4.2, 5.0, ICL
 
+
 // Common features for VC++ 4.0 and higher
 # ifdef _M_IA64
 #  define _STLP_NATIVE_HEADER(x) <../crt/##x>
@@ -31,7 +32,7 @@
 
 # define _STLP_VENDOR_UNEXPECTED_STD
 
-# if defined ( _MT ) && !defined (_NOTHREADS) && !defined (_REENTRANT)
+# if defined ( _MT ) && !defined (_STLP_NO_THREADS)  && !defined (_REENTRANT)
 #   define _REENTRANT 1
 # endif
 
@@ -167,18 +168,20 @@
 # ifdef __ICL
 #  define _STLP_LIB_BASENAME "stlport_icl"
 # else
-#  if (_MSC_VER >= 1200)
-#   ifdef _UNICODE
-#    define _STLP_LIB_BASENAME "stlport_vc6_unicode"
-#   else
+# if (_MSC_VER >= 1300) 
+#   define _STLP_LIB_BASENAME "stlport_vc7"
+# elif (_MSC_VER >= 1200)
+//#   ifdef _UNICODE
+//#    define _STLP_LIB_BASENAME "stlport_vc6_unicode"
+//#   else
 #    define _STLP_LIB_BASENAME "stlport_vc6"
-#   endif
+//#   endif
 #  elif (_MSC_VER >= 1100)
-#   ifdef _UNICODE
-#    define _STLP_LIB_BASENAME "stlport_vc5_unicode"
-#   else
+//#   ifdef _UNICODE
+//#    define _STLP_LIB_BASENAME "stlport_vc5_unicode"
+//#   else
 #    define _STLP_LIB_BASENAME "stlport_vc5"
-#   endif
+//#   endif
 #  endif /* (_MSC_VER >= 1200) */
 # endif /* __ICL */
 

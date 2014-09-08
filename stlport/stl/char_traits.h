@@ -43,6 +43,13 @@
 #include <sys/types.h>          // For off_t
 #endif /* __unix */
 
+#ifdef __BORLANDC__
+# include <mem.h>
+# include <string.h>
+# include <_stddef.h>
+class mbstate_t;
+#endif
+
 _STLP_BEGIN_NAMESPACE
 
 # ifdef _STLP_OWN_IOSTREAMS
@@ -73,10 +80,10 @@ public:                         // From table 88 of the C++ standard.
 
   operator streamoff() const { return _M_pos; }
 
-  friend bool  _STLP_CALL operator==(const fpos<_StateT>& __x, const fpos<_StateT>& __y)
-    { return __x._M_pos == __y._M_pos; }
-  friend bool _STLP_CALL operator!=(const fpos<_StateT>& __x, const fpos<_StateT>& __y)
-    { return __x._M_pos != __y._M_pos; }
+  bool  _STLP_CALL operator==(const fpos<_StateT>& __y) const
+    { return _M_pos == __y._M_pos; }
+  bool _STLP_CALL operator!=(const fpos<_StateT>& __y) const
+    { return _M_pos != __y._M_pos; }
 
   fpos<_StateT>& operator+=(streamoff __off) {
     _M_pos += __off;

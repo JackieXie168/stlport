@@ -62,7 +62,7 @@ inline bool _STLP_CALL  __in_range_aux(const _Iterator1& __it, const _Iterator& 
     return (__i!=__last);
 }
 
-# if defined (_STLP_NONTEMPL_BASE_MATCH_BUG) /* OBSOLETE by inheritance */
+# if defined (_STLP_NONTEMPL_BASE_MATCH_BUG)
 template <class _Iterator1, class _Iterator>
 inline bool  _STLP_CALL
 __in_range_aux(const _Iterator1& __it, const _Iterator& __first,
@@ -211,6 +211,7 @@ _STLP_STRING_LITERAL("Deallocating a memory block allocated for another type"), 
 _STLP_STRING_LITERAL("Size of block passed to deallocate() doesn't match block size"),  \
 _STLP_STRING_LITERAL("Pointer underrun - safety margin at front of memory block overwritten"),  \
 _STLP_STRING_LITERAL("Pointer overrrun - safety margin at back of memory block overwritten"),   \
+_STLP_STRING_LITERAL("Attempt to dereference null pointer returned by auto_ptr::get()"),   \
 _STLP_STRING_LITERAL("Unknown problem") \
   }
 
@@ -373,13 +374,8 @@ template <class _Dummy>
 void _STLP_CALL  
 __stl_debug_engine<_Dummy>::_Swap_owners(__owned_list& __x, __owned_list& __y) {
 
-# ifdef OBSOLETE 
-  __x._Invalidate_all();
-  __y._Invalidate_all();
-# endif
-
-  //  according to the standard : --no swap() function invalidates any references, pointers,  or  itera-
-  //  tors referring to the elements of the containers being swapped.
+  //  according to the standard : --no swap() function invalidates any references, 
+  //  pointers,  or  iterators referring to the elements of the containers being swapped.
 
   __owned_link* __tmp;
 
@@ -405,17 +401,18 @@ __stl_debug_engine<_Dummy>::_M_detach(__owned_list* __l, __owned_link* __c_node)
     _STLP_VERBOSE_ASSERT(__l->_Owner()!=0, _StlMsg_INVALID_CONTAINER)
 
     _STLP_ACQUIRE_LOCK(__l->_M_lock)
-
-    __owned_link* __prev, *__next;
-   
-    for (__prev = &__l->_M_node; (__next = __prev->_M_next) != __c_node; 
-	 __prev = __next) {
- 	 	_STLP_ASSERT(__next && __next->_Owner() == __l)
-    }
-      
-    __prev->_M_next = __c_node->_M_next;
-    __c_node->_M_owner=0;
-
+      // boris : re-test the condition in case someone else already deleted us
+      if(__c_node->_M_owner != 0) {
+        __owned_link* __prev, *__next;
+        
+        for (__prev = &__l->_M_node; (__next = __prev->_M_next) != __c_node; 
+             __prev = __next) {
+          _STLP_ASSERT(__next && __next->_Owner() == __l)
+            }
+        
+        __prev->_M_next = __c_node->_M_next;
+        __c_node->_M_owner=0;
+      }
     _STLP_RELEASE_LOCK(__l->_M_lock)
   }
 }

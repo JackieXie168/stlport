@@ -39,8 +39,6 @@ void _Decrement(_Iterator& __it, const random_access_iterator_tag &) {
   --__it;
 }
 
-// # ifdef _STLP_NO_ARROW_OPERATOR
-
 template <class _Iterator>
 void _Decrement(_Iterator& __it, const forward_iterator_tag &) {
   _STLP_ASSERT(0)
@@ -56,8 +54,6 @@ void _Advance(_Iterator& __it, ptrdiff_t, const bidirectional_iterator_tag &) {
   _STLP_ASSERT(0)  
 }
 
-// # endif
-
 template <class _Iterator>
 void _Advance(_Iterator& __it, ptrdiff_t __n, const random_access_iterator_tag &) {
   __it += __n;
@@ -68,7 +64,6 @@ ptrdiff_t _DBG_distance(const _Iterator& __x, const _Iterator& __y, const random
   return __x - __y;
 }
 
-// # ifdef _STLP_NO_ARROW_OPERATOR
 template <class _Iterator>
 ptrdiff_t _DBG_distance(const _Iterator&, const _Iterator&, const forward_iterator_tag &) {
   _STLP_ASSERT(0)
@@ -92,7 +87,6 @@ bool _CompareIt(const _Iterator&, const _Iterator&, const bidirectional_iterator
   _STLP_ASSERT(0)  
   return false;
 }
-// # endif
 
 template <class _Iterator>
 bool _CompareIt(const _Iterator& __x, const _Iterator& __y, const random_access_iterator_tag &) {
@@ -102,7 +96,7 @@ bool _CompareIt(const _Iterator& __x, const _Iterator& __y, const random_access_
 
 template <class _Iterator>
 bool _Dereferenceable(_Iterator __it) {
-  return !(__it._M_iterator == (__it._Get_container_ptr())->end());
+  return (__it._Get_container_ptr() !=0) && !(__it._M_iterator == (__it._Get_container_ptr())->end());
 }
 
 
@@ -115,14 +109,15 @@ template <class _Iterator>
 bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, const bidirectional_iterator_tag &) {
   typedef typename _Iterator::_Container_type __container_type;
   __container_type* __c = __it._Get_container_ptr();
-  return (__n == 1 && __it._M_iterator != __c->end() ) ||
-    (__n == -1 && __it._M_iterator != __c->begin());
+  return (__c!=0) && ((__n == 1 && __it._M_iterator != __c->end() ) ||
+    (__n == -1 && __it._M_iterator != __c->begin()));
 }
 
 template <class _Iterator>
 bool _Incrementable(const _Iterator& __it, ptrdiff_t __n, const random_access_iterator_tag &) {
   typedef typename _Iterator::_Container_type __container_type;
   __container_type* __c = __it._Get_container_ptr();
+  if (!__c) return false;
   ptrdiff_t __new_pos = (__it._M_iterator - __c->begin()) + __n;
   return  (__new_pos >=0) && (__STATIC_CAST(typename __container_type::size_type,__new_pos) <=__c->size());
 }

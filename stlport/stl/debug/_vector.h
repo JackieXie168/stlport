@@ -152,7 +152,7 @@ public:
   _DBG_vector(const _Self& __x) 
     : _STLP_DBG_VECTOR_BASE(__x), _M_iter_list((const _Base*)this) {}
 
-#if defined (_STLP_MEMBER_TEMPLATES) && ! defined (_STLP_MSVC)
+#if defined (_STLP_MEMBER_TEMPLATES)
 # ifdef _STLP_NEEDS_EXTRA_TEMPLATE_CONSTRUCTORS
   template <class _InputIterator>
   _DBG_vector(_InputIterator __first, _InputIterator __last):
@@ -248,18 +248,22 @@ public:
   iterator erase(iterator __position) {
     _STLP_DEBUG_CHECK(__check_if_owner(&_M_iter_list, __position))
     _STLP_VERBOSE_ASSERT(__position._M_iterator !=this->_M_finish,_StlMsg_ERASE_PAST_THE_END)
-    __invalidate_range(&_M_iter_list, __position, end());
+    __invalidate_range(&_M_iter_list, __position+1, end());
     return iterator(&_M_iter_list,_Base::erase(__position._M_iterator));
   }
   iterator erase(iterator __first, iterator __last) {
-    _STLP_DEBUG_CHECK(__check_range(__first,__last,begin(), end()))
-    __invalidate_range(&_M_iter_list, __first, end());
+    _STLP_DEBUG_CHECK(__check_range(__first,__last, begin(), end()))
+    __invalidate_range(&_M_iter_list, __first._M_iterator == this->_M_finish ? 
+		       __first : __first+1, end());
     return iterator(&_M_iter_list, _Base::erase(__first._M_iterator, __last._M_iterator));
   }
-
   void clear() { 
     _M_iter_list._Invalidate_all();
     _Base::clear();
+  }
+  void push_back(const _Tp& __x) {
+    if (size()+1 > capacity()) _M_iter_list._Invalidate_all();
+    _Base::push_back(__x);
   }
 };
 

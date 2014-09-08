@@ -208,13 +208,16 @@ public:                         // Opening and closing files.
     return _M_base._M_open(__s, __m, __protection) ? this : 0;
   }
   
-  _Self* open(int __id, ios_base::openmode _Init_mode = ios_base::__default_mode) {
-    return _M_base._M_open(__id, _Init_mode) ? this : 0;
-  }
-
   _STLP_fd fd() const { return _M_base.__get_fd(); }
 
+  _Self* open(int __id, ios_base::openmode _Init_mode = ios_base::__default_mode) {
+    return this->_M_open(__id, _Init_mode);
+  }
 # endif
+
+  _Self* _M_open(int __id, ios_base::openmode _Init_mode = ios_base::__default_mode) {
+    return _M_base._M_open(__id, _Init_mode) ? this : 0;
+  }
 
   _Self* close();
 
@@ -464,7 +467,7 @@ public:
 // in fstream.cxx.
 
 template <class _CharT, class _Traits>
-_STLP_TYPENAME_ON_RETURN_TYPE _Underflow<_CharT, _Traits>::int_type _STLP_CALL
+_STLP_TYPENAME_ON_RETURN_TYPE _Underflow<_CharT, _Traits>::int_type // _STLP_CALL
  _Underflow<_CharT, _Traits>::_M_doit(basic_filebuf<_CharT, _Traits>* __this)
 {
   if (!__this->_M_in_input_mode) {
@@ -527,6 +530,14 @@ public:                         // Constructors, destructor.
     if (!_M_buf.open(__id, __mod | ios_base::in))
       this->setstate(ios_base::failbit);
   }
+  basic_ifstream(const char* __s, ios_base::openmode __m,
+		 long __protection) : 
+    basic_ios<_CharT, _Traits>(),  basic_istream<_CharT, _Traits>(0), _M_buf() {
+    this->init(&_M_buf);
+    if (!_M_buf.open(__s, __m | ios_base::in, __protection))
+      this->setstate(ios_base::failbit);  
+  }
+  
 # endif
 
   ~basic_ifstream() {}
@@ -594,8 +605,14 @@ public:                         // Constructors, destructor.
  	if (!_M_buf.open(__id, __mod | ios_base::out))
  	  this->setstate(ios_base::failbit);
   }
+  basic_ofstream(const char* __s, ios_base::openmode __m, long __protection) : 
+    basic_ios<_CharT, _Traits>(),  basic_ostream<_CharT, _Traits>(0), _M_buf() {
+    this->init(&_M_buf);
+    if (!_M_buf.open(__s, __m | ios_base::out, __protection))
+      this->setstate(ios_base::failbit);  
+  }
 # endif
-
+  
   ~basic_ofstream() {}
 
 public:                         // File and buffer operations.
@@ -660,6 +677,12 @@ public:                         // Constructors, destructor.
     this->init(&_M_buf);
     if (!_M_buf.open(__id, __mod))
       this->setstate(ios_base::failbit);
+  }
+  basic_fstream(const char* __s, ios_base::openmode __m, long __protection) : 
+    basic_ios<_CharT, _Traits>(),  basic_iostream<_CharT, _Traits>(0), _M_buf() {
+    this->init(&_M_buf);
+    if (!_M_buf.open(__s, __m, __protection))
+      this->setstate(ios_base::failbit);  
   }
 # endif    
   ~basic_fstream() {}

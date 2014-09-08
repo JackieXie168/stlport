@@ -80,7 +80,10 @@ public:
 	_STLP_MPWFIX_TRY _STLP_MPWFIX_CATCH
   }
 
-  ~_Vector_base() { _M_end_of_storage.deallocate(_M_start, _M_end_of_storage._M_data - _M_start); }
+  ~_Vector_base() { 
+    if (_M_start !=0) 
+    _M_end_of_storage.deallocate(_M_start, _M_end_of_storage._M_data - _M_start); 
+  }
 
 protected:
   _Tp* _M_start;
@@ -281,7 +284,7 @@ public:
     _M_set(__tmp, __tmp + __len, __tmp + __len);
     }
     else if (size() >= __len) {
-      iterator __new_finish = __copy_aux(__first, __last, this->_M_start, _TrivialAss());
+      iterator __new_finish = copy(__first, __last, this->_M_start);
       _Destroy(__new_finish, this->_M_finish);
       this->_M_finish = __new_finish;
     }
@@ -292,7 +295,7 @@ public:
 # else
           const_iterator __mid = __first + size() ;
 # endif
-    __copy_aux(__first, __mid, this->_M_start, _TrivialAss());
+    copy(__first, __mid, this->_M_start);
     this->_M_finish = __uninitialized_copy(__mid, __last, this->_M_finish, _IsPODType());
     }
   }

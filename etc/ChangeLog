@@ -1,3 +1,117 @@
+The following changes were made in 4.5.1 beta 1 since 4.5 release:
+
+	* _config.h, _epilog.h : new namespace inclusion schema implemented for own iostreams mode
+	 (no std:: redefinition; _STL:: namespace imported into std::, instead of std:: imported to _STL.
+	  C library header files wrappers become obsolete if this mode is used and no own namespace is selected.
+	  They will be moved out to distinct directory in the next release, and default is going to be no own namespace 
+	  with own iostreams.)
+ 	  For some compilers (VC6), this only works with _STLP_NO_OWN_NAMESPACE and _STLP_OWN_IOSTREAMS settings. 
+	
+	* iostreams ported to SCO OpenServer (thanks Emmanuel Soden)
+
+	* sparc_atomic.s : added "stbar" to fix multiprocessor crashes on SPARC
+
+	* dll_main.cpp : forced link of Bs_G static data members (thanks  Sandy Martel). Function wrapped in STLport namespace.
+
+	* _alloc.c : fixed _STLP_CHUNK_MALLOC for debug malloc configuration (thanks  Markus Schöpflin)
+
+	* _config_compat.h : fixed compatibility section for _STLP_NO_OWN_IOSTREAMS
+
+	* fstram.cpp , vc6.unicode.mak : fixed bug in wide streams handling for VC6 (thanks Jim Dolter)
+
+	* etc/*.txt : files list broken up into several categories for future reorganization
+
+	* stl_msvc.h : fixed library selection for .NET (Thanks Franz Zetting)
+
+	* _ftsream.h, iostream.cpp : fixed compilation for _STLP_NO_EXTENSIONS case (thanks  Ben Dorman for the report)
+
+	* char_traits.h : fpos<> operators == made members (thanks  Thomas Witt)
+
+	* _threads.h : added using directive for Solaris x86 compile (thanks Mukesh Kapoor)
+
+	* _threads.h : fixed InterlockedXXX definitions for VC++ 6.0 SP5 (thanks AndreasM)
+
+	* gcc-install-apple-macosx.mak : INSTALL_STEP set to install_unix (Thanks Tron Thomas)
+
+	* common.mak : default install directory for Unix set to /usr/local
+
+	* _string.h : _M_null expressed via _STLP_DEFAULT_CONSTRUCTED (Thanks Anthony)
+
+	* _site_config.h : made sure _STLP_NO_THREADS are set if _NOTHREADS is on (Thanks Jeppe Madsen)
+
+	* _config.h : _STLP_WIN32THREADS is set (bugfix) ( thanks to Andreas Malzahn )
+
+	* _num_put.c, common_rules.mak : patches by Levente Farkas 
+
+	* etc/STLport-4.5.1.spec : spec file to build STLport-4.5.1 RPM added (thanks Levente Farkas)
+
+	* _auto_ptr.h , _debug.c, _debug.h : debug check for auto_ptr pointer added (thanks Gerd Hoeren for the idea)
+
+	* debug/_vector.h : invalidation for erase() corrected not to invalidate current iterator (Thanks ALberto Barbati)
+
+	* stl_bc.h : restored automatic library link directive for cases when STLport is not a native library
+
+
+	* _auto_ptr.h : template constructor conversion bug fixed (thanks mbergal)
+
+	* MIngw32 patches integrated (thanks Wu Yongwei)
+
+	* src/complex_impl.h : case for DEC CXX changed to general, instead of extension functions for float and long double, to get it compliled with CC 6.1 (thanks Tony McConnell) 
+
+	* dll_main.cpp : added __malloc_alloc instantiation (thanks Michael Ehrig)
+
+	* _debug.c : fixed race condition in _M_detach (thanks Achim Stremplat)
+
+	* test/*/hpacc.mak : fixed flags and libs (thanks  Michael Ehrig)
+
+	* typeinfo : added fix for MS VC ::bad_cast confusion (thanks Alberto Barbati)
+	
+	* debug/_vector.h : removed extra guard for MSCV around member template constructor (thanks Alberto Barbati)
+	
+	* _fstream.h : added extension basic_fstream<> constructors taking protection parameter (thanks Mukesh Kapoor for the idea)
+
+	* stl_sunpro.h : added additional C include directory choice for Solaris 6&7 (thanks John E. Bossom)
+	
+        * _vector.c : added _vector.h inclusion for _STLP_LINK_TIME_INSTANTIATION case (thanks Alex Vanic)
+
+
+	* _num_put.c : fixed overflow case with grouping (thanks Will Evers)
+	
+	* _istreambuf_iterator.h : fixed distance_type return type (thanks Anthony Williams)
+
+	* debug/_vector.h : debug version of push_back() added (thanks)
+
+	* Iostreams ported to LynxOS 3.0 (thanks Dmitry Azovtsev)
+ 	
+	* wrappers/*.h : added inclusions of the master header to fix xlC 3.x compile (Thanks Dmitry Azovtsev)
+
+	* Changes for BCB6 integration (thanks Nathan York)
+
+	* Removed all dead code blocks marked by #if OBSOLETE and #if 0
+
+	* Updates build spec file for Linux rpm (thanks Levene Farkas, Harold van Oostrom)
+
+	* complex_trig.cpp : limits changed to be static, for performance optimization (thanks Sergei Nikolaev)
+
+	* _algo.c : eliminated default-constructed iterators, to lift unnecessary restriction (thanks Tonci Tomic )
+ 	
+	* _vector.h : fixed bug in assign() : copy used instead of __copy_aux (Thanks Tim Finer)
+
+	* stl_sunpro.h : restored _STLP_HAS_NO_NEW_C_HEADERS switch for SUN CC 4.2
+
+	* <new> : __stl_new definition put into the namespace (thanks Satoshi Nakamura)
+
+	* bcb*.mak : fixed md command and DYN_LINK (thanks Kirby Zhou)
+
+	* stl_user_config.h : added _STLP_USE_CUSTOM_CHAR_TYPES_IO switch to optimize iostreams for default case
+	
+	* debug/_vector.h : fixed debug check bug (thanks Gerd Hoeren)
+
+	* _alloc.h : allocator::construct uses std::_Construct (thanks Gert Grossmann)
+
+	* stl?_alloc_old.h : restored (thanks Gert Grossmann)
+	
+	
 The following changes were made in 4.5 release since 4.5 beta 8 :
 	
 	* _threads.h, debug/_debug.h etc : STLport iostreams library made binary compatible with user code compiler w/o multithreaded switch (-D_REENTRANT is not necessary anymore)
@@ -49,6 +163,13 @@ The following changes were made in 4.5 release since 4.5 beta 8 :
 
 	* stl/_queue.h : priority_queue<>::_comp renamed to "comp" as standard states (thanks Todd Greer)
 
+        * _limits.c : added correct data member representations for AS400 and Alpha machines (thanks Holger Stash)
+ 	
+	* _vector.h : added check to avoid calling allocator<>::deallocate(0) (thanks Stephen Cleary)
+
+	* config/_prolog.h, config/_epilog.h : added push/pop pack(8) pragmas for MSVC (thanks Todd Greer, Alberto Barbati)
+ 	
+	* gcc.mak's : default spelling for "-pthreads" option changed to "-pthread" as more platforms use that.
 	
 	
 The following changes were made in 4.5 beta 8 since 4.5 beta 7 :

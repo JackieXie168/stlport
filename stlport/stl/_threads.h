@@ -50,6 +50,9 @@
 # if defined (_STLP_WIN32) || defined (__sgi) || defined (_STLP_SPARC_SOLARIS_THREADS)
   typedef long __stl_atomic_t;
 # else 
+# if defined (_STLP_USE_NAMESPACES) && ! defined (_STLP_VENDOR_GLOBAL_CSTD)
+using _STLP_VENDOR_CSTD::size_t;
+# endif
   typedef size_t __stl_atomic_t;
 #endif  
 
@@ -109,11 +112,13 @@ extern "C" {
 #    endif
 #   endif
 
-#if (_MSC_VER >= 1300)
+#if (_MSC_VER >= 1300) || defined (_STLP_NEW_PLATFORM_SDK)
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedIncrement(long volatile *);
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedDecrement(long volatile *);
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedExchange(long volatile *, long);
 #else
+  // boris : for the latest SDK, you may actually need the other version of the declaration (above)
+  // even for earlier VC++ versions. There is no way to tell SDK versions apart, sorry ...
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedIncrement(long*);
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedDecrement(long*);
 _STLP_IMPORT_DECLSPEC long _STLP_STDCALL InterlockedExchange(long*, long);
@@ -225,7 +230,7 @@ struct _STLP_mutex_spin {
 
 struct _STLP_CLASS_DECLSPEC _STLP_mutex_base
 {
-#if defined(_STLP_ATOMIC_EXCHANGE) || defined(_STLP_SGI_THREADS) // || defined(_STLP_WIN32THREADS)
+#if defined(_STLP_ATOMIC_EXCHANGE) || defined(_STLP_SGI_THREADS)
   // It should be relatively easy to get this to work on any modern Unix.
   volatile __stl_atomic_t _M_lock;
 #endif
@@ -249,10 +254,11 @@ struct _STLP_CLASS_DECLSPEC _STLP_mutex_base
 	 && (defined (_ABIN32) || defined(_ABI64))
         __lock_release(__lock);
 #   elif defined (_STLP_SPARC_SOLARIS_THREADS)
-#    if defined (__WORD64) || defined (__arch64__)
+#    if defined (__WORD64) || defined (__arch64__) \
+     || defined (__sparcv9) || defined (__sparcv8plus)
 	asm("membar #StoreStore ; membar #LoadStore");
 #    else
-	//	asm(" stbar ");
+	asm(" stbar ");
 #    endif
         *__lock = 0;	
 #   else

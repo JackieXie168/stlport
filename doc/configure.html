@@ -1,4 +1,4 @@
-<html><head><META http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><title>STLport: Configuration Manual</title><link href="doc.css" type="text/css" rel="stylesheet"></head><body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" vlink="#314A30" link="#314A30" text="black" bgcolor="white"><table border="0" cellspacing="0" cellpadding="0"><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776"><img border="0" height="14" width="1" src="images/trans.gif"><br><a href="../index.html"><img src="images/stl_logo_doc.gif" border="0" height="80" width="80"></a><a href="index.html"><img border="0" height="80" width="461" src="images/t_doc2.gif"></a><br><img src="images/trans.gif" border="0" height="24" width="1"><br><img src="images/black.gif" border="0" height="1" width="776"><br><img src="images/trans.gif" border="0" height="24" width="1"></td></tr><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776"><img src="images/trans.gif" border="0" height="10" width="776"></td></tr><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776">
+<html><head><META http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><title>STLport: Configuration Manual</title><link href="doc.css" type="text/css" rel="stylesheet"></head><body marginwidth="0" marginheight="0" leftmargin="0" topmargin="0" vlink="#314A30" link="#314A30" text="black" bgcolor="white"><table border="0" cellspacing="0" cellpadding="0"><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776"><img border="0" height="14" width="1" src="images/trans.gif"><br><a href="../index.html"><img src="images/stl_logo_doc.gif" border="0" height="80" width="80"></a><a href="http://www.stlport.com"><img border="0" height="80" width="461" src="images/t_doc2.gif"></a><br><img src="images/trans.gif" border="0" height="24" width="1"><br><img src="images/black.gif" border="0" height="1" width="776"><br><img src="images/trans.gif" border="0" height="24" width="1"></td></tr><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776"><img src="images/trans.gif" border="0" height="10" width="776"></td></tr><tr valign="top" align="left"><td width="24"><img src="images/trans.gif" border="0" height="1" width="24"></td><td width="776">
 
         <span class="heading">STLport Configuration Manual</span>
 <p>
@@ -66,11 +66,33 @@
             is intended to be used in embedded environments. It makes STLport assume that
             no iostreams are available at all. </font></td>
           </tr>
+
+          <tr>
+            <td><font size="1" face="Arial, Helvetica"><b>_STLP_NO_CUSTOM_IO
+              </b></font></td>
+            <td><font face="Arial, Helvetica" size="2">This switch is experimental. Define this if you do not instantiate basic_xxx iostream classes  with custom types (which is most likely the case). "Custom" means types other than char, wchar and char_traits&lt;&gt;, like basic_ostream&lt;my_char_type, my_traits&lt;my_char_type&gt; &gt;. When this option is on, most non-inline template functions definitions for iostreams are not seen by the client. Default is off, just not to break compilation for those who do use those types. When on, it saves a lot of compile time for most compilers, also object and executable size for some. That also guarantees that you still use optimized standard i/o when you compile your program without optimization and link with optimized library. Option does not affect STLport library build; you may use the same binary library with and without this option, on per-project basis.</font></td>
+          </tr>
+
+          <tr>
+            <td><font size="1" face="Arial, Helvetica"><b>_STLP_USE_DEBUG_LIB </b></font></td>
+            <td><font face="Arial, Helvetica" size="2">(Windows compilers only)
+	    Normally, optimized STLport library is being automatically linked in even when you compile your project with _DEBUG set (Debug build). If you wish to use debug build of STLport library for your debug builds, define this option (you will also have to build STLport library with debug flags, via additional "make debug_static debug_dynamic"  command, as "make all" only builds "release" and "stldebug" versions of the libraries). 
+            </font></td>
+          </tr>
+
+          <tr>
+            <td><font size="1" face="Arial, Helvetica"><b>_STLP_USE_STATIC_LIB, _STLP_USE_STATICX_LIB, _STLP_USE_DYNAMIC_LIB </b></font></td>
+            <td><font face="Arial, Helvetica" size="2">(Windows compilers only)
+	    Normally, a version of STLport library iwhich corresponds to your RTL library setting is being automatically linked in (if you use dynamic RTL DLL, dynamic STLport DLL is being used, and vice versa).
+ If you wish to force use of particular (static, dynamic, or "staticx" which is static STLport lib built with dynamic RTL) STLport lib, please make use one of those options. 
+            </font></td>
+          </tr>
+
           <tr>
             <td><font size="1" face="Arial, Helvetica"><b>_STLP_NO_OWN_NAMESPACE
               </b></font></td>
             <td><font face="Arial, Helvetica" size="2">Suppresses STLport use of
-              namespace <b>stlport</b>:: even if it is recommended, forces
+              namespace <b>_STL</b>:: even if it is recommended, forces
               STLport to use <b>std</b>::. Normally, STLport uses <b>_STL</b>::
               namespace instead of <b>std</b>::, to prevent clashes with iostreams/string stuff that comes
               with the compiler. </font></td>
@@ -88,32 +110,6 @@
             <td><font face="Arial, Helvetica" size="2">Precludes STLport from redefining <b>std</b>::
              to <b>_STL</b>::. Define it only if renaming scheme does not work for you for some reason.
             </font></td>
-          </tr>
-          <tr>
-            <td><font size="1" face="Arial, Helvetica"><b>__STLPORT_NAMESPACE </b></font></td>
-            <td><font face="Arial, Helvetica" size="2">This is the namespace
-              STLport uses in the above case. Default is <b>_STL</b>. Do NOT try to
-              change it to <b>std</b>. </font></td>
-          </tr>
-          <tr>
-            <td><font size="1" face="Arial, Helvetica"><b>_STLP_USE_SGI_STRING </b></font></td>
-            <td><font face="Arial, Helvetica" size="2">Forces use of SGI string
-              even if you share namespace <b>std</b>:: with native C++ library
-              and use new &lt;<b>iostream</b>&gt;. IMPORTANT: DO NOT use SGI
-              &lt;<b>string</b>&gt; with native &lt;<b>iostream</b>&gt; unless
-              you <a href="vendor_interface.html#option_1">recompile</a>
-              standard C++ runtime library with STLport installed, or (better)
-              define <a href="vendor_interface.html#option_2">_STLP_USE_OWN_NAMESPACE</a>
-              </font></td>
-          </tr>
-          <tr>
-            <td><font size="1" face="Arial, Helvetica"><b>_STLP_NATIVE_INCLUDE_PATH
-              </b></font></td>
-            <td><font face="Arial, Helvetica" size="2">The path where native
-              compiler headers are located. STLport uses this information to
-              import <b>std</b>:: names into <b>_STL</b>:: namespace. Default
-              is <b>../include</b>. Hint : never install STLport headers in the
-              directory that ends with <b>include</b>. </font></td>
           </tr>
           <tr>
             <td><font size="1" face="Arial, Helvetica"><b>_STLP_DEBUG </b></font></td>
@@ -246,7 +242,7 @@
 	    </font></td>
           </tr>
           <tr>
-            <td><font size="1" face="Arial, Helvetica"><b>_STLP_MINIMUM_DEFAULT _TEMPLATE_PARAMS</b></font></td>
+            <td><font size="1" face="Arial, Helvetica"><b>_STLP_MINIMUM_DEFAULT_TEMPLATE_PARAMS</b></font></td>
             <td><font face="Arial, Helvetica" size="2">
 	    Use minimum set of default arguments on template classes that have more
 	    than one - for example map&lt;&gt;, set&lt;&gt;.
@@ -272,12 +268,13 @@
             <td><font face="Arial, Helvetica" size="1"><b>_STLP_USE_DECLSPEC
               </b></font></td>
             <td><font face="Arial, Helvetica" size="2">
-	   (Windows only) This switch makes some STLport symbols exported from DLL.
+	   (Obsolete, Windows only) This switch makes STLport symbols exported from DLL.
            To use export feature, you should define this macro for all compilation units and
            also define _STLP_DESIGNATED_DLL macro for one of your DLL's which is supposed to export
            all STLport symbols. You must use this feature if you use default node allocator and pass
-           objects across DLL boundaries. Defined automatically if you use STLport iostreams and
-	   compile with /MD flag.
+           objects across DLL boundaries, and do not use STLport iostreams. 
+           Defined automatically if you use STLport iostreams and
+	   compile with /MD flag. 
 	    </font></td>
           </tr>
 
@@ -285,11 +282,11 @@
             <td><font face="Arial, Helvetica" size="1"><b>_STLP_DESIGNATED_DLL
               </b></font></td>
             <td><font face="Arial, Helvetica" size="2">
-	   (Windows only) Designed to be used together with _STLP_USE_DECLSPEC switch to
+	   (Obsolete, Windows only) Designed to be used together with _STLP_USE_DECLSPEC switch to
            make one of your DLL's to export STLport symbols for other modules. 
            The library which is designated to export DLL symbols, must have both of
            those switches defined for compilation and it should include at least &lt;string&gt;
-           header from at least one source file. Used by STLport internally to build STLport DLL.
+           header from at least one source file. Normally you should not be using this, it is used by STLport internally to build STLport DLL.
 	    </font></td>
           </tr>
 
@@ -324,6 +321,15 @@
             <td><b>Controlling macro name</b></td>
             <td><b>Description</b></td>
             <td><b>Default</b></td>
+          </tr>
+          <tr>
+            <td><font size="1" face="Arial, Helvetica"><b>_STLP_NATIVE_INCLUDE_PATH
+              </b></font></td>
+            <td><font face="Arial, Helvetica" size="2">The path where native
+              compiler headers are located. STLport uses this information to
+              import <b>std</b>:: names into <b>_STL</b>:: namespace. Default
+              is <b>../include</b>. Hint : never install STLport headers in the
+              directory that ends with <b>include</b>. </font></td>
           </tr>
           <tr>
             <td><font size="1" face="Arial, Helvetica"><b>_STLP_UINT32_T</b></font></td>
@@ -700,7 +706,7 @@
             <td><font face="Arial, Helvetica" size="2">Off</font></td>
           </tr>
           <tr>
-            <td><font face="Arial, Helvetica" size="1"><b>_STLP_HAS_NO_NEW_NEW_HEADER
+            <td><font face="Arial, Helvetica" size="1"><b>_STLP_NO_NEW_NEW_HEADER
               </b></font></td>
             <td><font face="Arial, Helvetica" size="2">Native library does not provide new-style
               like &lt;<b>new</b>&gt; header. </font></td>

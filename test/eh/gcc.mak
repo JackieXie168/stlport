@@ -34,7 +34,7 @@ TEST  = ./eh_test.out
 D_TEST = ./eh_test_d.out
 NOSGI_TEST = ./eh_test_nosgi.out
 
-CC = g++ -pthreads
+CC = g++ -pthread
 CXX = $(CC)
 
 # dwa 12/22/99 -- had to turn off -ansi flag so we could use SGI IOSTREAMS
@@ -107,7 +107,7 @@ obj/%.i : %.cpp
 	$(CXX) $(CXXFLAGS) $< -E -H > $@
 
 %.out: %.cpp
-	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -D_STLP_DEBUG -D_STLP_NO_OWN_IOSTREAMS -g -o $*.o
+	$(CXX) $(CXXFLAGS) $< -c -USINGLE -DMAIN -g -o $*.o
 	$(CXX) $(CXXFLAGS) $*.o $(LIBSTLPORT) $(LIBS) -o $*
 	./$* > $@
 #	-rm -f $*
