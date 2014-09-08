@@ -36,6 +36,7 @@ class StringTest : public CPPUNIT_NS::TestCase
   CPPUNIT_TEST(erase);
   CPPUNIT_TEST(data);
   CPPUNIT_TEST(c_str);
+  CPPUNIT_TEST(null_char);
   CPPUNIT_TEST(insert);
   CPPUNIT_TEST(replace);
   CPPUNIT_TEST(resize);
@@ -50,12 +51,14 @@ class StringTest : public CPPUNIT_NS::TestCase
 #if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
   CPPUNIT_TEST(io);
 #endif
+  CPPUNIT_TEST(capacity);
   CPPUNIT_TEST_SUITE_END();
 
 protected:
   void erase();
   void data();
   void c_str();
+  void null_char();
   void insert();
   void replace();
   void resize();
@@ -71,6 +74,7 @@ protected:
 #if !defined (STLPORT) || !defined (_STLP_USE_NO_IOSTREAMS)
   void io();
 #endif
+  void capacity();
 
   static string func(const string& par) {
     string tmp( par );
@@ -321,6 +325,27 @@ void StringTest::c_str()
   xx += ";";
   CPPUNIT_ASSERT( strcmp( xx.c_str(), "1234;" ) == 0 );
   // End of block B
+}
+
+void StringTest::null_char()
+{
+  // ISO/IEC 14882:1998(E), ISO/IEC 14882:2003(E), 21.3.4 ('... the const version')
+  const string s( "123456" );
+
+  CPPUNIT_CHECK( s[s.size()] == '\0' );
+
+#if defined (_STLP_USE_EXCEPTIONS)
+  try {
+    char c = s.at( s.size() );
+    CPPUNIT_ASSERT( false );
+  }
+  catch ( out_of_range& ) {
+    CPPUNIT_ASSERT( true );
+  }
+  catch ( ... ) {
+    CPPUNIT_ASSERT( false );
+  }
+#endif
 }
 
 void StringTest::insert()
@@ -754,3 +779,25 @@ void StringTest::io()
   }
 }
 #endif
+
+void StringTest::capacity()
+{
+  string s;
+
+  CPPUNIT_CHECK( s.capacity() >= 0 );
+  CPPUNIT_CHECK( s.capacity() < s.max_size() );
+  CPPUNIT_CHECK( s.capacity() >= s.size() );
+#ifdef _STLP_USE_SHORT_STRING_OPTIM
+
+# ifndef _STLP_SHORT_STRING_SZ
+#   define _STLP_SHORT_STRING_SZ 16 // see stlport/stl/_string_base.h
+# endif
+
+  for ( int i = 0; i < _STLP_SHORT_STRING_SZ + 2; ++i ) {
+    s += ' ';
+    CPPUNIT_CHECK( s.capacity() >= 0 );
+    CPPUNIT_CHECK( s.capacity() < s.max_size() );
+    CPPUNIT_CHECK( s.capacity() >= s.size() );
+  }
+#endif
+}

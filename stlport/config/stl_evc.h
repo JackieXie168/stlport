@@ -128,17 +128,13 @@
 #  define _STLP_NO_EXCEPTION_HEADER
 #  define _STLP_NO_EXCEPTIONS
 #  undef _STLP_USE_EXCEPTIONS
-#  ifdef _STLP_WINCE_USE_OUTPUTDEBUGSTRING
-#   define _STLP_WINCE_TRACE(msg)   OutputDebugString(msg)
-#  else
-#   define _STLP_WINCE_TRACE(msg)   MessageBox(NULL,(msg),NULL,0L/*MB_OK*/)
-#  endif
 #  ifndef __THROW_BAD_ALLOC
 #   define __THROW_BAD_ALLOC { _STLP_WINCE_TRACE(L"out of memory"); ExitThread(1); }
 #  endif
 # else
-#  define _STLP_WINCE_TRACE(msg)   OutputDebugString(msg)
 # endif
+
+#define _STLP_WINCE_TRACE(msg) OutputDebugString(msg)
 
 /*
  * eMbedded Visual C++ .NET specific settings
@@ -180,6 +176,10 @@
 #    else
 #      error Unknown MIPS SDK.
 #    endif
+/* MIPS itself is highly volatile and configurable as both big and little
+ * endian, all Windows CE versions (at least until 4.2 for MIPS) run in 
+ * little-endian configurations though. */
+#    define _STLP_LITTLE_ENDIAN
 #  elif defined (SHx)
 #    if defined (SH3)
 #      define _STLP_NATIVE_INCLUDE_PATH ../sh3
