@@ -183,7 +183,7 @@
 // Visual Age C++ 3.x
 // OS-390 C++
 #if ( defined (__xlC__) && __xlC__ < 0x400 ) || \
-    (defined(_MVS__) && defined ( __IBMCPP__ ) && (__IBMCPP__ <= 22040)) || \
+    (defined(_MVS__) && defined ( __IBMCPP__ ) && (__IBMCPP__ < 23000 )) || \
     ( defined (  __IBMCPP__ ) && (  __IBMCPP__ < 400 ) )
 #  define __STL_RESERVED_BOOL_KEYWORD 1
 #  define __STL_UNINITIALIZABLE_PRIVATE 1
@@ -204,6 +204,8 @@
 #  if ( _MSC_VER>=1000 )
 // VC++ 4.0 and higher
 #   define __STL_NAMESPACES             1
+// Actually, in 5.0, "using" nearly works, but in some cases fails:
+#   define __STL_BROKEN_USING_DIRECTIVE 1
 #   define __STL_NEW_STYLE_CASTS        1
 #   define __STL_LONG_DOUBLE            1
 #   define __STL_WCHAR_T                1
@@ -265,6 +267,7 @@
 #   define __STL_BOOL_KEYWORD 1
 #   define __STL_DEFAULT_TYPE_PARAM 1
 #   define __STL_NAMESPACES 1
+#   define __STL_BROKEN_USING_DIRECTIVE 1
 #   define __STL_EXPLICIT   1
 #   define __STL_TYPENAME   1
 #   define __STL_LONG_DOUBLE 1
@@ -334,21 +337,22 @@
 #   define __STL_NEW_STYLE_CASTS 1
 
 // gcc 2.7.2 settings
-#  if ! ( __GNUC__ > 2 || __GNUC_MINOR__ > 7 || defined (__CYGWIN32__) )
+#  if ! ( __GNUC__ > 2 || __GNUC_MINOR__ > 7 || defined (__CYGWIN32__))
 // Will it work with 2.6 ? I doubt it.
 #   if ( __GNUC_MINOR__ < 6 )
     __GIVE_UP_WITH_STL(GCC_272);
 #   endif
 #   define __STL_DEFAULT_TYPE_PARAM 1
+
 #   undef  __STL_STATIC_TEMPLATE_DATA
+#  if !defined (__CYGWIN32__) 
 #   define __STL_NESTED_TYPE_PARAM_BUG   1
-#   undef  __STL_STATIC_TEMPLATE_DATA
 #   define __STL_BASE_MATCH_BUG       1
 //  unused operators are required (forward)
 #   undef  __STL_CONST_CONSTRUCTOR_BUG 
 #   define __STL_NO_DEFAULT_NON_TYPE_PARAM
 #   undef __STL_METHOD_SPECIALIZATION
-
+#  endif
 // static template data members workaround strategy for gcc tries
 // to use weak symbols.
 // if you don't want to use that, #define __STL_WEAK_ATTRIBUTE=0 ( you'll
@@ -384,7 +388,7 @@
 #   undef   __STL_UNUSED_REQUIRED_BUG
 #   if (__GNUC_MINOR__ >=90)
 // egcs - define it if not pushing them hard
-// #    define __STL_MEMBER_TEMPLATES
+#    define __STL_MEMBER_TEMPLATES
 #   else
 // if using older FSF snapshots, you'll probably have to define it
 #    define __STL_PARTIAL_SPECIALIZATION_BUG

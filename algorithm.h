@@ -16,8 +16,8 @@
 // Old-style C++ header.
 // do not suppresses "using std;" clause.
 
-#ifndef __SGI_STL_ALGORITHM__
-# define __SGI_STL_ALGORITHM__
-# include <algo.h>
+#ifndef __SGI_STL_ALGORITHM_H
+# define __SGI_STL_ALGORITHM_H
+# include <algorithm>
 #endif
 

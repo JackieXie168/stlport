@@ -425,32 +425,6 @@ AC_TRY_LINK(
 AC_MSG_RESULT($ac_cv_static_array_bug)
 fi
 
-AC_MSG_CHECKING(for namespaces support)
-AC_TRY_COMPILE(
-    [namespace std { 
-      template <class T> struct Class { typedef T my_type; };
-      typedef Class<int>::my_type int_type;
-	}; 
-    inline int ns_foo (std::int_type t) { 
-      using namespace std; 
-      int_type i =2;
-      return i+t; 
-    }
-    namespace my_std=std; 
-     ],
-    [(void)ns_foo(1);],
-    [ac_cv_namespaces="yes"],
-    [ac_cv_namespaces="no"])
-if test "$ac_cv_namespaces" = yes; then
-# check if no warnings have been issued
-  if `check_warning` ; then
-    AC_DEFINE(__STL_NAMESPACES)
-  else
-   ac_cv_namespaces=no
-  fi
-fi
-AC_MSG_RESULT($ac_cv_namespaces)
-
 AC_MSG_CHECKING(for typename keyword)
 AC_TRY_LINK(
     [
@@ -488,6 +462,58 @@ struct select2nd : public unary_function<Pair, typename Pair::second_type> {
     [__TYPENAME="" 
      ac_cv_typename="no"])
 AC_MSG_RESULT($ac_cv_typename)
+
+AC_MSG_CHECKING(for namespaces support)
+AC_TRY_COMPILE(
+    [namespace std { 
+      template <class T> struct Class { typedef T my_type; };
+      typedef $__TYPENAME Class<int>::my_type int_type;
+	}; 
+    inline int ns_foo (std::int_type t) { 
+      using namespace std; 
+      int_type i =2;
+      return i+t; 
+    }
+    namespace my_std=std; 
+     ],
+    [(void)ns_foo(1);],
+    [ac_cv_namespaces="yes"],
+    [ac_cv_namespaces="no"])
+if test "$ac_cv_namespaces" = yes; then
+# check if no warnings have been issued
+  if `check_warning` ; then
+    AC_DEFINE(__STL_NAMESPACES)
+  else
+   ac_cv_namespaces=no
+  fi
+fi
+AC_MSG_RESULT($ac_cv_namespaces)
+
+AC_MSG_CHECKING(for broken "using" directive)
+AC_TRY_COMPILE(
+    [namespace std { 
+      template <class T> struct Class { typedef T my_type; };
+      typedef $__TYPENAME Class<int>::my_type int_type;
+      template <class T> void foo(T,int) {}
+      template <class T> void foo(T,int,int) {}
+	}; 
+     using std::Class;
+     using std::foo;
+     ],
+    [(void)foo(1,1);],
+    [ac_cv_broken_using="no"],
+    [ac_cv_broken_using="yes"])
+if test "$ac_cv_broken_using" = no; then
+# check if no warnings have been issued
+  if `check_warning` ; then
+    ac_cv_broken_using=no
+  else
+   AC_DEFINE(__STL_BROKEN_USING_DIRECTIVE)
+  fi
+else
+   AC_DEFINE(__STL_BROKEN_USING_DIRECTIVE)
+fi
+AC_MSG_RESULT($ac_cv_namespaces)
 
 AC_MSG_CHECKING(for explicit keyword)
 AC_TRY_COMPILE(    

@@ -20,7 +20,7 @@
 // This header provides various non-standard functional extensions
 // Some of them have to be specializations.
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 
 
 // Extension : void function
@@ -131,7 +131,7 @@ struct : public unary_function<Class,Result> \
 struct : public binary_function<Class, Param,Result>  \
 { Result operator()(Class& obj, Param p) const { return obj.Func(p); }}
 
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 
 #endif
 

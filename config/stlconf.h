@@ -98,6 +98,7 @@
 #  undef __STL_SEPARATE_TEMPLATE_BODY
 #  undef __STL_TRIVIAL_CONSTRUCTOR_BUG
 #  undef __STL_TRIVIAL_DESTRUCTOR_BUG
+#  undef __STL_BROKEN_USING_DIRECTIVE
 # endif /* AUTO_CONFIGURED */
 
 //==========================================================

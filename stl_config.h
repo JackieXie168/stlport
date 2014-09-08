@@ -40,9 +40,9 @@
 # define __SGI_STL_CONFIG_H
 
 // SGI basic release
-#   define __SGI_STL                                      0x203
+#   define __SGI_STL                                      0x300
 // Adaptation version
-#   define __SGI_STL_PORT                                 0x2031
+#   define __SGI_STL_PORT                                 0x3000
 
 # include <stlconf.h>
 
@@ -84,8 +84,8 @@
 # if defined (__STL_ARROW_OPERATOR)
 #   undef __SGI_STL_NO_ARROW_OPERATOR
 # else
-#  if defined  (__STL_UNUSED_REQUIRED_BUG)
-#   define __SGI_STL_NO_ARROW_OPERATOR 1
+#  if defined  (__STL_UNUSED_REQUIRED_BUG) && !defined (__SGI_STL_NO_ARROW_OPERATOR)
+#    define __SGI_STL_NO_ARROW_OPERATOR 1
 #  endif
 # endif
 
@@ -220,39 +220,59 @@
 # if defined (__STL_NAMESPACES) && ! defined (__STL_NO_NAMESPACES)
 
 // change this if don't think that is standard enough ;)
-#  define __STL_NAMESPACE std
-#  define __BEGIN_STL_NAMESPACE namespace __STL_NAMESPACE {
-#  define __STL_USING_NAMESPACE  using namespace __STL_NAMESPACE ;
+#  define __STD std
+#  define __STL_BEGIN_NAMESPACE namespace __STD {
+#  define __STL_USING_NAMESPACE  using namespace __STD ;
 
-#  ifdef __STL_NO_USING_STD
-#   define __USING_NAMESPACE
-#  else
-#   define __USING_NAMESPACE using namespace __STL_NAMESPACE ;
-#  endif
-#  define __END_STL_NAMESPACE } __USING_NAMESPACE
+// these are obsolete
+//#  ifdef __STL_NO_USING_STD
+//#   define __USING_NAMESPACE
+//#  else
+//#   define __USING_NAMESPACE using namespace __STD ;
+//#  endif
+//#  define __END_STL_NAMESPACE } __USING_NAMESPACE
+
+#  define __STL_END_NAMESPACE }
+
+// bringing relops to std namespace
+#   define  __STL_USE_NAMESPACE_FOR_RELOPS
+#   define __STD_RELOPS std::relops
+
+#   define __STL_BEGIN_RELOPS_NAMESPACE namespace relops {
+#   define __STL_END_RELOPS_NAMESPACE }
+
     // workaround tuning
 #  define __FULL_NAME(X) __WORKAROUND_RENAME(X)
 // SGI compatibility
 #  define __STL_USE_NAMESPACES   1
+
 # else /* __STL_NAMESPACES */
-#  define __STL_NAMESPACE
-#  define __BEGIN_STL_NAMESPACE
-#  define __END_STL_NAMESPACE
+
+#  define __STD
+#  define __STL_BEGIN_NAMESPACE
+#  define __STL_END_NAMESPACE
 #  define __STL_USING_NAMESPACE
+#   undef  __STL_USE_NAMESPACE_FOR_RELOPS
+#   define __STL_BEGIN_RELOPS_NAMESPACE 
+#   define __STL_END_RELOPS_NAMESPACE 
+#   define __STD_RELOPS 
     // workaround tuning
 #  define __FULL_NAME(X) __WORKAROUND_RENAME(X)
 # endif  /* __STL_NAMESPACES */
 
-// backwards compat.
-#    define __STL_FULL_NAMESPACE __STL_NAMESPACE
-#    define __BEGIN_STL_FULL_NAMESPACE
-#    define __END_STL_FULL_NAMESPACE
-// SGI compatibility
-#  define __STD __STL_NAMESPACE
-#  define __STL_BEGIN_NAMESPACE __BEGIN_STL_NAMESPACE
-#  define __STL_END_NAMESPACE   __END_STL_NAMESPACE
+// some backwards compatibility
 
-#  define __STL_NAME(name) __STL_NAMESPACE::name  // Lo Russo Graziano <Graziano.LoRusso@CSELT.IT>
+#define __BEGIN_STL_NAMESPACE __STL_BEGIN_NAMESPACE 
+#define __END_STL_NAMESPACE __STL_END_NAMESPACE 
+#define __STL_NAMESPACE __STD 
+
+
+// backwards compat.
+//#    define __STL_FULL_NAMESPACE __STL_NAMESPACE
+//#    define __BEGIN_STL_FULL_NAMESPACE
+//#    define __END_STL_FULL_NAMESPACE
+
+#  define __STL_NAME(name) __STD::name  // Lo Russo Graziano <Graziano.LoRusso@CSELT.IT>
 
 
 // advanced keywords usage
@@ -303,6 +323,19 @@
 #   define __STL_FULL_SPECIALIZATION
 #  endif
 
+// SGI 3.0 terms
+# define __STL_TEMPLATE_NULL __STL_FULL_SPECIALIZATION
+
+# ifdef __STL_FUNC_PARTIAL_ORDERING
+#   define __STL_FUNCTION_TMPL_PARTIAL_ORDER
+# endif
+
+# ifdef __STL_EXPLICIT_FUNCTION_TMPL_ARGS
+#   define __STL_NULL_TMPL_ARGS <>
+# else
+#   define __STL_NULL_TMPL_ARGS
+# endif
+
 #  define __IMPORT_CONTAINER_TYPEDEFS(super)                            \
     typedef typename super::value_type value_type;                               \
     typedef typename super::reference reference;                                 \
@@ -351,6 +384,11 @@
 #  define __TRIVIAL_STUFF(type)  \
   __TRIVIAL_CONSTRUCTOR(type) __TRIVIAL_DESTRUCTOR(type)
 
+// if __STL_NO_NAMESPACES defined, just hide std
+//# if defined ( __STL_NO_NAMESPACES )
+//# define std
+//# endif
+
 # if ! defined ( __STL_NAMESPACES )
 #  define __STL_NO_NAMESPACES 1
 # endif 
@@ -367,6 +405,20 @@
 #  define __STL_THROWS(x) throw x
 # else
 #  define __STL_THROWS(x)
+# endif
+
+# ifdef __STL_USE_EXCEPTIONS
+#   define __STL_TRY try
+#   define __STL_CATCH_ALL catch(...)
+#   define __STL_RETHROW throw
+#   define __STL_NOTHROW throw()
+#   define __STL_UNWIND(action) catch(...) { action; throw; }
+# else
+#   define __STL_TRY 
+#   define __STL_CATCH_ALL if (false)
+#   define __STL_RETHROW 
+#   define __STL_NOTHROW 
+#   define __STL_UNWIND(action) 
 # endif
 
 #if !defined(_PTHREADS) && !defined(__STL_SOLARIS_THREADS) && !defined(_NOTHREADS) \

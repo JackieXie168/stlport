@@ -18,7 +18,7 @@
 #ifndef __UTILITY_H__
 # define __UTILITY_H__
 #  include <utility>
-# if defined (__STL_NAMESPACES )
-  using namespace __STL_NAMESPACE;
-# endif
+//# if defined (__STL_NAMESPACES )
+//  using namespace __STD;
+//# endif
 #endif

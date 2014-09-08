@@ -17,7 +17,7 @@
 
 #include <stl_config.h>
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 
 // 20.4.5 Template class auto_ptr
 
@@ -102,6 +102,6 @@ template <class X> void auto_ptr<X>::__delete( X* p )
 #endif
 
 
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 
 #endif

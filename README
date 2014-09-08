@@ -1,11 +1,11 @@
 *************************************************************
 *            STLport (adapted SGI STL) README file
-*                      VERSION 2.033
-*                Last updated : Nov 03, 1997.
+*                      VERSION 3.0
+*                Last updated : Dec 28, 1997.
 *************************************************************
 
 This package is build upon the SGI Standard Template Library (STL) 
-public distribution release 2.03 (Sept 9, 1997), which is:
+public distribution release 3.0 (Oct 28, 1997), which is:
 
 Copyright (c) 1994 Hewlett-Packard Company 
 

@@ -46,7 +46,7 @@
 # include <algo.h>
 # endif
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 template <class InputIterator, class Function>
 Function for_each(InputIterator first, InputIterator last, Function f);
 template <class InputIterator, class T>
@@ -584,5 +584,5 @@ bool is_sorted(ForwardIterator first, ForwardIterator last);
 template <class ForwardIterator, class StrictWeakOrdering>
 bool is_sorted(ForwardIterator first, ForwardIterator last,
                StrictWeakOrdering comp);
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 # endif

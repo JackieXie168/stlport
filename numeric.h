@@ -18,7 +18,8 @@
 #ifndef __MWERKS__
 # error This file should be removed from installations not using the Metrowerks Standard Library
 #else
-# include <algo.h>
+# include <numeric>
+//# include <algo.h>
 #endif
 
 # endif // __SGI_STL_NUMERIC_H

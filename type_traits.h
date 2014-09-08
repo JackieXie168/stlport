@@ -27,7 +27,9 @@
 #ifndef __TYPE_TRAITS_H
 #define __TYPE_TRAITS_H
 
+#ifndef __STL_CONFIG_H
 #include <stl_config.h>
+#endif
 
 /*
 This header file provides a framework for allowing compile time dispatch
@@ -60,7 +62,6 @@ template <class T> inline void copy(T* source,T* destination,int n) {
 }
 */
 
-__BEGIN_STL_NAMESPACE
 
 struct __true_type {
 };
@@ -101,8 +102,7 @@ struct __type_traits {
 //  have built-in __types_traits support, and essential for compilers
 //  that don't.
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<char> {
+__STL_TEMPLATE_NULL struct __type_traits<char> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -110,8 +110,7 @@ struct __type_traits<char> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<signed char> {
+__STL_TEMPLATE_NULL struct __type_traits<signed char> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -119,8 +118,7 @@ struct __type_traits<signed char> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<unsigned char> {
+__STL_TEMPLATE_NULL struct __type_traits<unsigned char> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -128,8 +126,7 @@ struct __type_traits<unsigned char> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<short> {
+__STL_TEMPLATE_NULL struct __type_traits<short> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -137,8 +134,7 @@ struct __type_traits<short> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<unsigned short> {
+__STL_TEMPLATE_NULL struct __type_traits<unsigned short> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -146,8 +142,7 @@ struct __type_traits<unsigned short> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<int> {
+__STL_TEMPLATE_NULL struct __type_traits<int> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -155,8 +150,7 @@ struct __type_traits<int> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<unsigned int> {
+__STL_TEMPLATE_NULL struct __type_traits<unsigned int> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -164,8 +158,7 @@ struct __type_traits<unsigned int> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<long> {
+__STL_TEMPLATE_NULL struct __type_traits<long> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -173,8 +166,7 @@ struct __type_traits<long> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<unsigned long> {
+__STL_TEMPLATE_NULL struct __type_traits<unsigned long> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -183,8 +175,7 @@ struct __type_traits<unsigned long> {
 };
 
 # if defined ( __STL_LONG_LONG )
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<long long> {
+__STL_TEMPLATE_NULL  struct __type_traits<long long> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -192,8 +183,7 @@ struct __type_traits<long long> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<unsigned long long> {
+__STL_TEMPLATE_NULL  struct __type_traits<unsigned long long> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -202,8 +192,7 @@ struct __type_traits<unsigned long long> {
 };
 # endif
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<float> {
+__STL_TEMPLATE_NULL struct __type_traits<float> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -211,8 +200,7 @@ struct __type_traits<float> {
    typedef __true_type    is_POD_type;
 };
 
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<double> {
+__STL_TEMPLATE_NULL struct __type_traits<double> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -221,8 +209,7 @@ struct __type_traits<double> {
 };
 
 # if defined ( __STL_LONG_DOUBLE )
-__STL_FULL_SPECIALIZATION 
-struct __type_traits<long double> {
+__STL_TEMPLATE_NULL struct __type_traits<long double> {
    typedef __true_type    has_trivial_default_constructor;
    typedef __true_type    has_trivial_copy_constructor;
    typedef __true_type    has_trivial_assignment_operator;
@@ -308,6 +295,9 @@ struct __type_traits<unsigned char*> {
 
 #endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
 
-__END_STL_NAMESPACE
 
 #endif /* __TYPE_TRAITS_H */
+
+// Local Variables:
+// mode:C++
+// End:

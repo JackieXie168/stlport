@@ -1,4 +1,12 @@
-Mon Oct 27 19:38:28 1997  Boris Fomitchev  <fbp@mcst.ru>
+Fri Dec 26 1997  Boris Fomitchev  <fbp@metabyte.com>
+	
+        * SGI STL version 3.0 changes merged in. 
+        * Fixed minor problems with VC++ 5.0/rope, OS390 config
+	* additional config switch introduced : __STL_BROKEN_USING_DIRECTIVE
+	
+Mon Oct 27 19:38:28 1997  Boris Fomitchev  <fbp@metabyte.com>
+	
+	* version 2.033 released
 	
 	* pair.h : fixed (back) gcc-2.7.2 constructor problem.
 

@@ -39,7 +39,7 @@
 #  include <algobase.h>
 # endif
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 
 template <class T>
 inline T* allocate(size_t size, T*) {
@@ -81,8 +81,8 @@ public:
     }
     // CD2 requires that
     static T* allocate(size_t n, const void* ) { return (T*)super::allocate(n * sizeof(T));}
-    void construct(pointer p, const value_type& val) { __STL_NAMESPACE::construct(p, val); }
-    void destroy(pointer p) { __STL_NAMESPACE::destroy(p); }
+    void construct(pointer p, const value_type& val) { __STD::construct(p, val); }
+    void destroy(pointer p) { __STD::destroy(p); }
 # if defined ( __STL_MEMBER_TEMPLATES )
     allocator() __STL_THROWS(()) {}
     template<class U>
@@ -103,8 +103,8 @@ public:
 template<class T> inline
 bool operator==(const allocator<T>&, const allocator<T>&) { return true; }
 
-template<class T> inline
-bool operator!=(const allocator<T>&, const allocator<T>&) { return false; }
+//template<class T> inline
+//bool operator!=(const allocator<T>&, const allocator<T>&) { return false; }
 
 __STL_FULL_SPECIALIZATION
 class allocator<void> {
@@ -113,6 +113,17 @@ public:
     typedef const void* const_pointer;
 };
 
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
+
+// fbp: just for backwards compatibility,
+// hope this doesn't break anything.
+#ifdef __STL_USE_NAMESPACES
+
+# ifdef __STL_BROKEN_USING_DIRECTIVE
+using namespace __STD;
+# else
+using __STD::allocator;
+# endif
+#endif
 
 #endif

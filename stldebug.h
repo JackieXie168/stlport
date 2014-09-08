@@ -28,7 +28,7 @@
 #  include <stl_lock.h>
 # endif
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 
 # if ! defined (__STL_COMPILE_TEMPLATE_BODY_ONLY)
 
@@ -208,7 +208,7 @@ public:
     inline void attach();
     inline void detach();
     mutable owner_ptr         owner_;
-protected:
+// protected:
     mutable base_ptr          next_;
     mutable base_ptr          prev_; 
     friend class __safe_server;
@@ -450,9 +450,9 @@ bool __check_if_owner( const Pointer* owner, const Iterator& it)
 
 //============================================================
 
-__END_STL_NAMESPACE
-
 # endif /* __STL_COMPILE_TEMPLATE_BODY_ONLY */
+
+__STL_END_NAMESPACE
 
 # endif /* __STL_DEBUG */
 

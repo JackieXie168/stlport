@@ -18,5 +18,5 @@
 
 #ifndef __QUEUE__
 # define __QUEUE__
-# include <stack.h>
+# include <queue>
 #endif

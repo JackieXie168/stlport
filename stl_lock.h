@@ -47,40 +47,40 @@
 # ifdef _NOTHREADS
 //  Thread-unsafe
 #   define __VOLATILE
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 struct __void_lock { } ;
 typedef __void_lock  __stl_mutex_type;
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 # else
 #  define __VOLATILE volatile  // Needed at -O3 on SGI
 #  ifdef _PTHREADS
 #   include <pthread.h>
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
     typedef  pthread_mutex_t __stl_mutex_type;
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 #  endif
 #  ifdef __STL_SGI_THREADS
 #   include <mutex.h>
 #   include <time.h>
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
     typedef volatile unsigned long __stl_mutex_type;
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 #  endif
 #  ifdef __STL_WIN32THREADS
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
     typedef CRITICAL_SECTION __stl_mutex_type;
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 #  endif
 #  ifdef __STL_SOLARIS_THREADS
 #   include <synch.h>
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
     typedef mutex_t __stl_mutex_type;
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 #  endif
 # endif
 
 
-__BEGIN_STL_NAMESPACE
+__STL_BEGIN_NAMESPACE
 
 #ifdef __STL_SGI_THREADS
 // Somewhat generic lock implementations.  We need only test-and-set
@@ -237,7 +237,7 @@ private:
     __stl_lock& lock;
 };
 
-__END_STL_NAMESPACE
+__STL_END_NAMESPACE
 
 #if defined(__sgi) && !defined(__GNUC__) && (_MIPS_SIM != _MIPS_SIM_ABI32)
 #pragma reset woff 1174
