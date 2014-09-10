@@ -10,13 +10,13 @@
  * Copyright (c) 1997
  * Moscow Center for SPARC Technology
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
@@ -28,10 +28,18 @@
 
 _STLP_BEGIN_NAMESPACE
 
+template <class _Tp>
+_Valarray_bool valarray<_Tp>:: operator!() const {
+  _Valarray_bool __tmp(this->size(), _Valarray_bool::_NoInit());
+  for (size_t __i = 0; __i < this->size(); ++__i)
+    __tmp[__i] = !(*this)[__i];
+  return __tmp;
+}
+
 // Behavior is undefined if __x and *this have different sizes
 template <class _Tp>
-valarray<_Tp>& valarray<_Tp>::operator=(const slice_array<_Tp>& __x)
-{
+valarray<_Tp>& valarray<_Tp>::operator=(const slice_array<_Tp>& __x) {
+  _STLP_ASSERT(__x._M_slice.size() == this->size())
   size_t __index = __x._M_slice.start();
   for (size_t __i = 0;
        __i < __x._M_slice.size();
@@ -55,13 +63,12 @@ template <class _Size>
 bool _Gslice_Iter_tmpl<_Size>::_M_incr() {
   size_t __dim = _M_indices.size() - 1;
   ++_M_step;
-  while (true) {
+  for (;;) {
     _M_1d_idx += _M_gslice._M_strides[__dim];
     if (++_M_indices[__dim] != _M_gslice._M_lengths[__dim])
       return true;
     else if (__dim != 0) {
-      _M_1d_idx -=
-	_M_gslice._M_strides[__dim] * _M_gslice._M_lengths[__dim];
+      _M_1d_idx -= _M_gslice._M_strides[__dim] * _M_gslice._M_lengths[__dim];
       _M_indices[__dim] = 0;
       --__dim;
     }
@@ -73,8 +80,7 @@ bool _Gslice_Iter_tmpl<_Size>::_M_incr() {
 // Behavior is undefined if __x and *this have different sizes, or if
 // __x was constructed from a degenerate gslice.
 template <class _Tp>
-valarray<_Tp>& valarray<_Tp>::operator=(const gslice_array<_Tp>& __x)
-{
+valarray<_Tp>& valarray<_Tp>::operator=(const gslice_array<_Tp>& __x) {
   if (this->size() != 0) {
     _Gslice_Iter __i(__x._M_gslice);
     do
@@ -85,8 +91,7 @@ valarray<_Tp>& valarray<_Tp>::operator=(const gslice_array<_Tp>& __x)
 }
 
 template <class _Tp>
-valarray<_Tp> valarray<_Tp>::operator[](gslice __slice) const
-{
+valarray<_Tp> valarray<_Tp>::operator[](const gslice& __slice) const {
   valarray<_Tp> __tmp(__slice._M_size(), _NoInit());
   if (__tmp.size() != 0) {
     _Gslice_Iter __i(__slice);
@@ -96,8 +101,7 @@ valarray<_Tp> valarray<_Tp>::operator[](gslice __slice) const
 }
 
 template <class _Tp>
-valarray<_Tp> valarray<_Tp>::operator[](const _Valarray_bool& __mask) const
-{
+valarray<_Tp> valarray<_Tp>::operator[](const _Valarray_bool& __mask) const {
   size_t _p_size = 0;
   {
     for (size_t __i = 0; __i < __mask.size(); ++__i)
@@ -116,6 +120,7 @@ valarray<_Tp> valarray<_Tp>::operator[](const _Valarray_bool& __mask) const
 
 template <class _Tp>
 valarray<_Tp>& valarray<_Tp>::operator=(const indirect_array<_Tp>& __x) {
+  _STLP_ASSERT(__x._M_addr.size() == this->size())
   for (size_t __i = 0; __i < __x._M_addr.size(); ++__i)
     (*this)[__i] = __x._M_array[__x._M_addr[__i]];
   return *this;
@@ -123,8 +128,7 @@ valarray<_Tp>& valarray<_Tp>::operator=(const indirect_array<_Tp>& __x) {
 
 template <class _Tp>
 valarray<_Tp>
-valarray<_Tp>::operator[](const _Valarray_size_t& __addr) const
-{
+valarray<_Tp>::operator[](const _Valarray_size_t& __addr) const {
   valarray<_Tp> __tmp(__addr.size(), _NoInit());
   for (size_t __i = 0; __i < __addr.size(); ++__i)
     __tmp[__i] = (*this)[__addr[__i]];
@@ -137,8 +141,7 @@ valarray<_Tp>::operator[](const _Valarray_size_t& __addr) const
 // Shift and cshift
 
 template <class _Tp>
-valarray<_Tp> valarray<_Tp>::shift(int __n) const
-{
+valarray<_Tp> valarray<_Tp>::shift(int __n) const {
   valarray<_Tp> __tmp(this->size());
 
   if (__n >= 0) {
@@ -155,8 +158,7 @@ valarray<_Tp> valarray<_Tp>::shift(int __n) const
 }
 
 template <class _Tp>
-valarray<_Tp> valarray<_Tp>::cshift(int __m) const
-{
+valarray<_Tp> valarray<_Tp>::cshift(int __m) const {
   valarray<_Tp> __tmp(this->size());
 
   // Reduce __m to an equivalent number in the range [0, size()).  We

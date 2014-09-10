@@ -2,23 +2,25 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 #ifndef _STLP_IOS_C
 #define _STLP_IOS_C
 
-#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
+#ifndef _STLP_INTERNAL_IOS_H
+# include <stl/_ios.h>
+#endif
 
 #ifndef _STLP_INTERNAL_STREAMBUF
 # include <stl/_streambuf.h>
@@ -36,16 +38,14 @@ _STLP_BEGIN_NAMESPACE
 template <class _CharT, class _Traits>
 basic_ios<_CharT, _Traits>
   ::basic_ios(basic_streambuf<_CharT, _Traits>* __streambuf)
-    : ios_base(),
-      _M_fill(_STLP_NULL_CHAR_INIT(_CharT)), _M_streambuf(0), _M_tied_ostream(0)
-{
-  init(__streambuf);
+    : ios_base(), _M_cached_ctype(0),
+      _M_fill(_STLP_NULL_CHAR_INIT(_CharT)), _M_streambuf(0), _M_tied_ostream(0) {
+  basic_ios<_CharT, _Traits>::init(__streambuf);
 }
 
 template <class _CharT, class _Traits>
 basic_streambuf<_CharT, _Traits>*
-basic_ios<_CharT, _Traits>::rdbuf(basic_streambuf<_CharT, _Traits>* __buf)
-{
+basic_ios<_CharT, _Traits>::rdbuf(basic_streambuf<_CharT, _Traits>* __buf) {
   basic_streambuf<_CharT, _Traits>* __tmp = _M_streambuf;
   _M_streambuf = __buf;
   this->clear();
@@ -54,10 +54,10 @@ basic_ios<_CharT, _Traits>::rdbuf(basic_streambuf<_CharT, _Traits>* __buf)
 
 template <class _CharT, class _Traits>
 basic_ios<_CharT, _Traits>&
-basic_ios<_CharT, _Traits>::copyfmt(const basic_ios<_CharT, _Traits>& __x)
-{
+basic_ios<_CharT, _Traits>::copyfmt(const basic_ios<_CharT, _Traits>& __x) {
   _M_invoke_callbacks(erase_event);
   _M_copy_state(__x);           // Inherited from ios_base.
+  _M_cached_ctype = __x._M_cached_ctype;
   _M_fill = __x._M_fill;
   _M_tied_ostream = __x._M_tied_ostream;
   _M_invoke_callbacks(copyfmt_event);
@@ -66,17 +66,19 @@ basic_ios<_CharT, _Traits>::copyfmt(const basic_ios<_CharT, _Traits>& __x)
 }
 
 template <class _CharT, class _Traits>
-locale basic_ios<_CharT, _Traits>::imbue(const locale& __loc)
-{
+locale basic_ios<_CharT, _Traits>::imbue(const locale& __loc) {
   locale __tmp = ios_base::imbue(__loc);
+  _STLP_TRY {
+    if (_M_streambuf)
+      _M_streambuf->pubimbue(__loc);
 
-  if (_M_streambuf)
-    _M_streambuf->pubimbue(__loc);
-
-  // no throwing here
-  this->_M_cached_ctype = __loc._M_get_facet(ctype<char_type>::id) ;
-  this->_M_cached_numpunct = __loc._M_get_facet(numpunct<char_type>::id) ;
-  this->_M_cached_grouping = ((numpunct<char_type>*)_M_cached_numpunct)->grouping() ;
+    // no throwing here
+    _M_cached_ctype = &use_facet<ctype<char_type> >(__loc);
+  }
+  _STLP_CATCH_ALL {
+    __tmp = ios_base::imbue(__tmp);
+    _M_handle_exception(ios_base::failbit);
+  }
   return __tmp;
 }
 
@@ -92,7 +94,7 @@ basic_ios<_CharT, _Traits>::basic_ios()
 
 template <class _CharT, class _Traits>
 void
-basic_ios<_CharT, _Traits>::init(basic_streambuf<_CharT, _Traits>* __sb)
+basic_ios<_CharT, _Traits>::init(basic_streambuf<_CharT, _Traits>* __sb , bool)
 {
   this->rdbuf(__sb);
   this->imbue(locale());
@@ -118,6 +120,8 @@ void basic_ios<_CharT, _Traits>::_M_handle_exception(ios_base::iostate __flag)
 
 _STLP_END_NAMESPACE
 
-#endif /* defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) */
-
 #endif /* _STLP_IOS_C */
+
+// Local Variables:
+// mode:C++
+// End:

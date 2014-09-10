@@ -1,6 +1,6 @@
 /***********************************************************************************
-	Main.cpp
-	
+  Main.cpp
+
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -19,7 +19,7 @@
  * and its documentation for any purpose is hereby granted without fee,
  * provided that the above copyright notice appear in all copies and
  * that both that copyright notice and this permission notice appear
- * in supporting documentation.  Moscow Center for SPARC Technology makes 
+ * in supporting documentation.  Moscow Center for SPARC Technology makes
 no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
@@ -50,41 +50,45 @@ no
 #  include <assert.h>
 # endif
 
-# if defined ( EH_USE_SGI_STL ) 
+# if defined (_STL_DEBUG)
+
+#  if defined ( EH_USE_SGI_STL )
 // Override assertion behavior
 #  include <cstdarg>
 //#  include <stldebug.h>
-void __stl_debug_message(const char * format_str, ...)
+void STLPORT::__stl_debug_message(const char * format_str, ...)
 {
-	std::va_list args;
-	va_start( args, format_str );
-	char msg[256];
-	std::vsnprintf(msg, sizeof(msg)/sizeof(*msg) - 1, format_str, args );
-	DebugStr( c2pstr(msg) );
+  std::va_list args;
+  va_start( args, format_str );
+  char msg[256];
+  std::vsnprintf(msg, sizeof(msg)/sizeof(*msg) - 1, format_str, args );
+  DebugStr( c2pstr(msg) );
 }
-# else
+#  else
 /*===================================================================================
-	__assertion_failed  (override standard library function)
+  __assertion_failed  (override standard library function)
 
-	EFFECTS: Breaks into the debugger and shows the assertion. This implementation
-		is Mac-specific; others could be added for other platforms.
+  EFFECTS: Breaks into the debugger and shows the assertion. This implementation
+           is Mac-specific; others could be added for other platforms.
 ====================================================================================*/
 extern "C"
 {
-	void __assertion_failed(char *condition, char *testfilename, int lineno);
-	void __assertion_failed(char *condition, char *testfilename, int lineno)
-	{
-	    char msg[256];
-	    std::strncpy( msg, condition, 255 );
-	    std::strncat( msg, ": ", 255 );
-	    std::strncat(  msg, testfilename, 255 );
-	    std::strncat( msg, ", ", 255 );
-	    char line[20];
-	    std::sprintf( line, "%d", lineno );
-	    std::strncat(  msg, line, 255 );
-	    DebugStr( c2pstr( msg ) );
-	}
+  void __assertion_failed(char *condition, char *testfilename, int lineno);
+  void __assertion_failed(char *condition, char *testfilename, int lineno)
+  {
+      char msg[256];
+      std::strncpy( msg, condition, 255 );
+      std::strncat( msg, ": ", 255 );
+      std::strncat(  msg, testfilename, 255 );
+      std::strncat( msg, ", ", 255 );
+      char line[20];
+      std::sprintf( line, "%d", lineno );
+      std::strncat(  msg, line, 255 );
+      DebugStr( c2pstr( msg ) );
+  }
 }
+#  endif
+
 # endif
 
 #endif
@@ -109,21 +113,21 @@ extern "C"
 # if defined(EH_USE_NAMESPACES)
 namespace  // dwa 1/21/00 - must use unnamed namespace here to avoid conflict under gcc using native streams
 {
-using EH_STD::cerr;
-using EH_STD::endl;
+  using namespace std;
+  // using std::cerr;
+  // using std::endl;
 }
 # endif
 
 
 /*===================================================================================
-	usage  (file-static helper)
+  usage  (file-static helper)
 
-	EFFECTS: Prints a message describing the command-line parameters
+  EFFECTS: Prints a message describing the command-line parameters
 ====================================================================================*/
 static void usage(const char* name)
 {
-    cerr<<name<< 
-        " Usage : leak_test [-n <iterations>] [-s <size>] [-l] [-e] [-q]/[-v] [-t] [test_name...]\n";
+    cerr<<"Usage : "<<name<<" [-n <iterations>] [-s <size>] [-l] [-e] [-q]/[-v] [-t] [test_name...]\n";
     cerr<<"\t[-n <iterations>] : number of test iterations, default==100;"<<endl;
     cerr<<"\t[-s <size>] : base value for random container sizes, default==1000;"<<endl;
     cerr<<"\t[-e] : don't throw exceptions, test for leak in normal conditions;"<<endl;
@@ -137,19 +141,28 @@ static void usage(const char* name)
     EH_CSTD::exit(1);
 }
 
-# ifdef EH_NEW_HEADERS
+#ifdef EH_NEW_HEADERS
 #  include <set>
-# else
+#else
 #  include <set.h>
-# endif
+#endif
+
+#if defined(_WIN32_WCE)
+#include <fstream>
+#endif
 
 int _STLP_CALL main(int argc, char** argv)
 {
-#if defined( __MWERKS__ ) && defined( macintosh )	// Get command line.
-	argc = ccommand(&argv);
-	// Allow the i/o window to be repositioned.
-//	EH_STD::string s;
-//	getline(EH_STD::cin, s);
+#if defined(_WIN32_WCE)
+  std::ofstream file( "\\eh_test.txt" );
+  std::streambuf* old_cout_buf = cout.rdbuf(file.rdbuf());
+  std::streambuf* old_cerr_buf = cerr.rdbuf(file.rdbuf());
+#endif
+#if defined( __MWERKS__ ) && defined( macintosh )  // Get command line.
+  argc = ccommand(&argv);
+  // Allow the i/o window to be repositioned.
+//  EH_STD::string s;
+//  getline(EH_STD::cin, s);
 #endif
     unsigned int niters=2;
     bool run_all=true;
@@ -177,8 +190,8 @@ int _STLP_CALL main(int argc, char** argv)
 
     cerr << argv[0]<<" : Exception handling testsuite.\n";
     cerr.flush();
-	
-	bool track_allocations = false;
+
+  bool track_allocations = false;
     // parse parameters :
     // leak_test [-iterations] [-test] ...
     for (cur_argv=1; cur_argv<argc; cur_argv++) {
@@ -191,7 +204,7 @@ int _STLP_CALL main(int argc, char** argv)
             case 'v':
                 gTestController.SetVerbose(true);
                 break;
-#if 0	// This option was never actually used -- dwa 9/22/97
+#if 0  // This option was never actually used -- dwa 9/22/97
             case 'i':
                 gTestController.IgnoreLeaks(true);
                 break;
@@ -204,8 +217,8 @@ int _STLP_CALL main(int argc, char** argv)
                     usage(argv[0]);
                 break;
             case 't':
-            	track_allocations = true;
-            	break;
+              track_allocations = true;
+              break;
             case 'e':
                 gTestController.TurnOffExceptions();
                 break;
@@ -222,48 +235,48 @@ int _STLP_CALL main(int argc, char** argv)
             }
         } else {
             run_all = false;
-            // test name 
+            // test name
             if (EH_CSTD::strcmp(p, "algo")==0) {
                 run_algo=true;
             } else if (EH_CSTD::strcmp(p, "vector")==0) {
-                run_vector=true;               
+                run_vector=true;
             } else if (EH_CSTD::strcmp(p, "bit_vector")==0) {
-                run_bit_vector=true; 
+                run_bit_vector=true;
             } else if (EH_CSTD::strcmp(p, "list")==0) {
-                run_list=true;               
+                run_list=true;
             } else if (EH_CSTD::strcmp(p, "slist")==0) {
-                run_slist=true;               
+                run_slist=true;
             } else if (EH_CSTD::strcmp(p, "deque")==0) {
-                run_deque=true;               
+                run_deque=true;
             } else if (EH_CSTD::strcmp(p, "set")==0) {
-                run_set=true;               
+                run_set=true;
             } else if (EH_CSTD::strcmp(p, "map")==0) {
-                run_map=true;               
+                run_map=true;
             } else if (EH_CSTD::strcmp(p, "hash_set")==0) {
-                run_hash_set=true;               
+                run_hash_set=true;
             } else if (EH_CSTD::strcmp(p, "hash_map")==0) {
-                run_hash_map=true;               
+                run_hash_map=true;
             } else if (EH_CSTD::strcmp(p, "rope")==0) {
-                run_rope=true;               
+                run_rope=true;
             } else if (EH_CSTD::strcmp(p, "string")==0) {
-                run_string=true;               
+                run_string=true;
             } else if (EH_CSTD::strcmp(p, "bitset")==0) {
-                run_bitset=true;               
+                run_bitset=true;
             } else if (EH_CSTD::strcmp(p, "valarray")==0) {
-                run_valarray=true;               
+                run_valarray=true;
             } else {
                 usage(argv[0]);
             }
-            
+
         }
     }
 
-	gTestController.TrackAllocations( track_allocations );
+  gTestController.TrackAllocations( track_allocations );
 
     // Over and over...
     for ( unsigned i = 0; i < niters ; i++ )
     {
-   	cerr << "iteration #" << i << "\n";
+     cerr << "iteration #" << i << "\n";
         if (run_all || run_algobase) {
             gTestController.SetCurrentContainer("algobase");
             cerr << "EH test : algobase" << endl;
@@ -294,7 +307,7 @@ int _STLP_CALL main(int argc, char** argv)
             cerr << "EH test : list" << endl;
             test_list();
         }
-        
+
 #if defined( EH_SLIST_IMPLEMENTED )
         if (run_all || run_slist) {
             gTestController.SetCurrentContainer("slist");
@@ -347,7 +360,7 @@ int _STLP_CALL main(int argc, char** argv)
 #endif // EH_HASHED_CONTAINERS_IMPLEMENTED
 
 #if defined( EH_ROPE_IMPLEMENTED )
-	// CW1.8 can't compile this for some reason!
+  // CW1.8 can't compile this for some reason!
 #if !( defined(__MWERKS__) && __MWERKS__ < 0x1900 )
         if (run_all || run_rope) {
             gTestController.SetCurrentContainer("rope");
@@ -379,9 +392,16 @@ int _STLP_CALL main(int argc, char** argv)
 #endif
     }
 
-	gTestController.TrackAllocations( false );
-	
-    cerr << "EH test : Done\n";
-    return 0;
+  gTestController.TrackAllocations( false );
+
+  cerr << "EH test : Done\n";
+
+#if defined(_WIN32_WCE)
+  cout.rdbuf(old_cout_buf);
+  cerr.rdbuf(old_cerr_buf);
+  file.close();
+#endif
+
+  return 0;
 }
 

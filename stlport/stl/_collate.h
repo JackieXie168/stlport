@@ -2,19 +2,19 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 // WARNING: This is an internal header file, included by other C++
 // standard library headers.  You should not attempt to use this header
 // file directly.
@@ -30,25 +30,22 @@
 # include <stl/_locale.h>
 #endif
 
-#ifndef _STLP_STRING_H
+#ifndef _STLP_INTERNAL_STRING_H
 # include <stl/_string.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
 
-
 template <class _CharT> class collate {};
 template <class _CharT> class collate_byname {};
 
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC collate<char> : public locale::facet 
-{
-  friend class _Locale;
+class _STLP_CLASS_DECLSPEC collate<char> : public locale::facet {
 public:
   typedef char   char_type;
   typedef string string_type;
 
-  explicit collate(size_t __refs = 0) : _BaseFacet(__refs) {}
+  explicit collate(size_t __refs = 0) : locale::facet(__refs) {}
 
   int compare(const char* __low1, const char* __high1,
               const char* __low2, const char* __high2) const {
@@ -62,7 +59,31 @@ public:
   long hash(const char* __low, const char* __high) const
     { return do_hash(__low, __high); }
 
-  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
+
+  static _STLP_STATIC_DECLSPEC locale::id id;
+
+#ifdef _STLP_MSVC_BINARY_COMPATIBILITY 
+  explicit collate(const _Locinfo& __i, size_t __refs = 0) : locale::facet(__refs) { _Init(__i); }
+
+  static size_t _STLP_CALL _Getcat(const locale::facet **__f = 0
+#if (_MSC_VER >= 1500)
+				   ,const locale *__l = 0
+#endif
+				   )
+  {
+    if (__f != 0 && *__f == 0)
+      *__f = new collate<char>(
+#if (_MSC_VER >= 1500)
+			       __l->name().c_str()
+#endif
+			       );
+    return (locale::collate);
+  }
+ protected:
+  void _Init(const _Locinfo&) {}
+  collate(const char* __locname, size_t __refs = 0)  : locale::facet(__refs) 
+    { _Init(_Locinfo(__locname));}
+#endif
 
 protected:
   ~collate();
@@ -73,20 +94,18 @@ protected:
   virtual long do_hash(const char*, const char*) const;
 private:
   collate(const collate<char>&);
-  collate<char>& operator =(const collate<char>&);  
+  collate<char>& operator =(const collate<char>&);
 };
 
 # ifndef _STLP_NO_WCHAR_T
 
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC collate<wchar_t> : public locale::facet 
-{
-  friend class _Locale;
+class _STLP_CLASS_DECLSPEC collate<wchar_t> : public locale::facet {
 public:
   typedef wchar_t char_type;
   typedef wstring string_type;
 
-  explicit collate(size_t __refs = 0) : _BaseFacet(__refs) {}
+  explicit collate(size_t __refs = 0) : locale::facet(__refs) {}
 
   int compare(const wchar_t* __low1, const wchar_t* __high1,
               const wchar_t* __low2, const wchar_t* __high2) const {
@@ -100,7 +119,30 @@ public:
   long hash(const wchar_t* __low, const wchar_t* __high) const
     { return do_hash(__low, __high); }
 
-  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
+  static _STLP_STATIC_DECLSPEC locale::id id;
+
+#ifdef _STLP_MSVC_BINARY_COMPATIBILITY 
+  explicit collate(const _Locinfo& __i, size_t __refs = 0) : locale::facet(__refs) { _Init(__i); }
+  static size_t _STLP_CALL _Getcat(const locale::facet **__f = 0
+#if (_MSC_VER >= 1500)
+					   ,const locale *__l = 0
+#endif
+					   )
+  {
+    if (__f != 0 && *__f == 0)
+      *__f = new collate<wchar_t>(
+#if (_MSC_VER >= 1500)
+				  _Locinfo(__l->name().c_str())
+#endif
+				  );
+    return (locale::collate);
+  }
+
+ protected:
+  void _Init(const _Locinfo&) {}
+  collate(const char* __locname, size_t __refs = 0)  : locale::facet(__refs) 
+    { _Init(_Locinfo(__locname));}
+#endif
 
 protected:
   ~collate();
@@ -111,14 +153,14 @@ protected:
   virtual long do_hash(const wchar_t* __low, const wchar_t* __high) const;
 private:
   collate(const collate<wchar_t>&);
-  collate<wchar_t>& operator = (const collate<wchar_t>&);  
+  collate<wchar_t>& operator = (const collate<wchar_t>&);
 };
 
 # endif /* NO_WCHAR_T */
 
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC collate_byname<char>: public collate<char> 
-{
+class _STLP_CLASS_DECLSPEC collate_byname<char>: public collate<char> {
+  friend class locale::_Locimp;
 public:
   explicit collate_byname(const char* __name, size_t __refs = 0);
 
@@ -130,16 +172,18 @@ protected:
   virtual string_type do_transform(const char*, const char*) const;
 
 private:
+  collate_byname(_Locale_collate *__coll)
+    : _M_collate(__coll) {}
   _Locale_collate* _M_collate;
   collate_byname(const collate_byname<char>&);
-  collate_byname<char>& operator =(const collate_byname<char>&);  
+  collate_byname<char>& operator =(const collate_byname<char>&);
 };
 
 # ifndef _STLP_NO_WCHAR_T
 
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC collate_byname<wchar_t>: public collate<wchar_t> 
-{
+class _STLP_CLASS_DECLSPEC collate_byname<wchar_t>: public collate<wchar_t> {
+  friend class locale::_Locimp;
 public:
   explicit collate_byname(const char * __name, size_t __refs = 0);
 
@@ -151,26 +195,23 @@ protected:
   virtual string_type do_transform(const wchar_t*, const wchar_t*) const;
 
 private:
+  collate_byname(_Locale_collate *__coll)
+    : _M_collate(__coll) {}
   _Locale_collate* _M_collate;
   collate_byname(const collate_byname<wchar_t>&);
-  collate_byname<wchar_t>& operator =(const collate_byname<wchar_t>&);  
+  collate_byname<wchar_t>& operator =(const collate_byname<wchar_t>&);
 };
 
 # endif /* NO_WCHAR_T */
 
-
-template <class _CharT>
-bool 
-__locale_do_operator_call (const locale* __that, 
-                           const basic_string<_CharT, char_traits<_CharT>, allocator<_CharT> >& __x,
-                           const basic_string<_CharT, char_traits<_CharT>, allocator<_CharT> >& __y) 
-{
-  collate<_CharT>* __f = (collate<_CharT>*)__that->_M_get_facet(collate<_CharT>::id);
-  if (!__f)
-    __that->_M_throw_runtime_error();
-  return __f->compare(__x.data(), __x.data() + __x.size(),
-                      __y.data(), __y.data() + __y.size());
-  
+template <class _CharT, class _Traits, class _Alloc>
+bool
+__locale_do_operator_call (const locale& __loc,
+                           const basic_string<_CharT, _Traits, _Alloc>& __x,
+                           const basic_string<_CharT, _Traits, _Alloc>& __y) {
+  collate<_CharT> const& __coll = use_facet<collate<_CharT> >(__loc);
+  return __coll.compare(__x.data(), __x.data() + __x.size(),
+                        __y.data(), __y.data() + __y.size()) < 0;
 }
 
 _STLP_END_NAMESPACE

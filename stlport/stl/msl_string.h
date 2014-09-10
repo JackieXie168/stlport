@@ -25,11 +25,16 @@
 
 namespace std
 {
-	template<class charT, class traits> class basic_istream;
-	template<class charT, class traits> class basic_ostream;
+  template<class charT, class traits> class basic_istream;
+  template<class charT, class traits> class basic_ostream;
 }
 
-# include _STLP_NATIVE_HEADER(string)
+#if defined (_STLP_HAS_INCLUDE_NEXT)
+#  include_next <string>
+#else
+#  include _STLP_NATIVE_HEADER(string)
+#endif
+
 // # undef char_traits
 # undef basic_string
 # undef b_str_ref

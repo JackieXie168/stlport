@@ -2,39 +2,51 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
-# include "stlport_prefix.h"
-#include <stl/_ostream.h>
+ */
+#include "stlport_prefix.h"
+
+#include <ostream>
+#include <string>
 
 _STLP_BEGIN_NAMESPACE
 
+
 #if !defined(_STLP_NO_FORCE_INSTANTIATE)
-
 // instantiations
-template  class _STLP_CLASS_DECLSPEC basic_ostream<char, char_traits<char> >;
+template class _STLP_CLASS_DECLSPEC basic_ostream<char, char_traits<char> >;
 
-template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&  _STLP_CALL 
-_M_put_num(basic_ostream<char, char_traits<char> >&, long);
-template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&   _STLP_CALL 
-_M_put_num(basic_ostream<char, char_traits<char> >&, unsigned long);
-#  if defined (_STLP_LONG_LONG)
-template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >&  _STLP_CALL
-_M_put_num(basic_ostream<char, char_traits<char> >&, unsigned _STLP_LONG_LONG);
+_STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+endl(basic_ostream<char, char_traits<char>>& __os);
+
+_STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+ends(basic_ostream<char, char_traits<char>>& __os);
+
+_STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+flush(basic_ostream<char, char_traits<char> >& __os);
+
 template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
-_M_put_num(basic_ostream<char, char_traits<char> >&, _STLP_LONG_LONG);
-#  endif
+operator<<(basic_ostream<char, char_traits<char> >&,
+          const basic_string<char, char_traits<char>, allocator<char> >& __y);
+
+template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+operator<<(basic_ostream<char, char_traits<char> >&,
+          char __y);
+
+template _STLP_DECLSPEC basic_ostream<char, char_traits<char> >& _STLP_CALL
+operator<<(basic_ostream<char, char_traits<char> >&,
+          const char* __y);
 
 # if defined (_STLP_USE_TEMPLATE_EXPORT)
 template  class _STLP_CLASS_DECLSPEC _Osentry<char, char_traits<char> >;
@@ -45,10 +57,32 @@ template  class _STLP_CLASS_DECLSPEC _Osentry<char, char_traits<char> >;
 # if defined (_STLP_USE_TEMPLATE_EXPORT)
 template class _STLP_CLASS_DECLSPEC _Osentry<wchar_t, char_traits<wchar_t> >;
 # endif
-template class _STLP_CLASS_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >;
-#endif
 
-#endif
+template class _STLP_CLASS_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >;
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+endl(basic_ostream<wchar_t, char_traits<wchar_t>>& __os);
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+ends(basic_ostream<wchar_t, char_traits<wchar_t>>& __os);
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+flush(basic_ostream<wchar_t, char_traits<wchar_t> >& __os);
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&,
+           const basic_string<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >& __y);
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&,
+           const wchar_t* __y);
+
+template _STLP_DECLSPEC basic_ostream<wchar_t, char_traits<wchar_t> >& _STLP_CALL
+operator<<(basic_ostream<wchar_t, char_traits<wchar_t> >&,
+           wchar_t __y);
+
+#  endif /* NO_FORCE_INSTANTIATE */
+# endif /* WCHAR */
 
 _STLP_END_NAMESPACE
 

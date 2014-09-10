@@ -2,19 +2,19 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 #ifndef _STLP_INTERNAL_IOS_H
 #define _STLP_INTERNAL_IOS_H
 
@@ -26,6 +26,7 @@
 #ifndef _STLP_INTERNAL_CTYPE_H
 # include <stl/_ctype.h>
 #endif
+
 #ifndef _STLP_INTERNAL_NUMPUNCT_H
 # include <stl/_numpunct.h>
 #endif
@@ -33,6 +34,11 @@
 _STLP_BEGIN_NAMESPACE
 
 // ----------------------------------------------------------------------
+
+#ifdef __SUNPRO_CC
+// Suppress warning that a derived class' rdbuf() hides basic_ios::rdbuf
+#pragma disable_warn
+#endif
 
 // Class basic_ios, a subclass of ios_base.  The only important difference
 // between the two is that basic_ios is a class template, parameterized
@@ -44,7 +50,7 @@ _STLP_BEGIN_NAMESPACE
 // because C++ language rules do not allow it to be declared twice.
 
 template <class _CharT, class _Traits>
-class basic_ios : public ios_base {
+class _STLP_CLASS_DECLSPEC basic_ios : public ios_base {
   friend class ios_base;
 public:                         // Synonyms for types.
   typedef _CharT                     char_type;
@@ -91,19 +97,23 @@ public:                         // Members from 27.4.4.3.  These four functions
     _M_clear_nothrow(this->rdbuf() ? __state : iostate(__state|ios_base::badbit));
     _M_check_exception_mask();
   }
-  void setstate(iostate __state) { this->clear(rdstate() | __state); }
 
-  iostate exceptions() const { return this->_M_get_exception_mask(); }
-  void exceptions(iostate __mask) {
-    this->_M_set_exception_mask(__mask);
-    this->clear(this->rdstate());
+#ifdef _STLP_MSVC_BINARY_COMPATIBILITY 
+  void clear(iostate __state, bool __thr) {
+    _M_clear_nothrow(this->rdbuf() ? __state : iostate(__state|ios_base::badbit));
+    if (__thr)
+      _M_check_exception_mask();
   }
+  void setstate(iostate __state, bool __thr) { this->clear(rdstate() | __state, __thr); }
+  void setstate(unsigned __state) { this->setstate((iostate)__state, true); }
+  void clear(unsigned __state) { this->clear((iostate)__state); }
+#endif
 
 public:                         // Locale-related member functions.
   locale imbue(const locale&);
 
   inline char narrow(_CharT, char) const ;
-  inline _CharT widen(char) const; 
+  inline _CharT widen(char) const;
 
   // Helper function that makes testing for EOF more convenient.
   static bool _STLP_CALL _S_eof(int_type __c) {
@@ -112,42 +122,45 @@ public:                         // Locale-related member functions.
   }
 
 protected:
-  basic_ios();
-
-  void init(basic_streambuf<_CharT, _Traits>* __streambuf);
+  // Cached copy of the curent locale's ctype facet.  Set by init() and imbue().
+  const ctype<char_type>* _M_cached_ctype;
 
 public:
+  // Equivalent to &use_facet< Facet >(getloc()), but faster.
+  const ctype<char_type>* _M_ctype_facet() const { return _M_cached_ctype; }
+
+protected:
+  basic_ios();
+
+  void init(basic_streambuf<_CharT, _Traits>* __streambuf, bool __compat = false);
   
+public:
+
   // Helper function used in istream and ostream.  It is called only from
   // a catch clause.
   void _M_handle_exception(ios_base::iostate __flag);
-  
+
 private:                        // Data members
   char_type _M_fill;            // The fill character, used for padding.
 
   basic_streambuf<_CharT, _Traits>* _M_streambuf;
   basic_ostream<_CharT, _Traits>*   _M_tied_ostream;
-
 };
 
+#ifdef __SUNPRO_CC
+#pragma enable_warn
+#endif
+
 
 template <class _CharT, class _Traits>
-inline char 
+inline char
 basic_ios<_CharT, _Traits>::narrow(_CharT __c, char __default) const
-{ return ((const ctype<_CharT>*)this->_M_ctype_facet())->narrow(__c, __default); }
+{ return _M_ctype_facet()->narrow(__c, __default); }
 
 template <class _CharT, class _Traits>
-inline _CharT 
+inline _CharT
 basic_ios<_CharT, _Traits>::widen(char __c) const
-{ 
-  return ((const ctype<_CharT>*)this->_M_ctype_facet())->widen(__c); }
-
-# if defined (_STLP_USE_TEMPLATE_EXPORT)
-_STLP_EXPORT_TEMPLATE_CLASS basic_ios<char, char_traits<char> >;
-#  if ! defined (_STLP_NO_WCHAR_T)
-_STLP_EXPORT_TEMPLATE_CLASS basic_ios<wchar_t, char_traits<wchar_t> >;
-#  endif
-# endif /* _STLP_USE_TEMPLATE_EXPORT */
+{ return _M_ctype_facet()->widen(__c); }
 
 # if !defined (_STLP_NO_METHOD_SPECIALIZATION)
 _STLP_TEMPLATE_NULL
@@ -165,22 +178,17 @@ basic_ios<char, char_traits<char> >::widen(char __c) const
 }
 # endif /* _STLP_NO_METHOD_SPECIALIZATION */
 
+# if defined (_STLP_USE_TEMPLATE_EXPORT)
+_STLP_EXPORT_TEMPLATE_CLASS basic_ios<char, char_traits<char> >;
+#  if ! defined (_STLP_NO_WCHAR_T)
+_STLP_EXPORT_TEMPLATE_CLASS basic_ios<wchar_t, char_traits<wchar_t> >;
+#  endif
+# endif /* _STLP_USE_TEMPLATE_EXPORT */
 
 _STLP_END_NAMESPACE
 
-#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION) && !defined (_STLP_LINK_TIME_INSTANTIATION)
+#if defined (_STLP_EXPOSE_STREAM_IMPLEMENTATION)
 #  include <stl/_ios.c>
-# endif
-
-// The following is needed to ensure that the inlined _Stl_loc_init functions
-// that ios_base::_Loc_init::_Loc_init() calls are found eventually.
-// Otherwise, undefined externs may be caused.
-
-#if defined(__BORLANDC__) && defined(_RTLDLL)
-#include <stl/_num_put.h>
-#include <stl/_num_get.h>
-#include <stl/_monetary.h>
-#include <stl/_time_facets.h>
 #endif
 
 #endif /* _STLP_IOS */

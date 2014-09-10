@@ -11,12 +11,12 @@
  * in supporting documentation.  Mark of the Unicorn makes no
  * representations about the suitability of this software for any
  * purpose.  It is provided "as is" without express or implied warranty.
-			
-		SUMMARY: Configuration #defines for STL EH test suite
-		
+
+    SUMMARY: Configuration #defines for STL EH test suite
+
 ***********************************************************************************/
 
-#if ! defined (INCLUDED_MOTU_Prefix)
+#ifndef INCLUDED_MOTU_Prefix
 #define INCLUDED_MOTU_Prefix 1
 
 // Gives much more thorough checking, but may slow the tests
@@ -32,94 +32,93 @@
 # define EH_USE_SGI_STL 1
 #endif
 
-
 #if EH_USE_SGI_STL
 
 #define EH_ASSERT _STLP_ASSERT
 
 //=========================================================================
 // SGI STL-specific #defines
-//	These control the behavior of the test suite when used with the SGI
-//	STL. They have no effect when testing other STL implementations.
+//  These control the behavior of the test suite when used with the SGI
+//  STL. They have no effect when testing other STL implementations.
 //=========================================================================
 
-// # define _STLP_USE_RAW_SGI_ALLOCATORS
-# ifndef _STLP_USE_NEWALLOC
+#ifndef _STLP_USE_NEWALLOC
 #  define _STLP_USE_NEWALLOC
-# endif
-# if !defined  (_STLP_NO_CUSTOM_IO) && ! defined (__BORLANDC__)
+#endif
+
+#if 0 // !defined  (_STLP_NO_CUSTOM_IO) && ! defined (__BORLANDC__)
 #  define _STLP_NO_CUSTOM_IO
-# endif
+#endif
 
 // Just include something to get whatever configuration header we're using.
-# include <stl/_config.h>
+#include <utility>
 
-# ifndef _STLP_CALL
+#ifndef _STLP_CALL
 #  define _STLP_CALL
-# endif
+#endif
 
-# if defined(_STLP_USE_NAMESPACES)
+#if defined(_STLP_USE_NAMESPACES)
 #  define EH_USE_NAMESPACES _STLP_USE_NAMESPACES
-# endif
+#endif
 
-# define EH_BEGIN_NAMESPACE _STLP_BEGIN_NAMESPACE
-# define EH_END_NAMESPACE _STLP_END_NAMESPACE
+#define EH_BEGIN_NAMESPACE _STLP_BEGIN_NAMESPACE
+#define EH_END_NAMESPACE _STLP_END_NAMESPACE
 
-#  define EH_NEW_HEADERS 1
+#define EH_NEW_HEADERS 1
 
-# if defined (_STLP_USE_NEW_IOSTREAMS)
-#  define EH_NEW_IOSTREAMS 1
-# endif
+//#if defined (_STLP_USE_NEW_IOSTREAMS)
+#define EH_NEW_IOSTREAMS 1
+//#endif
 
-# if !defined (_STLP_USE_EXCEPTIONS)
+#if !defined (_STLP_USE_EXCEPTIONS)
 #  define EH_NO_EXCEPTIONS
-# endif
+#endif
 
-# if defined (_STLP_TEMPLATE_PARAM_SUBTYPE_BUG)
+#if defined (_STLP_TEMPLATE_PARAM_SUBTYPE_BUG)
 #  define EH_TEMPLATE_PARAM_SUBTYPE_BUG _STLP_TEMPLATE_PARAM_SUBTYPE_BUG
-# endif
+#endif
 
-# if defined(_STLP_MULTI_CONST_TEMPLATE_ARG_BUG)
+#if defined(_STLP_MULTI_CONST_TEMPLATE_ARG_BUG)
 #  define EH_MULTI_CONST_TEMPLATE_ARG_BUG _STLP_MULTI_CONST_TEMPLATE_ARG_BUG
-# endif
+#endif
 
-# if defined (STLPORT)
+#if defined (STLPORT)
 #  define EH_STD STLPORT
-# elif defined(__STD)
+#elif defined(__STD)
 #  define EH_STD __STD
-# endif
+#endif
 
 // we want to be portable here, so std:: won't work.
-# if defined(STLPORT_CSTD)
+#if defined(STLPORT_CSTD)
 #  define EH_CSTD STLPORT_CSTD
-# else
+#else
 #  define EH_CSTD std
-# endif
+#endif
 
+#define EH_DISTANCE(a, b, result) EH_STD::distance(a, b, result)
 
-# define EH_DISTANCE( a, b, result ) EH_STD::distance( a, b, result )
-
-# define EH_HASHED_CONTAINERS_IMPLEMENTED 1
-# define EH_HASH_CONTAINERS_SUPPORT_RESIZE 1
-# define EH_HASH_CONTAINERS_SUPPORT_ITERATOR_CONSTRUCTION 1
-# define EH_SLIST_IMPLEMENTED 1
-# define EH_SELECT1ST_HINT __select1st_hint
+#define EH_HASHED_CONTAINERS_IMPLEMENTED 1
+#define EH_HASH_CONTAINERS_SUPPORT_RESIZE 1
+#define EH_HASH_CONTAINERS_SUPPORT_ITERATOR_CONSTRUCTION 1
+#define EH_SLIST_IMPLEMENTED 1
+#define EH_SELECT1ST_HINT __select1st_hint
 // fbp : DEC cxx is unable to compile it for some reason
-# if !( defined (__DECCXX)  || (defined (__GNUC__) && (__GNUC_MINOR__ < 8)))
+#if !(defined (__DECCXX)  || defined (__amigaos__) || \
+      (defined (__GNUC__) && (__GNUC__ <= 2) && (__GNUC_MINOR__ < 8)))
 #  define EH_ROPE_IMPLEMENTED 1
-# endif
-# define EH_STRING_IMPLEMENTED 1
+#endif
+#define EH_STRING_IMPLEMENTED 1
 // # define EH_BITSET_IMPLEMENTED 1
-//# define EH_VALARRAY_IMPLEMENTED 1	- we have no tests yet for valarray
+//# define EH_VALARRAY_IMPLEMENTED 1  - we have no tests yet for valarray
 
-# define stl_destroy EH_STD::destroy
-# include <memory>
-
-template <class _Tp>
-class _STLP_CLASS_DECLSPEC EH_allocator;
+#define stl_destroy EH_STD::destroy
+#include <memory>
 
 template <class _Tp>
-class _STLP_CLASS_DECLSPEC EH_allocator {
+class /*_STLP_CLASS_DECLSPEC*/ EH_allocator;
+
+template <class _Tp>
+class /*_STLP_CLASS_DECLSPEC*/ EH_allocator {
 public:
 
   typedef _Tp        value_type;
@@ -127,8 +126,8 @@ public:
   typedef const _Tp* const_pointer;
   typedef _Tp&       reference;
   typedef const _Tp& const_reference;
-  typedef size_t     size_type;
-  typedef ptrdiff_t  difference_type;
+  typedef EH_CSTD::size_t     size_type;
+  typedef EH_CSTD::ptrdiff_t  difference_type;
 # if defined (_STLP_MEMBER_TEMPLATE_CLASSES)
   template <class _Tp1> struct rebind {
     typedef EH_allocator<_Tp1> other;
@@ -137,13 +136,13 @@ public:
   EH_allocator() _STLP_NOTHROW {}
  # if defined (_STLP_MEMBER_TEMPLATES)
   template <class _Tp1> EH_allocator(const EH_allocator<_Tp1>&) _STLP_NOTHROW {}
- # endif    
+ # endif
   EH_allocator(const EH_allocator<_Tp>&) _STLP_NOTHROW {}
   ~EH_allocator() _STLP_NOTHROW {}
   pointer address(reference __x) { return &__x; }
   const_pointer address(const_reference __x) const { return &__x; }
   // __n is permitted to be 0.  The C++ standard says nothing about what the return value is when __n == 0.
-  _Tp* allocate(size_type __n, const void* = 0) const { 
+  _Tp* allocate(size_type __n, const void* = 0) const {
     return __n != 0 ? __REINTERPRET_CAST(value_type*,EH_STD::__new_alloc::allocate(__n * sizeof(value_type))) : 0;
   }
   // __p is permitted to be a null pointer, only if n==0.
@@ -154,9 +153,8 @@ public:
   // backwards compatibility
   void deallocate(pointer __p) const {  if (__p != 0) EH_STD::__new_alloc::deallocate((void*)__p, sizeof(value_type)); }
   size_type max_size() const _STLP_NOTHROW  { return size_t(-1) / sizeof(value_type); }
-  void construct(pointer __p, const _Tp& __val) const { _STLP_STD::construct(__p, __val); }
-  void destroy(pointer __p) const { _STLP_STD::destroy(__p); }
-
+  void construct(pointer __p, const _Tp& __val) const { stlport::construct(__p, __val); }
+  void destroy(pointer __p) const { stlport::destroy(__p); }
 };
 
 template <class _T1> inline bool  _STLP_CALL operator==(const EH_allocator<_T1>&, const EH_allocator<_T1>&)  { return true; }
@@ -183,7 +181,7 @@ _STLP_END_NAMESPACE
 #  ifdef _STLP_NO_BOOL
 #  undef   EH_BIT_VECTOR_IMPLEMENTED
 #  else
-#   define EH_BIT_VECTOR EH_STD::__vector__<bool, eh_allocator(bool) >
+#   define EH_BIT_VECTOR EH_STD::vector<bool, eh_allocator(bool) >
 #  endif
 # endif
 
@@ -205,14 +203,14 @@ _STLP_END_NAMESPACE
 #   if defined (_MSL_USING_NAMESPACE)
 #    define EH_USE_NAMESPACES 1
 #   endif
-#	define EH_BIT_VECTOR vector<bool>
+#  define EH_BIT_VECTOR vector<bool>
 #   define EH_DISTANCE( a, b, result ) do { result = distance( a, b ); } while (0)
 
 #  else
 
 #   error No configuration for earlier versions of MSL
 
-#  endif	// __MSL__ >= 24
+#  endif  // __MSL__ >= 24
 
 // Bugs fixed in CWPro3
 #  if __MWERKS__ < 0x2100
@@ -291,7 +289,7 @@ _STLP_END_NAMESPACE
 // Library-independent configuration.
 //
 #if defined( EH_MULTI_CONST_TEMPLATE_ARG_BUG) && !defined( EH_SELECT1ST_HINT )
-template <class Pair, class U>		
+template <class Pair, class U>
 // JDJ (CW Pro1 doesn't like const when first_type is also const)
 struct eh_select1st_hint : public unary_function<Pair, U> {
     const U& operator () (const Pair& x) const { return x.first; }
@@ -307,11 +305,9 @@ struct eh_select1st_hint : public unary_function<Pair, U> {
 #endif
 
 #if defined (EH_USE_NAMESPACES) && !defined(_STLP_VENDOR_GLOBAL_CSTD)
-# define USING_CSTD_NAME(name) using EH_STD :: name;
+# define USING_CSTD_NAME(name) using EH_CSTD :: name;
 #else
 # define USING_CSTD_NAME(name)
 #endif
 
 #endif // INCLUDED_MOTU_Prefix
-
-

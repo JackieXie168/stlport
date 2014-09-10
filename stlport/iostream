@@ -2,43 +2,57 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 
 #ifndef _STLP_IOSTREAM
-#define _STLP_IOSTREAM
 
-# ifndef _STLP_OUTERMOST_HEADER_ID
+#ifndef _STLP_OUTERMOST_HEADER_ID
 #  define _STLP_OUTERMOST_HEADER_ID 0x1037
 #  include <stl/_prolog.h>
-# endif
+#  define _STLP_IOSTREAM
+#endif
 
-# if defined (_STLP_OWN_IOSTREAMS)
+#if (_STLP_OUTERMOST_HEADER_ID == 0x1037) && \
+   !(defined (_STLP_NO_IOSTREAMS) && defined (_STLP_IMPORT_VENDOR_STD))
+#  include <stl/_ioserr.h>
 
-#include <stl/_iosfwd.h>
-#include <stl/_istream.h>
+#  ifdef _STLP_REDIRECT_STDSTREAMS
+// for ofstream redirection
+#    ifndef _STLP_INTERNAL_FSTREAM_H
+#      include <stl/_fstream.h>
+#    endif
+#  endif
+
+#  ifndef _STLP_INTERNAL_IOSFWD
+#    include <stl/_iosfwd.h>
+#  endif
+
+#  ifndef _STLP_INTERNAL_ISTREAM
+#    include <stl/_istream.h>
+#  endif
 
 _STLP_BEGIN_NAMESPACE
 
-#ifndef _STLP_USE_NAMESPACES
+#  ifndef _STLP_USE_NAMESPACES
 // in case of SGI iostreams, we have to rename our streams not to clash with those
 // provided in native lib
-# define cin _STLP_cin
-# define cout _STLP_cout
-# define cerr _STLP_cerr
-# define clog _STLP_clog
-#endif
+#    define cin _STLP_cin
+#    define cout _STLP_cout
+#    define cerr _STLP_cerr
+#    define clog _STLP_clog
+#  endif
 
 // Note: cin and wcin are both associated with stdio.  The C standard
 // (Amendment 1, section 4.6.2.1) says that it is an error to mix
@@ -48,43 +62,40 @@ _STLP_BEGIN_NAMESPACE
 // wcerr/wclog.
 
 extern _STLP_DECLSPEC istream cin;
+
+#  ifdef _STLP_REDIRECT_STDSTREAMS
+extern _STLP_DECLSPEC ofstream cout;
+extern _STLP_DECLSPEC ofstream cerr;
+extern _STLP_DECLSPEC ofstream clog;
+#  else
 extern _STLP_DECLSPEC ostream cout;
 extern _STLP_DECLSPEC ostream cerr;
 extern _STLP_DECLSPEC ostream clog;
+#  endif
 
-# ifndef _STLP_NO_WCHAR_T
+#  ifndef _STLP_NO_WCHAR_T
 extern _STLP_DECLSPEC wistream wcin;
 extern _STLP_DECLSPEC wostream wcout;
 extern _STLP_DECLSPEC wostream wcerr;
 extern _STLP_DECLSPEC wostream wclog;
-# endif
-
-# ifndef __LOCALE_INITIALIZED
-#  define __LOCALE_INITIALIZED
-// Global initializer object, to ensure initialization of locale subsystem.
-static ios_base::_Loc_init _LocInit;
-# endif
-
-# ifndef __IOS_BASE_INITIALIZED
-#  define __IOS_BASE_INITIALIZED
-// Global initializer object, to ensure construction of static objects.
-static ios_base::Init _IosInit;
-# endif
+#  endif
 
 _STLP_END_NAMESPACE
 
-# elif defined ( _STLP_USE_NO_IOSTREAMS )
-#  include <stl/_null_stream.h>
-# else
+#endif
 
-#  include <wrap_std/iostream>
+#if (_STLP_OUTERMOST_HEADER_ID != 0x1037) || defined (_STLP_IMPORT_VENDOR_STD)
+#  if defined (_STLP_HAS_INCLUDE_NEXT)
+#    include_next <iostream>
+#  else
+#    include _STLP_NATIVE_HEADER(iostream)
+#  endif
+#endif
 
-# endif /* STL_USE_NO_IOSTREAMS */
-
-# if (_STLP_OUTERMOST_HEADER_ID == 0x1037)
+#if (_STLP_OUTERMOST_HEADER_ID == 0x1037)
 #  include <stl/_epilog.h>
 #  undef _STLP_OUTERMOST_HEADER_ID
-# endif
+#endif
 
 #endif /* _STLP_IOSTREAM */
 

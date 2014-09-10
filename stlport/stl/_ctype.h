@@ -2,19 +2,19 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 // WARNING: This is an internal header file, included by other C++
 // standard library headers.  You should not attempt to use this header
 // file directly.
@@ -22,21 +22,23 @@
 #ifndef _STLP_INTERNAL_CTYPE_H
 #define _STLP_INTERNAL_CTYPE_H
 
-# ifndef _STLP_C_LOCALE_H
+#ifndef _STLP_C_LOCALE_H
 #  include <stl/c_locale.h>
-# endif
-# ifndef _STLP_INTERNAL_LOCALE_H
+#endif
+
+#ifndef _STLP_INTERNAL_LOCALE_H
 #  include <stl/_locale.h>
-# endif
-# ifndef _STLP_INTERNAL_ALGOBASE_H
+#endif
+
+#ifndef _STLP_INTERNAL_ALGOBASE_H
 #  include <stl/_algobase.h>
-# endif
+#endif
 
 _STLP_BEGIN_NAMESPACE
 
-class _STLP_CLASS_DECLSPEC ctype_base {
+class _STLP_CLASS_DECLSPEC ctype_base : public locale::facet {
 public:
-  enum mask {
+  enum {
     space   = _Locale_SPACE,
     print   = _Locale_PRINT,
     cntrl   = _Locale_CNTRL,
@@ -49,6 +51,17 @@ public:
     alnum   = alpha | digit,
     graph   = alnum | punct
   };
+
+  typedef short mask;
+
+  ctype_base(size_t __refs) : locale::facet(__refs) {} 
+
+ protected:
+  static void _STLP_CALL _Xran()
+  {
+    __stl_throw_out_of_range("ctype<T>");
+  }
+  
 };
 
 // ctype<> template
@@ -59,25 +72,23 @@ template <class charT> class ctype_byname {};
 //ctype specializations
 
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC ctype<char> :   public locale::facet, public ctype_base 
-{
-
-# ifndef _STLP_NO_WCHAR_T
+class _STLP_CLASS_DECLSPEC ctype<char> : public ctype_base {
+#ifndef _STLP_NO_WCHAR_T
 #  ifdef _STLP_MSVC
     typedef ctype<wchar_t> _Wctype;
     friend _Wctype;
 #  else
     friend class ctype<wchar_t>;
 #  endif
-# endif
-  friend class _Locale;
+#endif
 public:
 
   typedef char char_type;
 
   explicit ctype(const mask* __tab = 0, bool __del = false, size_t __refs = 0);
+
   bool is(mask __m, char __c) const
-    { return ((*(_M_ctype_table+(unsigned char)__c)) & __m) != 0; }
+  { return ((*(_M_ctype_table+(unsigned char)__c)) & __m) != 0; }
 
   const char* is(const char* __low, const char* __high, mask* __vec) const {
     for (const char* __p = __low;__p != __high; ++__p, ++__vec) {
@@ -90,38 +101,90 @@ public:
   const char* scan_not(mask __m, const char* __low, const char* __high) const;
 
   char        (toupper)(char __c) const { return do_toupper(__c); }
-  const char* (toupper)(char* __low, const char* __high) const { 
-    return do_toupper(__low, __high); 
+  const char* (toupper)(char* __low, const char* __high) const {
+    return do_toupper(__low, __high);
   }
 
   char        (tolower)(char __c) const { return do_tolower(__c); }
-  const char* (tolower)(char* __low, const char* __high) const { 
-    return do_tolower(__low, __high); 
-  }
-  
-  char        widen(char __c) const { return do_widen(__c); }
-  const char* widen(const char* __low, const char* __high, char* __to) const { 
-    return do_widen(__low, __high, __to); 
+  const char* (tolower)(char* __low, const char* __high) const {
+    return do_tolower(__low, __high);
   }
 
-  char        narrow(char __c, char __dfault) const { 
-    return do_narrow(__c, __dfault); 
+  char        widen(char __c) const { return do_widen(__c); }
+  const char* widen(const char* __low, const char* __high, char* __to) const {
+    return do_widen(__low, __high, __to);
+  }
+
+  char        narrow(char __c, char __dfault) const {
+    return do_narrow(__c, __dfault);
   }
   const char* narrow(const char* __low, const char* __high,
-                     char __dfault, char* __to) const { 
-    return do_narrow(__low, __high, __dfault, __to); 
+                     char __dfault, char* __to) const {
+    return do_narrow(__low, __high, __dfault, __to);
   }
 
-  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
-# if defined(_STLP_STATIC_CONST_INIT_BUG)
-  enum __TableSize { table_size = 256 };
-# else
-  static const size_t table_size = 256;
-# endif
+  static _STLP_STATIC_DECLSPEC locale::id id;
+  _STLP_STATIC_CONSTANT(size_t, table_size = 256);
+
+#ifdef _STLP_MSVC_BINARY_COMPATIBILITY
+  explicit ctype(const _Locinfo& __i, size_t __refs = 0) : ctype_base(__refs) { _Init(__i); }
+  static size_t _STLP_CALL _Getcat(const locale::facet **__f = 0
+#if (_MSC_VER >= 1500)
+				   ,const locale *__l = 0
+#endif
+				   )
+  {
+    if (__f != 0 && *__f == 0)
+      *__f = new ctype<char>(
+#if (_MSC_VER >= 1500)
+			     __l->name().c_str()
+#endif
+			     );
+    return (locale::ctype);
+  }
+
+ protected:
+  void _Init(const _Locinfo&) {}
+
+  ctype(const char* __locname, size_t __refs = 0)  : ctype_base(__refs) 
+    { _Init(_Locinfo(__locname));}
+
+  const char * _Narrow_s(const char* __f, const char *__last,
+			   char __def, char *__dest, size_t __dst_size) const
+  {
+    return _Do_narrow_s(__f, __last,
+			__def, __dest, __dst_size);
+  }
+
+  virtual const char* _Do_narrow_s(const char* __f, const char *__last,
+				   char __def, char *__dest, size_t __dst_size) const;
+
+  const char * _Widen_s(const char* __f, const char *__last,
+			  char *__dest, size_t __dst_size) const
+  {
+    return _Do_widen_s(__f, __last,
+		       __dest, __dst_size);
+  }
+
+  virtual const char* _Do_widen_s(const char* __f, const char *__last,
+				  char *__dest, size_t __dst_size) const;
+  
+  char __CLR_OR_THIS_CALL _Donarrow(char __ch) const
+  {
+    return __ch;
+  }
+
+  char __CLR_OR_THIS_CALL _Dowiden(char __src) const
+  {
+    return __src;
+  }
+
+  static locale::id& _STLP_CALL _Id_func();
+#endif
 
 protected:
-  const mask* table() const _STLP_NOTHROW {return _M_ctype_table;}
-  static const mask* _STLP_CALL classic_table() _STLP_NOTHROW { return & _S_classic_table [1]; }
+  const mask* table() const _STLP_NOTHROW { return _M_ctype_table; }
+  static const mask* _STLP_CALL classic_table() _STLP_NOTHROW;
 
   ~ctype();
 
@@ -142,16 +205,15 @@ private:
    bool operator()(char __c) {return (__m & (unsigned char) __c) != 0;}
   };
 
-  static const mask _S_classic_table[257 /* table_size + 1 */];
+protected:
   const mask* _M_ctype_table;
+private:
   bool _M_delete;
-
-  static const unsigned char _S_upper[256 /* table_size */];
-  static const unsigned char _S_lower[256 /* table_size */];
 };
 
 _STLP_TEMPLATE_NULL
 class _STLP_CLASS_DECLSPEC ctype_byname<char>: public ctype<char> {
+  friend class locale::_Locimp;
 public:
   explicit ctype_byname(const char*, size_t = 0);
   ~ctype_byname();
@@ -163,20 +225,28 @@ public:
   virtual const char* do_tolower(char*, const char*) const;
 
 private:
-  mask _M_byname_table[table_size + 1];
+  ctype_byname(_Locale_ctype* __ctype)
+    : _M_ctype(__ctype)
+  { _M_init(); }
+
+  void _M_init();
+
+  //explicitely defined as private to avoid warnings:
+  typedef ctype_byname<char> _Self;
+  ctype_byname(_Self const&);
+  _Self& operator = (_Self const&);
+
+  mask _M_byname_table[table_size];
   _Locale_ctype* _M_ctype;
 };
 
-
-# ifndef _STLP_NO_WCHAR_T
+#  ifndef _STLP_NO_WCHAR_T
 _STLP_TEMPLATE_NULL
-class _STLP_CLASS_DECLSPEC ctype<wchar_t> : public locale::facet, public ctype_base 
-{
-  friend class _Locale;
+class _STLP_CLASS_DECLSPEC ctype<wchar_t> : public ctype_base {
 public:
   typedef wchar_t char_type;
 
-  explicit ctype(size_t __refs = 0) : _BaseFacet(__refs) {}
+  explicit ctype(size_t __refs = 0) : ctype_base(__refs) {}
 
   bool is(mask __m, wchar_t __c) const
     { return do_is(__m, __c); }
@@ -185,20 +255,20 @@ public:
                     mask* __vec) const
     { return do_is(__low, __high, __vec); }
 
-  const wchar_t* scan_is(mask __m, 
+  const wchar_t* scan_is(mask __m,
                          const wchar_t* __low, const wchar_t* __high) const
     { return do_scan_is(__m, __low, __high); }
 
-  const wchar_t* scan_not (mask __m, 
+  const wchar_t* scan_not (mask __m,
                            const wchar_t* __low, const wchar_t* __high) const
     { return do_scan_not(__m, __low, __high); }
 
   wchar_t (toupper)(wchar_t __c) const { return do_toupper(__c); }
-  const wchar_t* (toupper)(wchar_t* __low, wchar_t* __high) const
+  const wchar_t* (toupper)(wchar_t* __low, const wchar_t* __high) const
     { return do_toupper(__low, __high); }
 
   wchar_t (tolower)(wchar_t __c) const { return do_tolower(__c); }
-  const wchar_t* (tolower)(wchar_t* __low, wchar_t* __high) const
+  const wchar_t* (tolower)(wchar_t* __low, const wchar_t* __high) const
     { return do_tolower(__low, __high); }
 
   wchar_t widen(char __c) const { return do_widen(__c); }
@@ -212,7 +282,64 @@ public:
                         char __dfault, char* __to) const
     { return do_narrow(__low, __high, __dfault, __to); }
 
-  _STLP_STATIC_MEMBER_DECLSPEC static locale::id id;
+  static _STLP_STATIC_DECLSPEC locale::id id;
+
+#ifdef _STLP_MSVC_BINARY_COMPATIBILITY
+  explicit ctype(const _Locinfo& __i, size_t __refs = 0) : ctype_base(__refs) { _Init(__i); }
+
+  static size_t _STLP_CALL _Getcat(const locale::facet **__f = 0
+#if (_MSC_VER >= 1500)
+				   ,const locale *__l = 0
+#endif
+				   )
+  {
+    if (__f != 0 && *__f == 0)
+      *__f = new ctype<wchar_t>(
+#if (_MSC_VER >= 1500)
+				__l->name().c_str()
+#endif
+				);
+    return (locale::ctype);
+  }
+ protected:
+  void _Init(const _Locinfo&) {}
+  ctype(const char* __locname, size_t __refs = 0)  : ctype_base(__refs) 
+    { _Init(_Locinfo(__locname));}
+  
+  const wchar_t * _Narrow_s(const wchar_t* __f, const wchar_t *__last,
+			    char __def, char *__dest, size_t __dst_size) const
+  {
+    return _Do_narrow_s(__f, __last,
+			__def, __dest, __dst_size);
+  }
+
+  virtual const wchar_t* _Do_narrow_s(const wchar_t* __f, const wchar_t *__last,
+				   char __def, char *__dest, size_t __dst_size) const;
+
+
+  const char* _Widen_s(const char* __f, const char *__last,
+		       wchar_t *__dest, size_t __dst_size) const
+  {
+    return _Do_widen_s(__f, __last,
+		       __dest, __dst_size);
+  }
+
+  virtual const char* _Do_widen_s(const char* __f, const char *__last,
+				  wchar_t *__dest, size_t __dst_size) const;
+  
+  char __CLR_OR_THIS_CALL _Donarrow(wchar_t __ch, char __dfl) const
+  {
+    return char(__ch);
+  }
+
+  wchar_t _Dowiden(char __src) const
+  {
+    // TODO implement
+    return wchar_t(__src);
+  }
+
+  static locale::id& _STLP_CALL _Id_func();
+#endif
 
 protected:
   ~ctype();
@@ -236,6 +363,7 @@ protected:
 
 _STLP_TEMPLATE_NULL
 class _STLP_CLASS_DECLSPEC ctype_byname<wchar_t>: public ctype<wchar_t> {
+  friend class locale::_Locimp;
 public:
   explicit ctype_byname(const char* __name, size_t __refs = 0);
 
@@ -254,10 +382,18 @@ protected:
   virtual const wchar_t* do_tolower(wchar_t*, const wchar_t*) const;
 
 private:
+  ctype_byname(_Locale_ctype* __ctype)
+    : _M_ctype(__ctype) {}
+
+  //explicitely defined as private to avoid warnings:
+  typedef ctype_byname<wchar_t> _Self;
+  ctype_byname(_Self const&);
+  _Self& operator = (_Self const&);
+
   _Locale_ctype* _M_ctype;
 };
 
-# endif /* WCHAR_T */
+#  endif /* WCHAR_T */
 
 _STLP_END_NAMESPACE
 

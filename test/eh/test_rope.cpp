@@ -1,6 +1,6 @@
 /***********************************************************************************
-	test_rope.cpp
-	
+  test_rope.cpp
+
  * Copyright (c) 1997
  * Mark of the Unicorn, Inc.
  *
@@ -40,24 +40,6 @@
 
 typedef STLPORT::rope<char, eh_allocator(char) > TestRope;
 
-# if ( _STLP_STATIC_TEMPLATE_DATA < 1 )
-
-// Instantiate TestRope static data members
-const unsigned long TestRope::_S_min_len[46] = { \
-/* 0 */1, /* 1 */2, /* 2 */3, /* 3 */5, /* 4 */8, /* 5 */13, /* 6 */21,         \
-/* 7 */34, /* 8 */55, /* 9 */89, /* 10 */144, /* 11 */233, /* 12 */377,         \
-/* 13 */610, /* 14 */987, /* 15 */1597, /* 16 */2584, /* 17 */4181,             \
-/* 18 */6765ul, /* 19 */10946ul, /* 20 */17711ul, /* 21 */28657ul, /* 22 */46368ul,   \
-/* 23 */75025ul, /* 24 */121393ul, /* 25 */196418ul, /* 26 */317811ul,                \
-/* 27 */514229ul, /* 28 */832040ul, /* 29 */1346269ul, /* 30 */2178309ul,             \
-/* 31 */3524578ul, /* 32 */5702887ul, /* 33 */9227465ul, /* 34 */14930352ul,          \
-/* 35 */24157817ul, /* 36 */39088169ul, /* 37 */63245986ul, /* 38 */102334155ul,      \
-/* 39 */165580141ul, /* 40 */267914296ul, /* 41 */433494437ul,                        \
-/* 42 */701408733ul, /* 43 */1134903170ul, /* 44 */1836311903ul,                      \
-/* 45 */2971215073ul };
-
-# endif /* ( _STLP_STATIC_TEMPLATE_DATA < 1 ) */
-
 inline sequence_container_tag
 container_category(const TestRope&)
 {
@@ -67,11 +49,11 @@ container_category(const TestRope&)
 void test_rope()
 {
     TestRope testRope, testRope2;
-    EH_STD::size_t ropeSize = random_number(random_base);
-	
+    size_t ropeSize = random_number(random_base);
+
     while ( testRope.size() < ropeSize )
     {
-        TestRope::value_type x = TestRope::value_type(random_number(random_base));	// initialize before use
+        TestRope::value_type x = TestRope::value_type(random_number(random_base));  // initialize before use
         testRope.push_back( x );
         testRope2.push_back( TestRope::value_type() );
     }
@@ -82,8 +64,8 @@ void test_rope()
     WeakCheck( testRope, test_insert_n<TestRope>(testRope, random_number(random_base) ) );
     WeakCheck( testRope, test_insert_n<TestRope>(testRope, random_number(random_base), 0 ) );
     WeakCheck( testRope, test_insert_n<TestRope>(testRope, random_number(random_base), (int)testRope.size() ) );
-	
-    EH_STD::size_t insCnt = random_number(random_base);
+
+    size_t insCnt = random_number(random_base);
     TestRope::value_type *insFirst = new TestRope::value_type[1+insCnt];
 
     WeakCheck( testRope, insert_range_tester(testRope, insFirst, insFirst+insCnt) );
@@ -99,7 +81,7 @@ void test_rope()
     WeakCheck( testRope, test_push_back<TestRope>(testRope) );
 
     ConstCheck( 0, test_default_construct<TestRope>() );
-    
+
 // dwa 1/25/00 - not actually valid for rope, because it doesn't
 // have the constructor in question! The code will compile, but with the
 // wrong result (the constructor that gets used does something different).

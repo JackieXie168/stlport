@@ -14,17 +14,28 @@
 #ifndef _STLP_ROPE
 #define _STLP_ROPE
 
-# ifndef _STLP_OUTERMOST_HEADER_ID
+#ifndef _STLP_OUTERMOST_HEADER_ID
 #  define _STLP_OUTERMOST_HEADER_ID 0x54
 #  include <stl/_prolog.h>
-# endif
+#endif
 
-# include <stl/_rope.h>
+#ifdef _STLP_PRAGMA_ONCE
+#  pragma once
+#endif
 
-# if (_STLP_OUTERMOST_HEADER_ID == 0x54)
+#if defined (_STLP_NO_EXTENSIONS)
+/* Comment following if you want to use rope class even if you ask for
+ * no extension.
+ */
+#  error The rope class is a STLport extension.
+#endif
+
+#include <stl/_rope.h>
+
+#if (_STLP_OUTERMOST_HEADER_ID == 0x54)
 #  include <stl/_epilog.h>
 #  undef _STLP_OUTERMOST_HEADER_ID
-# endif
+#endif
 
 #endif /* _STLP_ROPE */
 

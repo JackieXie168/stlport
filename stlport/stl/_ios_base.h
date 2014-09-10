@@ -2,33 +2,36 @@
  * Copyright (c) 1999
  * Silicon Graphics Computer Systems, Inc.
  *
- * Copyright (c) 1999 
+ * Copyright (c) 1999
  * Boris Fomitchev
  *
  * This material is provided "as is", with absolutely no warranty expressed
  * or implied. Any use is at your own risk.
  *
- * Permission to use or copy this software for any purpose is hereby granted 
+ * Permission to use or copy this software for any purpose is hereby granted
  * without fee, provided the above notices are retained on all copies.
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  *
- */ 
+ */
 #ifndef _STLP_IOS_BASE_H
 #define _STLP_IOS_BASE_H
 
-#ifndef _STLP_STDEXCEPT
-#include <stdexcept>
+#ifndef _STLP_INTERNAL_STDEXCEPT_BASE
+#  include <stl/_stdexcept_base.h>
 #endif
+
 #ifndef _STLP_UTILITY
-#include <utility>
+#  include <utility>
 #endif
+
 #ifndef _STLP_INTERNAL_LOCALE_H
-#include <stl/_locale.h>
+#  include <stl/_locale.h>
 #endif
-#ifndef _STLP_STRING_H
-# include <stl/_string.h>
+
+#ifndef _STLP_INTERNAL_STRING_H
+#  include <stl/_string.h>
 #endif
 
 _STLP_BEGIN_NAMESPACE
@@ -44,7 +47,7 @@ _STLP_BEGIN_NAMESPACE
 
 class _STLP_CLASS_DECLSPEC ios_base {
 public:
-  
+
   class _STLP_CLASS_DECLSPEC failure : public __Named_exception {
   public:
     explicit failure(const string&);
@@ -58,58 +61,49 @@ public:
 
 # ifndef _STLP_NO_ANACHRONISMS
   typedef fmtflags fmt_flags;
+  typedef int iostate;
+  typedef iostate  io_state;
 # endif
 
   // Formatting flags.
-# ifdef _STLP_STATIC_CONST_INIT_BUG
-  enum  {
-# else
-  // boris : type for all those constants is int   
-  static const int
-# endif
-    left       = 0x0001,
-    right      = 0x0002,
-    internal   = 0x0004,
-    dec        = 0x0008,
-    hex        = 0x0010,
-    oct        = 0x0020,
-    fixed      = 0x0040,
-    scientific = 0x0080,
-    boolalpha  = 0x0100,
-    showbase   = 0x0200,
-    showpoint  = 0x0400,
-    showpos    = 0x0800,
-    skipws     = 0x1000,
-    unitbuf    = 0x2000,
-    uppercase  = 0x4000,
-    adjustfield = left | right | internal,
-    basefield   = dec | hex | oct,
-    floatfield  = scientific | fixed,
-    
-    // State flags.
-    goodbit = 0x00,
-    badbit  = 0x01,
-    eofbit  = 0x02,
-    failbit = 0x04,
-    
-    // Openmode flags.
-    __default_mode = 0x0, /* implementation detail */
-    app    = 0x01,
-    ate    = 0x02,
-    binary = 0x04,
-    in     = 0x08,
-    out    = 0x10,
-    trunc  = 0x20,
-    
-    // Seekdir flags
-    
-    beg = 0x01,
-    cur = 0x02,
-    end = 0x04
-# ifdef _STLP_STATIC_CONST_INIT_BUG
-  }
-# endif
-  ;
+  _STLP_STATIC_CONSTANT(int, left = 0x0001);
+  _STLP_STATIC_CONSTANT(int, right = 0x0002);
+  _STLP_STATIC_CONSTANT(int, internal   = 0x0004);
+  _STLP_STATIC_CONSTANT(int, dec        = 0x0008);
+  _STLP_STATIC_CONSTANT(int, hex        = 0x0010);
+  _STLP_STATIC_CONSTANT(int, oct        = 0x0020);
+  _STLP_STATIC_CONSTANT(int, fixed      = 0x0040);
+  _STLP_STATIC_CONSTANT(int, scientific = 0x0080);
+  _STLP_STATIC_CONSTANT(int, boolalpha  = 0x0100);
+  _STLP_STATIC_CONSTANT(int, showbase   = 0x0200);
+  _STLP_STATIC_CONSTANT(int, showpoint  = 0x0400);
+  _STLP_STATIC_CONSTANT(int, showpos    = 0x0800);
+  _STLP_STATIC_CONSTANT(int, skipws     = 0x1000);
+  _STLP_STATIC_CONSTANT(int, unitbuf    = 0x2000);
+  _STLP_STATIC_CONSTANT(int, uppercase  = 0x4000);
+  _STLP_STATIC_CONSTANT(int, adjustfield = left | right | internal);
+  _STLP_STATIC_CONSTANT(int, basefield   = dec | hex | oct);
+  _STLP_STATIC_CONSTANT(int, floatfield  = scientific | fixed);
+
+  // State flags.
+  _STLP_STATIC_CONSTANT(int, goodbit = 0x00);
+  _STLP_STATIC_CONSTANT(int, badbit  = 0x01);
+  _STLP_STATIC_CONSTANT(int, eofbit  = 0x02);
+  _STLP_STATIC_CONSTANT(int, failbit = 0x04);
+
+  // Openmode flags.
+  _STLP_STATIC_CONSTANT(int, __default_mode = 0x0); /* implementation detail */
+  _STLP_STATIC_CONSTANT(int, app    = 0x01);
+  _STLP_STATIC_CONSTANT(int, ate    = 0x02);
+  _STLP_STATIC_CONSTANT(int, binary = 0x04);
+  _STLP_STATIC_CONSTANT(int, in     = 0x08);
+  _STLP_STATIC_CONSTANT(int, out    = 0x10);
+  _STLP_STATIC_CONSTANT(int, trunc  = 0x20);
+
+  // Seekdir flags
+  _STLP_STATIC_CONSTANT(int, beg = 0x01);
+  _STLP_STATIC_CONSTANT(int, cur = 0x02);
+  _STLP_STATIC_CONSTANT(int, end = 0x04);
 
 public:                         // Flag-manipulation functions.
   fmtflags flags() const { return _M_fmtflags; }
@@ -182,6 +176,23 @@ public:                         // The C++ standard requires only that these
   bool fail() const { return (_M_iostate & (failbit | badbit)) != 0; }
   bool bad() const { return (_M_iostate & badbit) != 0; }
 
+  void clear(iostate __state, bool __thr) {
+    _M_clear_nothrow(__state);
+    if (__thr)
+      _M_check_exception_mask();
+  }
+  iostate exceptions() const { return this->_M_get_exception_mask(); }
+  void exceptions(iostate __mask) {
+    this->_M_set_exception_mask(__mask);
+    _M_clear_nothrow(__mask);
+    _M_check_exception_mask();
+    this->clear(this->rdstate(), true);
+  }
+#if 0
+  void exceptions(io_state __mask) {
+    exceptions((iostate)__mask);
+  }
+#endif
 protected:                      // The functional protected interface.
 
   // Copies the state of __x to *this.  This member function makes it
@@ -189,24 +200,25 @@ protected:                      // The functional protected interface.
   // ios_base's private data members.  Does not copy _M_exception_mask
   // or _M_iostate.
   void _M_copy_state(const ios_base& __x);
-
   void _M_setstate_nothrow(iostate __state) { _M_iostate |= __state; }
   void _M_clear_nothrow(iostate __state) { _M_iostate = __state; }
   iostate _M_get_exception_mask() const { return _M_exception_mask; }
   void _M_set_exception_mask(iostate __mask) { _M_exception_mask = __mask; }
-  void _M_check_exception_mask() 
-    { if (_M_iostate & _M_exception_mask) _M_throw_failure(); }
+  void _M_check_exception_mask() {
+    if (_M_iostate & _M_exception_mask)
+      _M_throw_failure();
+  }
 
   void _M_invoke_callbacks(event);
-  void _M_throw_failure();
+  void _STLP_FUNCTION_THROWS _M_throw_failure();
 
   ios_base();                   // Default constructor.
 
 protected:                        // Initialization of the I/O system
   static void _STLP_CALL _S_initialize();
   static void _STLP_CALL _S_uninitialize();
-  static bool _S_was_synced;
-  
+  static bool _S_is_synced;
+
 private:                        // Invalidate the copy constructor and
                                 // assignment operator.
   ios_base(const ios_base&);
@@ -236,43 +248,20 @@ private:                        // Data members.
   void** _M_pwords;
   size_t _M_num_pwords;
 
-  static int _S_index;
-
-protected:
-  // Cached copies of the curent locale's facets.  Set by init() and imbue().
-  locale::facet* _M_cached_ctype;
-  locale::facet* _M_cached_numpunct;
-  string         _M_cached_grouping;
 public:
-  // Equivalent to &use_facet< Facet >(getloc()), but faster.
-  const locale::facet* _M_ctype_facet() const { return _M_cached_ctype; }
-  const locale::facet* _M_numpunct_facet() const { return _M_cached_numpunct; }
-  const string&  _M_grouping() const { return _M_cached_grouping; }
-public:
-
   // ----------------------------------------------------------------------
   // Nested initializer class.  This is an implementation detail, but it's
-  // prescribed by the standard.  The static initializer object (on 
+  // prescribed by the standard.  The static initializer object (on
   // implementations where such a thing is required) is declared in
   // <iostream>
-  
-  class _STLP_CLASS_DECLSPEC Init {
-  public:
-    Init();
-    ~Init();
-  private:
-    static long _S_count;
-    friend class ios_base;
-  };
-
-  // this class is needed to ensure locale initialization w/o <iostream> inclusion
-  class _STLP_CLASS_DECLSPEC _Loc_init {
-  public:
-    _Loc_init();
-    ~_Loc_init();
-  private:
-    static long _S_count;
-    friend class ios_base;
+  class _STLP_CLASS_DECLSPEC Init
+  {
+    public:
+      Init();
+      ~Init();
+    private:
+      static long _S_count;
+      friend class ios_base;
   };
 
   friend class Init;
@@ -285,14 +274,8 @@ public:
   typedef seekdir  seek_dir;
   typedef _STLP_STD::streamoff  streamoff;
   typedef _STLP_STD::streampos  streampos;
-# endif  
+# endif
 };
-
-template <class Facet>
-locale::facet* _M_get_facet(ios_base& __i, Facet*)
-{
-
-}
 
 // ----------------------------------------------------------------------
 // ios_base manipulator functions, from section 27.4.5 of the C++ standard.
@@ -320,7 +303,7 @@ inline ios_base& _STLP_CALL noshowpoint(ios_base& __s)
 inline ios_base& _STLP_CALL showpos(ios_base& __s)
   { __s.setf(ios_base::showpos); return __s;}
 
-inline ios_base& _STLP_CALL noshowpos(ios_base& __s) 
+inline ios_base& _STLP_CALL noshowpos(ios_base& __s)
   { __s.unsetf(ios_base::showpos); return __s;}
 
 inline ios_base& _STLP_CALL skipws(ios_base& __s)
@@ -356,7 +339,7 @@ inline ios_base& _STLP_CALL right(ios_base& __s)
 inline ios_base& _STLP_CALL dec(ios_base& __s)
   { __s.setf(ios_base::dec, ios_base::basefield); return __s; }
 
-inline ios_base& _STLP_CALL hex(ios_base& __s) 
+inline ios_base& _STLP_CALL hex(ios_base& __s)
   { __s.setf(ios_base::hex, ios_base::basefield); return __s; }
 
 inline ios_base& _STLP_CALL oct(ios_base& __s)
@@ -369,32 +352,6 @@ inline ios_base& _STLP_CALL fixed(ios_base& __s)
 
 inline ios_base& _STLP_CALL scientific(ios_base& __s)
   { __s.setf(ios_base::scientific, ios_base::floatfield); return __s; }
-
-#if defined(__BORLANDC__) && defined(_RTLDLL)
-
-long ios_base::_Loc_init::_S_count = 0;
-
-void _STLP_CALL _Stl_loc_init_num_put();
-void _STLP_CALL _Stl_loc_init_num_get();
-void _STLP_CALL _Stl_loc_init_monetary();
-void _STLP_CALL _Stl_loc_init_time_facets();
-
-inline ios_base::_Loc_init::_Loc_init() {
-  if (_S_count++ == 0) {
-      _Stl_loc_init_num_put();
-      _Stl_loc_init_num_get();
-      _Stl_loc_init_monetary();
-      _Stl_loc_init_time_facets();
-      locale::_S_initialize();
-  }
-}
-
-inline ios_base::_Loc_init::~_Loc_init() {
-    if (--_S_count == 0)
-      locale::_S_uninitialize();
-}
-
-#endif /* __BORLANDC__ */
 
 _STLP_END_NAMESPACE
 
