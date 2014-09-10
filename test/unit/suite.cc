@@ -39,7 +39,7 @@
 #include "errno_test.h"
 #include "shared_ptr_test.h"
 // #include "reference_wrapper_test.h"
-// #include "num_put_get_test.h"
+#include "num_put_get_test.h"
 
 int main( int argc, const char** argv )
 {
@@ -134,64 +134,57 @@ int main( int argc, const char** argv )
   //  cstring_test cst_test;
   
   //   t.add( &cstring_test::import_checks, cst_test, "import_checks" );
-  
+
+#if 0
   iostream_test strm_test;
-  //  t.add( &iostream_test::manipulators, strm_test, "manipulators" );
   //  t.add( &iostream_test::manipulators, strm_test, "manipulators" );
   //  t.add( &iostream_test::in_avail, strm_test, "in_avail in std streams" );
   t.add (&iostream_test::cout_out, strm_test, "hello world");
-  //  strm_test.manipulators(&t);
-  //  strm_test.in_avail(&t);
+  //  t.add( &iostream_test::manipulators, strm_test, "manipulators" );
+#endif
 
-#if 0
-
-  fstream_test fstrm_test0;
-
-  t.add( &fstream_test::rdbuf, fstrm_test0, "fstream rdbuf0");
 
   fstream_test fstrm_test;
   exam::test_suite::test_case_type fstream_tc[10];
 
-  fstream_tc[0] = t.add( &fstream_test::err, fstrm_test, "fstream err",
-			 t.add( &fstream_test::io, fstrm_test, "fstream io",
-      t.add( &fstream_test::input_char, fstrm_test, "fstream input_char",
-        t.add( &fstream_test::input, fstrm_test, "fstream input",
-          t.add( &fstream_test::output, fstrm_test, "fstream output" ) ) ) ) );
+  t.add( &fstream_test::err, fstrm_test, "fstream err");
+  t.add( &fstream_test::io, fstrm_test, "fstream io");
+  t.add( &fstream_test::input_char, fstrm_test, "fstream input_char");
+  t.add( &fstream_test::input, fstrm_test, "fstream input");
+  t.add( &fstream_test::output, fstrm_test, "fstream output");
+  
+  t.add( &fstream_test::tell_binary_wce, fstrm_test, "fstream tellg binary WCE workaround");
+  t.add( &fstream_test::tellg, fstrm_test, "fstream tellg");
+  t.add( &fstream_test::tellp, fstrm_test, "fstream tellp");
+  
+  t.add( &fstream_test::seek_wide_stream, fstrm_test, "wfstream seek");
+  t.add( &fstream_test::seek_text, fstrm_test, "fstream seek in text");
+  t.add( &fstream_test::seek_binary, fstrm_test, "fstream seek in binary");
+  t.add( &fstream_test::buf, fstrm_test, "fstream buf");
 
-  t.add( &fstream_test::tell_binary_wce, fstrm_test, "fstream tellg binary WCE workaround",
-    t.add( &fstream_test::tellg, fstrm_test, "fstream tellg", fstream_tc[0] ) );
-  t.add( &fstream_test::tellp, fstrm_test, "fstream tellp", fstream_tc[0] );
-
-  t.add( &fstream_test::seek_wide_stream, fstrm_test, "wfstream seek",
-    fstream_tc[1] = t.add( &fstream_test::seek_text, fstrm_test, "fstream seek in text",
-      t.add( &fstream_test::seek_binary, fstrm_test, "fstream seek in binary", fstream_tc[0] ) ) );
-  t.add( &fstream_test::buf, fstrm_test, "fstream buf", fstream_tc[0] );
-
-  t.add( &fstream_test::rdbuf, fstrm_test, "fstream rdbuf", fstream_tc[0]);
+  // t.add( &fstream_test::rdbuf, fstrm_test, "fstream rdbuf", fstream_tc[0]);
 
   //   t.add( &fstream_test::streambuf_output, fstrm_test, "fstream streambuf_output", fstream_tc[0]);
 
-  t.add( &fstream_test::win32_file_format, fstrm_test, "fstream win32_file_format", fstream_tc[0] );
-  t.add( &fstream_test::null_stream, fstrm_test, "fstream null_stream", fstream_tc[0] );
-  t.add( &fstream_test::null_buf, fstrm_test, "fstream null_buf", fstream_tc[0] );
-  t.add( &fstream_test::offset, fstrm_test, "fstream offset", fstream_tc[0] );
-  //  t.add( &fstream_test::big_file, fstrm_test, "fstream big_file", fstream_tc[0] );
-  fstream_tc[2] = t.add( &fstream_test::custom_facet, fstrm_test, "fstream custom_facet", fstream_tc[0] );
+  t.add( &fstream_test::win32_file_format, fstrm_test, "fstream win32_file_format");
+  t.add( &fstream_test::null_stream, fstrm_test, "fstream null_stream");
+  t.add( &fstream_test::null_buf, fstrm_test, "fstream null_buf");
+  t.add( &fstream_test::offset, fstrm_test, "fstream offset");
+  t.add( &fstream_test::rewind, fstrm_test, "fstream write after read fail" );
 
-  t.add( &fstream_test::rewind, fstrm_test, "fstream write after read fail", fstream_tc[1] );
+  //  t.add( &fstream_test::big_file, fstrm_test, "fstream big_file" );
+  fstream_tc[2] = t.add( &fstream_test::custom_facet, fstrm_test, "fstream custom_facet");
 
   sstream_test sstrm_test;
-
   t.add( &sstream_test::output, sstrm_test, "sstream output" );
-  t.add( &sstream_test::input, sstrm_test, "sstream input" );
-  t.add( &sstream_test::input_char, sstrm_test, "sstream input_char" );
-  t.add( &sstream_test::io, sstrm_test, "sstream io" );
-  t.add( &sstream_test::err, sstrm_test, "sstream err" );
-  t.add( &sstream_test::err_long, sstrm_test, "sstream err_long" );
-  t.add( &sstream_test::maxint, sstrm_test, "sstream maxint" );
+
   t.add( &sstream_test::init_in, sstrm_test, "sstream init_in" );
   t.add( &sstream_test::init_out, sstrm_test, "sstream init_out" );
   t.add( &sstream_test::init_in_str, sstrm_test, "sstream str( \"foo\" )" );
+
+  t.add( &sstream_test::err, sstrm_test, "sstream err" );
+  t.add( &sstream_test::err_long, sstrm_test, "sstream err_long" );
+
   t.add( &sstream_test::buf, sstrm_test, "sstream buf" );
   t.add( &sstream_test::rdbuf, sstrm_test, "sstream rdbuf" );
   //  t.add( &sstream_test::streambuf_output, sstrm_test, "sstream streambuf_output" );
@@ -200,8 +193,17 @@ int main( int argc, const char** argv )
   t.add( &sstream_test::seekp, sstrm_test, "sstream seekp" );
   t.add( &sstream_test::seek_gp, sstrm_test, "sstream seek_gp" );
   t.add( &sstream_test::tellp, sstrm_test, "sstream tellp" );
+
   t.add( &sstream_test::extra0_bug_id_2728232, sstrm_test, "extra 0; bug ID: 2728232" );
   t.add( &sstream_test::negative, sstrm_test, "sstream negative" );
+
+  t.add( &sstream_test::maxint, sstrm_test, "sstream maxint" );
+
+  t.add( &sstream_test::input, sstrm_test, "sstream input" );
+  t.add( &sstream_test::io, sstrm_test, "sstream io" );
+  t.add( &sstream_test::input_char, sstrm_test, "sstream input_char" );
+
+#if 0
 
   istream_iterator_test isit_test;
 
@@ -217,9 +219,8 @@ int main( int argc, const char** argv )
   t.add( &ioiter_test::ioiterat_test, ioit_test, "ioiterat_test" );
   t.add( &ioiter_test::assign_test, ioit_test, "assign_test" );
   t.add( &ioiter_test::assign2_test, ioit_test, "assign2_test" );
-#endif
 
-#if 0
+
 
   insert_iter_test ins_test;
 
@@ -408,10 +409,10 @@ int main( int argc, const char** argv )
   rawriter_test rw_test;
   t.add( &rawriter_test::rawiter1, rw_test, "rawiter1" );
 
-# endif
-
   strstream_buffer_test strb_test;
   t.add( &strstream_buffer_test::read_from_buffer, strb_test, "read_from_buffer" );
+
+# endif
 
 //file stream_test.cpp with this test wasn't added to Makefile.inc
 //  strstream_test strs_test;
@@ -448,6 +449,8 @@ int main( int argc, const char** argv )
   exception_test exc_test;
 
   t.add( &exception_test::what, exc_test, "exception_test::what" );
+
+#if 0
   t.add( &exception_test::unexpected_except, exc_test, "exception_test::unexpected_except" );
   t.add( &exception_test::uncaught_except, exc_test, "exception_test::uncaught_except" );
   t.add( &exception_test::exception_emission, exc_test, "exception_test::exception_emission" );
@@ -455,16 +458,18 @@ int main( int argc, const char** argv )
   errno_test err_test;
   t.add( &errno_test::check, err_test, "errno_test::check" );
 
-#if 0
-  num_put_get_test nmg_test;
 
-  // t.add( &num_put_get_test::scientific_precision, nmg_test, "scientific precision",
-  t.add( &num_put_get_test::num_put_float, nmg_test, "num_put_float" ); // );
+  num_put_get_test nmg_test;
   t.add( &num_put_get_test::num_put_integer, nmg_test, "num_put_integer" );
-  t.add( &num_put_get_test::num_get_float, nmg_test, "num_get_float" );
   t.add( &num_put_get_test::num_get_integer, nmg_test, "num_get_integer" );
   t.add( &num_put_get_test::inhex, nmg_test, "inhex" );
   t.add( &num_put_get_test::pointer, nmg_test, "pointer" );
+
+
+  // t.add( &num_put_get_test::scientific_precision, nmg_test, "scientific precision",
+  t.add( &num_put_get_test::num_put_float, nmg_test, "num_put_float" ); // );
+
+  t.add( &num_put_get_test::num_get_float, nmg_test, "num_get_float" );
   t.add( &num_put_get_test::fix_float_long, nmg_test, "fix_float_long" );
   t.add( &num_put_get_test::custom_numpunct, nmg_test, "custom_numpunct" );
 
@@ -483,6 +488,7 @@ int main( int argc, const char** argv )
   t.add( &codecvt_test::bad_utf8, cvt_test, "convert bad UTF-8 to wchar",
     cvt_tc[1] = t.add( &codecvt_test::utf8_to_wchar, cvt_test, "convert UTF-8 to wchar", cvt_tc[0] ) );
   t.add( &codecvt_test::partial_conversion, cvt_test, "codecvt partial conversion", cvt_tc[1] );
+
 
   shared_ptr_test shp_test;
   t.add( &shared_ptr_test::shared_from_this, shp_test, "shared_from_this" );
@@ -513,6 +519,7 @@ int main( int argc, const char** argv )
 
   t.add( &locale_test::default_locale, ltest, "default_locale" );
   t.add( &locale_test::combine, ltest, "combine" );
+
 #endif
 
 #if 0
@@ -541,5 +548,8 @@ int main( int argc, const char** argv )
   }
 # endif
 
-  return t.girdle();
+  int ret = t.girdle();
+  printf("Test result: %d\n", ret);
+  char c = getchar();
+  return ret;
 }

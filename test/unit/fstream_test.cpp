@@ -48,9 +48,42 @@ using namespace std;
 
 int EXAM_IMPL(fstream_test::output)
 {
-  ofstream f( "test_file.txt" );
 
-  f << 1 << '\n' << 2.0 << '\n' << "abcd\n" << "ghk lm\n" << "abcd ef";
+  ofstream f( "test_file.txt" );
+#if 0
+  printf ("sizeof(ofstream): %d, sizeof(basic_filebuf): %d\n", sizeof(std::ofstream), sizeof(std::basic_filebuf<char, char_traits<char> >));
+  int i;
+  printf ("basic_filebuf binary:\n");
+  std::basic_filebuf<char, char_traits<char> >* b = f.rdbuf();
+  for (i = 0; i < sizeof(*b); ++i)
+    printf ("%02x", ((unsigned char*)b)[i]);
+  printf (" total %d end\n", i);
+  typedef  std::basic_filebuf<char, char_traits<char> > fbuf;
+
+#if defined (STLPORT)
+  printf ("sizeof(mutex): %d, first offset: %d, int is %d, locale at %d, basic_streambuf size: %d sizeoffilebuf: %d\n", 
+	  sizeof(_STLP_mutex), offsetof(fbuf, _M_gbegin), sizeof(int), offsetof(fbuf, _M_locale), sizeof(basic_streambuf<char, char_traits<char> >), sizeof(fbuf));
+  printf ("codecvt offset: %d, buf at %d, dirty_buf at %d, state at %d, m_base at %d:\n", 
+	  offsetof(fbuf, _M_codecvt), offsetof(fbuf, _M_pback_buf), offsetof(fbuf, _M_dirty_buf), offsetof(fbuf, _M_state), offsetof(fbuf, _M_base));
+#else
+  printf ("sizeof(mutex): %d, first offset: %d, int is %d, locale at %d, basic_streambuf size: %d sizeoffilebuf: %d\n", 
+	  sizeof(_Mutex), offsetof(fbuf, _Gfirst), sizeof(int), offsetof(fbuf, _Plocale), sizeof(basic_streambuf<char, char_traits<char> >), sizeof(fbuf));
+  printf ("codecvt offset: %d, buf at %d, dirty_buf at %d, state at %d, m_base at %d, file at %d:\n", 
+	  offsetof(fbuf, _Pcvt), offsetof(fbuf, _Mychar), offsetof(fbuf, _Wrotesome), offsetof(fbuf, _State), offsetof(fbuf, _Closef), offsetof(fbuf, _Myfile));
+#endif
+
+  printf ("basic_ios binary:\n");
+  std::basic_ios<char, char_traits<char> >* bi = &f;
+  for (i = 0; i < sizeof(*bi); ++i)
+    printf ("%02x", ((unsigned char*)bi)[i]);
+  printf ("total %d end\n", i);
+# endif
+
+  f << 1 ;
+  f << '\n' ;
+  f << 2.0 ;
+  f << "abcd\n";
+  f << "ghk lm\n" << "abcd ef";
   EXAM_CHECK (f.good());
   // EXAM_CHECK( s.str() == "1\n2\nabcd\nghk lm\nabcd ef" );
 
@@ -119,7 +152,7 @@ int EXAM_IMPL(fstream_test::io)
 
   f << 1 << '\n' << 2.0 << '\n' << "abcd\n" << "ghk lm\n" << "abcd ef";
 
-  // f.flush();
+  f.flush();
   f.seekg( 0, ios_base::beg );
 
   int i = 0;
@@ -166,7 +199,6 @@ int EXAM_IMPL(fstream_test::err)
   EXAM_CHECK( f.fail() );
   EXAM_CHECK( f.eof() );
   EXAM_CHECK( i == 9 );
-
   return EXAM_RESULT;
 }
 
@@ -409,7 +441,9 @@ int EXAM_IMPL(fstream_test::seek_binary)
   int chars_read = (int)s.rdbuf()->sgetn( b1, sizeof(b1) );
   EXAM_CHECK( chars_read == 11 );
   EXAM_CHECK( b1[9] == '0' );
-  EXAM_CHECK( s.rdbuf()->pubseekoff( 0, ios_base::cur ) == fstream::pos_type(chars_read) );
+  fstream::pos_type chars_read_pos(chars_read);
+  fstream::pos_type cur_pos(s.rdbuf()->pubseekoff( 0, ios_base::cur ));
+  EXAM_CHECK(chars_read_pos  ==  cur_pos);
   EXAM_CHECK( s.rdbuf()->pubseekoff( -chars_read, ios_base::cur ) == fstream::pos_type(0) );
 
   char b2[10] = { 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y', 'y' };

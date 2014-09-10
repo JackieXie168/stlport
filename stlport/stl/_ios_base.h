@@ -18,8 +18,8 @@
 #ifndef _STLP_IOS_BASE_H
 #define _STLP_IOS_BASE_H
 
-#ifndef _STLP_INTERNAL_STDEXCEPT_BASE
-#  include <stl/_stdexcept_base.h>
+#ifndef _STLP_INTERNAL_STDEXCEPT_H
+#  include <stl/_stdexcept.h>
 #endif
 
 #ifndef _STLP_UTILITY
@@ -48,7 +48,7 @@ _STLP_BEGIN_NAMESPACE
 class _STLP_CLASS_DECLSPEC ios_base {
 public:
 
-  class _STLP_CLASS_DECLSPEC failure : public __Named_exception {
+  class failure : public runtime_error {
   public:
     explicit failure(const string&);
     virtual ~failure() _STLP_NOTHROW_INHERENTLY;
@@ -66,44 +66,44 @@ public:
 # endif
 
   // Formatting flags.
-  _STLP_STATIC_CONSTANT(int, left = 0x0001);
-  _STLP_STATIC_CONSTANT(int, right = 0x0002);
-  _STLP_STATIC_CONSTANT(int, internal   = 0x0004);
-  _STLP_STATIC_CONSTANT(int, dec        = 0x0008);
-  _STLP_STATIC_CONSTANT(int, hex        = 0x0010);
-  _STLP_STATIC_CONSTANT(int, oct        = 0x0020);
-  _STLP_STATIC_CONSTANT(int, fixed      = 0x0040);
-  _STLP_STATIC_CONSTANT(int, scientific = 0x0080);
-  _STLP_STATIC_CONSTANT(int, boolalpha  = 0x0100);
-  _STLP_STATIC_CONSTANT(int, showbase   = 0x0200);
-  _STLP_STATIC_CONSTANT(int, showpoint  = 0x0400);
-  _STLP_STATIC_CONSTANT(int, showpos    = 0x0800);
-  _STLP_STATIC_CONSTANT(int, skipws     = 0x1000);
-  _STLP_STATIC_CONSTANT(int, unitbuf    = 0x2000);
-  _STLP_STATIC_CONSTANT(int, uppercase  = 0x4000);
+  _STLP_STATIC_CONSTANT(int, left = 0x40);
+  _STLP_STATIC_CONSTANT(int, right = 0x80);
+  _STLP_STATIC_CONSTANT(int, showpoint  = 0x10);
+  _STLP_STATIC_CONSTANT(int, showpos    = 0x20);
+  _STLP_STATIC_CONSTANT(int, internal   = 0x0100);
+  _STLP_STATIC_CONSTANT(int, dec        = 0x0200);
+  _STLP_STATIC_CONSTANT(int, hex        = 0x0800);
+  _STLP_STATIC_CONSTANT(int, oct        = 0x0400);
+  _STLP_STATIC_CONSTANT(int, fixed      = 0x2000);
+  _STLP_STATIC_CONSTANT(int, scientific = 0x1000);
+  _STLP_STATIC_CONSTANT(int, boolalpha  = 0x4000);
+  _STLP_STATIC_CONSTANT(int, skipws     = 0x1);
+  _STLP_STATIC_CONSTANT(int, unitbuf    = 0x2);
+  _STLP_STATIC_CONSTANT(int, uppercase  = 0x4);
+  _STLP_STATIC_CONSTANT(int, showbase   = 0x8);
   _STLP_STATIC_CONSTANT(int, adjustfield = left | right | internal);
   _STLP_STATIC_CONSTANT(int, basefield   = dec | hex | oct);
   _STLP_STATIC_CONSTANT(int, floatfield  = scientific | fixed);
 
   // State flags.
   _STLP_STATIC_CONSTANT(int, goodbit = 0x00);
-  _STLP_STATIC_CONSTANT(int, badbit  = 0x01);
-  _STLP_STATIC_CONSTANT(int, eofbit  = 0x02);
-  _STLP_STATIC_CONSTANT(int, failbit = 0x04);
+  _STLP_STATIC_CONSTANT(int, badbit  = 0x04);
+  _STLP_STATIC_CONSTANT(int, eofbit  = 0x01);
+  _STLP_STATIC_CONSTANT(int, failbit = 0x02);
 
   // Openmode flags.
   _STLP_STATIC_CONSTANT(int, __default_mode = 0x0); /* implementation detail */
-  _STLP_STATIC_CONSTANT(int, app    = 0x01);
-  _STLP_STATIC_CONSTANT(int, ate    = 0x02);
-  _STLP_STATIC_CONSTANT(int, binary = 0x04);
-  _STLP_STATIC_CONSTANT(int, in     = 0x08);
-  _STLP_STATIC_CONSTANT(int, out    = 0x10);
-  _STLP_STATIC_CONSTANT(int, trunc  = 0x20);
+  _STLP_STATIC_CONSTANT(int, in     = 0x1);
+  _STLP_STATIC_CONSTANT(int, out    = 0x2);
+  _STLP_STATIC_CONSTANT(int, ate    = 0x04);
+  _STLP_STATIC_CONSTANT(int, app    = 0x08);
+  _STLP_STATIC_CONSTANT(int, trunc  = 0x10);
+  _STLP_STATIC_CONSTANT(int, binary = 0x20);
 
   // Seekdir flags
-  _STLP_STATIC_CONSTANT(int, beg = 0x01);
-  _STLP_STATIC_CONSTANT(int, cur = 0x02);
-  _STLP_STATIC_CONSTANT(int, end = 0x04);
+  _STLP_STATIC_CONSTANT(int, beg = 0x00);
+  _STLP_STATIC_CONSTANT(int, cur = 0x01);
+  _STLP_STATIC_CONSTANT(int, end = 0x02);
 
 public:                         // Flag-manipulation functions.
   fmtflags flags() const { return _M_fmtflags; }
@@ -142,7 +142,7 @@ public:                         // Flag-manipulation functions.
 
 public:                         // Locales
   locale imbue(const locale&);
-  locale getloc() const { return _M_locale; }
+  locale getloc() const { return *_M_locale; }
 
 public:                         // Auxiliary storage.
   static int _STLP_CALL xalloc();
@@ -226,27 +226,44 @@ private:                        // Invalidate the copy constructor and
 
 private:                        // Data members.
 
-  fmtflags _M_fmtflags;         // Flags
-  iostate _M_iostate;
-  openmode _M_openmode;
-  seekdir _M_seekdir;
-  iostate _M_exception_mask;
+  struct _CallbackNode
+  {
+    _CallbackNode(int __idx, event_callback __cb, _CallbackNode *__prev)
+      : _M_next(__prev), _M_index(__idx), _M_cb(__cb)
+    {}
+    
+    _CallbackNode *_M_next;
+    int            _M_index;
+    event_callback _M_cb;
+  };
 
+  struct _AuxStorageNode
+  {
+    _AuxStorageNode(int __idx, _AuxStorageNode *__prev)
+      : _M_next(__prev), _M_index(__idx), _M_long(0), _M_ptr(0)
+    {
+    }
+    
+    _AuxStorageNode *_M_next;
+    int   _M_index;
+    long  _M_long;
+    void* _M_ptr;
+  };
+
+  _AuxStorageNode& _Findarr(int __idx);
+  void _Tidy();
+
+  size_t   _M_std_stream;
+  iostate  _M_iostate;
+  iostate  _M_exception_mask;
+  fmtflags _M_fmtflags;         // Flags
   streamsize _M_precision;
   streamsize _M_width;
 
-  locale _M_locale;
+  _CallbackNode*   _M_callbacks;
+  _AuxStorageNode* _M_ipwords;
 
-  pair<event_callback, int>* _M_callbacks;
-  size_t _M_num_callbacks;      // Size of the callback array.
-  size_t _M_callback_index;     // Index of the next available callback;
-                                // initially zero.
-
-  long* _M_iwords;              // Auxiliary storage.  The count is zero
-  size_t _M_num_iwords;         // if and only if the pointer is null.
-
-  void** _M_pwords;
-  size_t _M_num_pwords;
+  locale*    _M_locale;
 
 public:
   // ----------------------------------------------------------------------
@@ -266,6 +283,12 @@ public:
 
   friend class Init;
 
+  static void _STLP_CALL _Addstd(ios_base *);
+
+ private:
+  static void _STLP_CALL _Init_ctor(Init *);
+  static void _STLP_CALL _Init_dtor(Init *);
+  
 public:
 # ifndef _STLP_NO_ANACHRONISMS
   //  31.6  Old iostreams members                         [depr.ios.members]
