@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 # -*- makefile -*- Time-stamp: <03/10/17 14:09:57 ptr>
 # $Id: vc10.mak 2403 2006-06-02 20:20:44Z dums $
 
 !include vc-common.mak
 
+=======
+# -*- makefile -*- Time-stamp: <03/10/17 14:09:57 ptr>
+# $Id: vc10.mak 2403 2006-06-02 20:20:44Z dums $
+
+!include vc-common.mak
+
+>>>>>>> 62712fcaa14d180fa8cdfb2a78732d12dff345fc
