@@ -1,0 +1,20 @@
+#! /bin/sh
+
+rm -fr $HOME/include/stlport $HOME/bin_g $HOME/bin_stlg
+rm -f $HOME/lib/libstlport*
+sudo port select --set gcc mp-gcc43
+./configure --prefix=$HOME
+tar cf - stlport | (cd $HOME/include; tar xf -)
+cd build/lib
+make -f gcc.mak clean install
+cd ../../
+chmod -R a+r $HOME/include/stlport
+chown -R jackie $HOME/include/stlport
+#(cd lib; tar cf - --exclude=CVS --exclude=.cvsignore .) | (cd $HOME/lib;
+# tar xf -)
+chown -R jackie $HOME/lib/libstlport*
+cd build/test/unit
+make -f gcc.mak
+make -f gcc.mak check
+make -f gcc.mak check-release
+cd -
