@@ -1,12 +1,16 @@
-# Time-stamp: <08/02/28 10:30:06 ptr>
+# Time-stamp: <10/06/02 14:11:53 ptr>
 #
 # Copyright (c) 1997-1999, 2002, 2003, 2005-2008
 # Petr Ovtchenkov
 #
-# Portion Copyright (c) 1999-2001
-# Parallel Graphics Ltd.
+# This material is provided "as is", with absolutely no warranty expressed
+# or implied. Any use is at your own risk.
 #
-# Licensed under the Academic Free License version 3.0
+# Permission to use or copy this software for any purpose is hereby granted
+# without fee, provided the above notices are retained on all copies.
+# Permission to modify the code and to distribute modified code is granted,
+# provided the above notices are retained, and a notice that the code was
+# modified is included with the above copyright notice.
 #
 
 ifdef TARGET_OS
@@ -36,11 +40,11 @@ ifndef WITHOUT_STLPORT
 OUTPUT_DIR_A_STLDBG    := $(OUTPUT_DIR_STLDBG)
 endif
 
-BASE_INSTALL_DIR       ?= /usr/local
+BASE_INSTALL_DIR       ?= $(DESTDIR)/usr/local
 
-BASE_INSTALL_LIB_DIR   ?= $(DESTDIR)${BASE_INSTALL_DIR}
-BASE_INSTALL_BIN_DIR   ?= $(DESTDIR)${BASE_INSTALL_DIR}
-BASE_INSTALL_HDR_DIR   ?= $(DESTDIR)${BASE_INSTALL_DIR}
+BASE_INSTALL_LIB_DIR   ?= ${BASE_INSTALL_DIR}
+BASE_INSTALL_BIN_DIR   ?= ${BASE_INSTALL_DIR}
+BASE_INSTALL_HDR_DIR   ?= ${BASE_INSTALL_DIR}
 
 INSTALL_LIB_DIR        ?= ${BASE_INSTALL_LIB_DIR}/${TARGET_NAME}lib
 INSTALL_LIB_DIR_DBG    ?= ${BASE_INSTALL_LIB_DIR}/${TARGET_NAME}lib

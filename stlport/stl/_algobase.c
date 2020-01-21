@@ -208,6 +208,15 @@ _STLP_INLINE_LOOP _InputIter __find_if(_InputIter __first, _InputIter __last,
   return __first;
 }
 
+template <class _InputIter, class _Predicate>
+_STLP_INLINE_LOOP _InputIter __find_if_not(_InputIter __first, _InputIter __last,
+                                       _Predicate __pred,
+                                       const input_iterator_tag &) {
+  while (__first != __last && __pred(*__first))
+    ++__first;
+  return __first;
+}
+
 _STLP_MOVE_TO_STD_NAMESPACE
 
 template <class _InputIter, class _Predicate>
@@ -215,6 +224,13 @@ _InputIter find_if(_InputIter __first, _InputIter __last,
                    _Predicate __pred) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
   return _STLP_PRIV __find_if(__first, __last, __pred, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
+}
+
+template <class _InputIter, class _Predicate>
+_InputIter find_if_not(_InputIter __first, _InputIter __last,
+                   _Predicate __pred) {
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
+  return _STLP_PRIV __find_if_not(__first, __last, __pred, _STLP_ITERATOR_CATEGORY(__first, _InputIter));
 }
 
 template <class _InputIter, class _Tp>
@@ -326,7 +342,7 @@ inline _InputIter __find_first_of_aux2(_InputIter __first1, _InputIter __last1,
 template <class _InputIter, class _ForwardIter, class _Tp1, class _Tp2>
 inline _InputIter __find_first_of_aux1(_InputIter __first1, _InputIter __last1,
                                        _ForwardIter __first2, _ForwardIter __last2,
-                                       _Tp1* __pt1, _Tp2* __pt2) {
+                                       _Tp1*, _Tp2* __pt2) {
   typedef _STLP_TYPENAME _STLP_STD::_IsIntegral<_Tp1>::_Ret _IsIntegral;
   typedef _STLP_TYPENAME _STLP_PRIV _IsCharLikeType<_Tp2>::_Ret _IsCharLike;
   typedef _STLP_TYPENAME _STLP_STD::_Land2<_IsIntegral, _IsCharLike>::_Ret _UseStrcspnLikeAlgo;
@@ -451,7 +467,11 @@ _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _ForwardIter, class _Tp, class _Compare1, class _Compare2, class _Distance>
 _ForwardIter __lower_bound(_ForwardIter __first, _ForwardIter __last, const _Tp& __val,
-                           _Compare1 __comp1, _Compare2 __comp2, _Distance*) {
+                           _Compare1 __comp1, _Compare2
+#ifdef _STLP_DEBUG
+                                                        __comp2
+#endif
+                                                               , _Distance*) {
   _Distance __len = _STLP_STD::distance(__first, __last);
   _Distance __half;
   _ForwardIter __middle;

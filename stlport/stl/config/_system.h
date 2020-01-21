@@ -54,18 +54,22 @@
 #  endif
 #elif defined (__hpux)
 #  include <stl/config/_hpux.h>
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  elif defined (__HP_aCC)
 #    include <stl/config/_hpacc.h>
 #  endif
-#elif defined (linux) || defined (__linux__)
+#elif (defined (linux) || defined (__linux__)) && !defined (__ARMCC_VERSION)
 #  include <stl/config/_linux.h>
 #  if defined (__BORLANDC__)
 #    include <stl/config/_bc.h> /* Borland C++ 0x570 */
 /* Intel's icc define __GNUC__! */
 #  elif defined (__INTEL_COMPILER)
 #    include <stl/config/_icc.h>
+#  elif defined (__clang__)
+#    include <stl/config/_clang.h>
 #  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
@@ -74,26 +78,41 @@
 #    include <stl/config/_kai.h>
 #  endif
 */
+#elif defined (__ANDROID__)
+#  include <stl/config/_android.h>
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
+#    include <stl/config/_gcc.h>
+#  endif
 #elif defined (__FreeBSD__)
 #  include <stl/config/_freebsd.h>
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
 #elif defined (__OpenBSD__)
 #  include <stl/config/_openbsd.h>
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
 #elif defined (__sgi) /* IRIX? */
 #  define _STLP_PLATFORM "SGI Irix"
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  else
 #    include <stl/config/_sgi.h>
 #  endif
 #elif defined (__OS400__) /* AS/400 C++ */
 #  define _STLP_PLATFORM "OS 400"
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  else
 #    include <stl/config/_as400.h>
@@ -121,17 +140,23 @@
 #  endif
 #elif defined (__APPLE__)
 #  include <stl/config/_macosx.h>
-#  ifdef __GNUC__
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined(__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
 #elif defined (__CYGWIN__)
 #  include <stl/config/_cygwin.h>
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
 #elif defined (__MINGW32__)
 #  define _STLP_PLATFORM "MinGW"
-#  if defined (__GNUC__)
+#  if defined (__clang__)
+#    include <stl/config/_clang.h>
+#  elif defined (__GNUC__)
 #    include <stl/config/_gcc.h>
 #  endif
 #  include <stl/config/_windows.h>
@@ -158,6 +183,8 @@
 #  endif
 
 #  include <stl/config/_windows.h>
+#  elif defined ( __ARMCC_VERSION) 
+#    include <stl/config/_armcc.h>
 #else
 #  error Unknown platform !!
 #endif
@@ -167,5 +194,6 @@
  * Edit <config/stl_mycomp.h> to set STLport up for your compiler. */
 #  include <stl/config/stl_mycomp.h>
 #endif
+
 
 #endif /* __stl_config__system_h */

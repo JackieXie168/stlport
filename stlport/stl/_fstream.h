@@ -99,6 +99,8 @@ public:
     return true;
 #elif defined (_STLP_WIN32) || defined (_STLP_VM)
     return (_M_openmode & ios_base::binary) != 0;
+#elif defined (__ARMCC_VERSION)
+    return true;
 #else
 #  error "Port!"
 #endif
@@ -436,6 +438,11 @@ class _STLP_CLASS_DECLSPEC _Underflow< char, char_traits<char> >
 _STLP_EXPORT_TEMPLATE_CLASS _Underflow<wchar_t, char_traits<wchar_t> >;
 #endif
 
+#ifdef __SUNPRO_CC
+// Suppress warning that a derived class' rdbuf() hides basic_ios::rdbuf
+#pragma disable_warn
+#endif
+
 //----------------------------------------------------------------------
 // Class basic_ifstream<>
 
@@ -684,6 +691,10 @@ private:
   _Self& operator = (_Self const&);
 #endif
 };
+
+#ifdef __SUNPRO_CC
+#pragma enable_warn
+#endif
 
 _STLP_END_NAMESPACE
 

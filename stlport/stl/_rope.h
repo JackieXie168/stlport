@@ -906,7 +906,7 @@ public:
   reference operator*() {
     if (0 == this->_M_buf_ptr)
 #if !defined (__DMC__)
-      _S_setcache(*this);
+	_Rope_const_iterator<_CharT, _Alloc>::_S_setcache(*this);
 #else
     { _Rope_iterator_base<_CharT, _Alloc>* __x = this; _S_setcache(*__x); }
 #endif
@@ -1268,7 +1268,7 @@ protected:
   // This uses a nonstandard refcount convention.
   // The result has refcount 0.
   typedef _STLP_PRIV _Rope_Concat_fn<_CharT,_Alloc> _Concat_fn;
-#if !defined (__GNUC__) || (__GNUC__ < 3)
+#if (!defined (__GNUC__) || (__GNUC__ < 3)) && (!defined (__SUNPRO_CC) || (__SUNPRO_CC < 0x590))
   friend _Concat_fn;
 #else
   friend struct _STLP_PRIV _Rope_Concat_fn<_CharT,_Alloc>;

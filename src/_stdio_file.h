@@ -67,7 +67,8 @@ inline int _FILE_fd(const FILE *__f) { return (int) __f->__pad[2]; }
 
 #elif defined (__hpux) /* && defined(__hppa) && defined(__HP_aCC)) */ || \
       defined (__MVS__) || \
-      defined (_STLP_USE_UCLIBC) /* should be before _STLP_USE_GLIBC */
+      defined (_STLP_USE_UCLIBC) || /* should be before _STLP_USE_GLIBC */ \
+      defined (__ANDROID__)         /* should be before _STLP_USE_GLIBC */
 
 inline int _FILE_fd(const FILE *__f) { return fileno(__CONST_CAST(FILE*, __f)); }
 
@@ -102,8 +103,11 @@ inline int _FILE_fd(const FILE *__f) { return __f->_handle; }
 /* the prototypes are taken from LynxOS patch for STLport 4.0 */
 inline int _FILE_fd(const FILE *__f) { return __f->_fd; }
 
-#else  /* The most common access to file descriptor. */
+#elif defined (__ARMCC_VERSION)
+// Special case for armcc libraries, possibly dangerous
+inline int _FILE_fd(const FILE *__f) { return ((int*)__f)[0]; }
 
+#else  /* The most common access to file descriptor. */
 inline int _FILE_fd(const FILE *__f) { return __f->_file; }
 
 #endif
@@ -112,6 +116,6 @@ _STLP_END_NAMESPACE
 
 #endif /* _STLP_STDIO_FILE_H */
 
-/* Local Variables:
- * mode:C++
- * End: */
+// Local Variables:
+// mode: C++
+// End:

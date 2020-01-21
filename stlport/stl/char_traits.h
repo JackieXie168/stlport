@@ -29,10 +29,13 @@
 #  include <stl/_cstring.h>
 #endif
 
-#if defined (__unix)
+#if (defined (__unix) && !defined (__ARMCC_VERSION)) || (defined (__ARMCC_VERSION) && defined(_GNU_SOURCE)) 
 #  include <sys/types.h>         // For off_t
 #endif /* __unix */
 
+#if defined (__ARMCC_VERSION) && !defined(_GNU_SOURCE)
+typedef unsigned int off_t;
+#endif
 #if defined (__BORLANDC__)
 #  include <mem.h>
 #  include <string.h>
@@ -69,7 +72,13 @@ typedef ptrdiff_t streamoff;
 typedef off_t streamoff;
 #  elif defined(_LARGEFILE_SOURCE) || defined(_LARGEFILE64_SOURCE) /* || defined(__USE_FILE_OFFSET64) */ \
        /* || (defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS == 64)) */ /* || defined (__sgi) && defined (_STLP_HAS_NO_NEW_C_HEADERS) */
+#    ifndef __APPLE__
 typedef off64_t streamoff;
+#    else /* MacOS X*/
+typedef int64_t streamoff;
+#    endif /* MacOS X*/
+#  elif defined(__ANDROID__)
+typedef long streamoff;
 #  else
 typedef off_t streamoff;
 #  endif

@@ -30,8 +30,8 @@
 #ifndef _STLP_INTERNAL_ALGOBASE_H
 #define _STLP_INTERNAL_ALGOBASE_H
 
-#ifndef _STLP_INTERNAL_CSTDDEF
-#  include <stl/_cstddef.h>
+#ifndef _STLP_CSTDDEF
+#  include <cstddef>
 #endif
 
 #ifndef _STLP_INTERNAL_CSTRING
@@ -139,6 +139,16 @@ template <class _Tp>
 inline const _Tp& (min)(const _Tp& __a, const _Tp& __b) { return __b < __a ? __b : __a; }
 template <class _Tp>
 inline const _Tp& (max)(const _Tp& __a, const _Tp& __b) {  return  __a < __b ? __b : __a; }
+template <class _Tp>
+inline _STLP_STD::pair<const _Tp, const _Tp>
+minmax(const _Tp& __a, const _Tp& __b) {
+  return (__b < __a) ? _STLP_STD::make_pair(__b, __a) : _STLP_STD::make_pair(__a, __b);
+}
+template <class _Tp, class _BinaryPredicate>
+inline _STLP_STD::pair<const _Tp, const _Tp>
+minmax(const _Tp& __a, const _Tp& __b, _BinaryPredicate comp) {
+  return comp(__b, __a) ? _STLP_STD::make_pair(__b, __a) : _STLP_STD::make_pair(__a, __b);
+}
 #  endif
 #endif
 
@@ -668,6 +678,9 @@ _InputIter find(_InputIter __first, _InputIter __last, const _Tp& __val);
 
 template <class _InputIter, class _Predicate>
 _InputIter find_if(_InputIter __first, _InputIter __last, _Predicate __pred);
+
+template <class _InputIter, class _Predicate>
+_InputIter find_if_n(_InputIter __first, _InputIter __last, _Predicate __pred);
 
 // search.
 template <class _ForwardIter1, class _ForwardIter2, class _BinaryPred>

@@ -162,20 +162,28 @@ void __subformat(_STLP_BASIC_IOSTRING(_Ch) &buf, const ctype<_Ch>& ct,
   }
 }
 
-static void __append(__iostring &buf, const string& name)
+namespace {
+
+void __append(__iostring &buf, const string& name)
 { buf.append(name.data(), name.data() + name.size()); }
 
-static void __append(__iowstring &buf, const wstring& name)
+#ifndef _STLP_NO_WCHAR_T
+void __append(__iowstring &buf, const wstring& name)
 { buf.append(name.data(), name.data() + name.size()); }
+#endif
 
-static void __append(__iostring &buf, char *first, char *last, const ctype<char>& /* ct */)
+void __append(__iostring &buf, char *first, char *last, const ctype<char>& /* ct */)
 { buf.append(first, last); }
 
-static void __append(__iowstring &buf, char *first, char *last, const ctype<wchar_t>& ct) {
+#ifndef _STLP_NO_WCHAR_T
+void __append(__iowstring &buf, char *first, char *last, const ctype<wchar_t>& ct) {
   wchar_t _wbuf[64];
   ct.widen(first, last, _wbuf);
   buf.append(_wbuf, _wbuf + (last - first));
 }
+#endif
+
+} // end anonymous namespace
 
 #if defined (__GNUC__)
 /* The number of days from the first day of the first ISO week of this
@@ -260,9 +268,12 @@ void _STLP_CALL __write_formatted_timeT(_STLP_BASIC_IOSTRING(_Ch) &buf,
       break;
 
     case 'j':
-      _bend = __write_integer(_buf, 0, (long)((long)t->tm_yday + 1));
-      __append(buf, _buf, _bend, ct);
+	{
+      long yday = (long)((long)t->tm_yday + 1);
+      _STLP_SPRINTF(_buf, (modifier != '#') ? "%.3ld" : "%ld", yday);
+      __append(buf, _buf, (yday < 10L && modifier == '#') ? _buf + 1 : ((yday < 100L && modifier == '#') ? _buf + 2 : _buf + 3), ct);
       break;
+    }
 
     case 'm':
       _STLP_SPRINTF(_buf, (modifier != '#') ? "%.2ld" : "%ld", (long)t->tm_mon + 1);
@@ -310,8 +321,8 @@ void _STLP_CALL __write_formatted_timeT(_STLP_BASIC_IOSTRING(_Ch) &buf,
       break;
 
     case 'y':
-      _bend = __write_integer(_buf, 0, (long)((long)(t->tm_year + 1900) % 100));
-      __append(buf, _buf, _bend, ct);
+      _STLP_SPRINTF(_buf, (modifier != '#') ? "%.2ld" : "%ld", (long)(t->tm_year % 100));
+      __append(buf, _buf, ((long)(t->tm_year % 100) < 10L && modifier == '#') ? _buf + 1 : _buf + 2, ct);
       break;
 
     case 'Y':
@@ -376,6 +387,7 @@ void _STLP_CALL __write_formatted_timeT(_STLP_BASIC_IOSTRING(_Ch) &buf,
 
     case 't': /* POSIX.2 extension.  */
       buf.append(1, ct.widen('\t'));
+      break;
 
     case 'u': /* POSIX.2 extension.  */
       _bend = __write_integer(_buf, 0, long((t->tm_wday - 1 + 7)) % 7 + 1);
@@ -456,10 +468,12 @@ void _STLP_CALL __write_formatted_time(__iostring &buf, const ctype<char>& ct,
                                        const _Time_Info& table, const tm* t)
 { __write_formatted_timeT(buf, ct, format, modifier, table, t); }
 
+#ifndef _STLP_NO_WCHAR_T
 void _STLP_CALL __write_formatted_time(__iowstring &buf, const ctype<wchar_t>& ct,
                                        char format, char modifier,
                                        const _WTime_Info& table, const tm* t)
 { __write_formatted_timeT(buf, ct, format, modifier, table, t); }
+#endif
 
 static time_base::dateorder __get_date_order(_Locale_time* time) {
   const char * fmt = _Locale_d_fmt(time);

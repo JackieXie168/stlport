@@ -420,7 +420,7 @@ inline double ldexp(double __x, int __y) { return __stlp_ldexp(__x, __y); }
  */
 #if (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1310) || defined(UNDER_CE)) && \
     (!defined (__HP_aCC) || (__HP_aCC < 30000)) && \
-    !defined (__WATCOMC__)
+    !defined (__WATCOMC__) && !defined (__ARMCC_VERSION)
 inline double abs(double __x)
 { return ::fabs(__x); }
 #  if !defined (__MVS__)
@@ -545,7 +545,16 @@ using ::fabs;
 using ::floor;
 using ::fmod;
 using ::frexp;
+/*
+   Because of some weird interaction between STLport headers
+   and native HP-UX headers, when compiled with _STLP_DEBUG
+   macro defined with aC++, hypot() is not declared.
+   At some point we'll need to get to the bottom line of
+   this problem.
+*/
+#if !(defined(__HP_aCC) && defined(_STLP_DEBUG))
 using ::hypot;
+#endif
 using ::ldexp;
 using ::log;
 using ::log10;
@@ -561,6 +570,10 @@ _STLP_END_NAMESPACE
 using _STLP_VENDOR_CSTD::_ecvt;
 using _STLP_VENDOR_CSTD::_fcvt;
 #  endif
+#endif
+
+#ifdef __APPLE__
+using _STLP_VENDOR_CSTD::isnan;
 #endif
 
 #endif /* _STLP_INTERNAL_CMATH */

@@ -53,6 +53,36 @@
 
 _STLP_BEGIN_NAMESPACE
 
+// all_of.  Test condition on all elements in range.
+template <class _InputIter, class _Function>
+_STLP_INLINE_LOOP bool
+all_of(_InputIter __first, _InputIter __last, _Function __f) {
+  for ( ; __first != __last; ++__first)
+    if (!__f(*__first))
+      return false;
+  return true;
+}
+
+// any_of.  Test if any element in range fulfills condition.
+template <class _InputIter, class _Function>
+_STLP_INLINE_LOOP bool
+any_of(_InputIter __first, _InputIter __last, _Function __f) {
+  for ( ; __first != __last; ++__first)
+    if (__f(*__first))
+      return true;
+  return false;
+}
+
+// none_of.  Test if no elements fulfill condition.
+template <class _InputIter, class _Function>
+_STLP_INLINE_LOOP bool
+none_of(_InputIter __first, _InputIter __last, _Function __f) {
+  for ( ; __first != __last; ++__first)
+    if (__f(*__first))
+      return false;
+  return true;
+}
+
 // for_each.  Apply a function to every element of a range.
 template <class _InputIter, class _Function>
 _STLP_INLINE_LOOP _Function
@@ -153,6 +183,16 @@ template <class _ForwardIter1, class _ForwardIter2>
 _ForwardIter1
 find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
          _ForwardIter2 __first2, _ForwardIter2 __last2);
+		 
+template <class _ForwardIter1, class _ForwardIter2>
+bool
+is_permutation(_ForwardIter1 __first1, _ForwardIter1 __last1,
+               _ForwardIter2 __first2);
+			   
+template <class _ForwardIter1, class _ForwardIter2, class _BinaryPredicate>
+bool
+is_permutation(_ForwardIter1 __first1, _ForwardIter1 __last1,
+               _ForwardIter2 __first2, _BinaryPredicate __pred);
 
 // swap_ranges
 template <class _ForwardIter1, class _ForwardIter2>
@@ -676,6 +716,16 @@ _ForwardIter min_element(_ForwardIter __first, _ForwardIter __last);
 template <class _ForwardIter, class _Compare>
 _ForwardIter min_element(_ForwardIter __first, _ForwardIter __last,
                             _Compare __comp);
+							
+// minmax_element. Return smallest and largest elements in range
+
+template <class _ForwardIter>
+_STLP_STD::pair<_ForwardIter, _ForwardIter>
+minmax_element(_ForwardIter __first, _ForwardIter __last);
+
+template <class _ForwardIter, class _Compare>
+_STLP_STD::pair<_ForwardIter, _ForwardIter>
+minmax_element(_ForwardIter __first, _ForwardIter __last, _Compare __comp);
 
 // next_permutation and prev_permutation, with and without an explicitly
 // supplied comparison function.
@@ -714,14 +764,32 @@ bool is_heap(_RandomAccessIter __first, _RandomAccessIter __last,
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _ForwardIter, class _StrictWeakOrdering>
+_ForwardIter __is_sorted_until(_ForwardIter __first, _ForwardIter __last,
+                               _StrictWeakOrdering __comp);
+
+template <class _ForwardIter, class _StrictWeakOrdering>
 bool __is_sorted(_ForwardIter __first, _ForwardIter __last,
                  _StrictWeakOrdering __comp);
 
 _STLP_MOVE_TO_STD_NAMESPACE
 template <class _ForwardIter>
+inline _ForwardIter
+is_sorted_until(_ForwardIter __first, _ForwardIter __last) {
+  return _STLP_PRIV __is_sorted_until(__first, __last,
+                    _STLP_PRIV __less(_STLP_VALUE_TYPE(__first, _ForwardIter)));
+}
+
+template <class _ForwardIter, class _StrictWeakOrdering>
+inline _ForwardIter
+is_sorted_until(_ForwardIter __first, _ForwardIter __last,
+                _StrictWeakOrdering __comp) {
+  return _STLP_PRIV __is_sorted_until(__first, __last, __comp);
+}
+
+template <class _ForwardIter>
 inline bool is_sorted(_ForwardIter __first, _ForwardIter __last) {
   return _STLP_PRIV __is_sorted(__first, __last,
-                                _STLP_PRIV __less(_STLP_VALUE_TYPE(__first, _ForwardIter)));
+              _STLP_PRIV __less(_STLP_VALUE_TYPE(__first, _ForwardIter)));
 }
 
 template <class _ForwardIter, class _StrictWeakOrdering>

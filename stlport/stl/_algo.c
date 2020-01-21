@@ -286,6 +286,87 @@ find_end(_ForwardIter1 __first1, _ForwardIter1 __last1,
     );
 }
 
+_STLP_MOVE_TO_PRIV_NAMESPACE
+
+template <class _BinaryPred, class _Iterator>
+struct __value_predicate
+{
+  __value_predicate (_BinaryPred pred, _Iterator it) : __pred(pred), __it(it) {}
+  
+  template <class T1>
+  bool operator () (const T1 &t1) const { return __pred(*__it, t1); }
+private:
+  _BinaryPred __pred;
+  _Iterator   __it;
+};
+
+template <class _ForwardIter1, class _ForwardIter2, class _BinaryPred>
+bool
+__is_permutation(_ForwardIter1 __first1, _ForwardIter1 __last1,
+                 _ForwardIter2 __first2, _ForwardIter2 __last2,
+				 _BinaryPred   __pred)
+{
+  for (_ForwardIter1 __scan = __first1; __scan != __last1; ++__scan)
+  {
+    __value_predicate<_BinaryPred, _ForwardIter1> pred (__pred, __scan)
+	if (_STLP_STD::find_if (__first1, __scan, pred) == __scan)
+	{
+	  size_t dest_count = _STLP_STD::count_if (__first2, __last2, pred);
+	  if ( dest_count == 0 || dest_count != _STLP_STD::count_if (__scan, __last1, pred))
+	    return false;
+	}
+  }
+  return true;
+}
+
+_STLP_MOVE_TO_STD_NAMESPACE
+
+template <class _ForwardIter1, class _ForwardIter2>
+bool
+is_permutation(_ForwardIter1 __first1, _ForwardIter1 __last1,
+               _ForwardIter2 __first2)
+{
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  // skip common prefix
+  _STLP_STD::pair<_ForwardIter1, _ForwardIter2> eq
+    = _STLP_STD::mismatch(__first1, __last1, __first2);
+  __first1 = eq.first;
+  __first2 = eq.second;
+  if (__first1 != __last1)
+  {
+    _ForwardIter2 __last2 = __first2;
+	_STLP_STD::advance(__last2, _STLP_STD::distance(__first1, __last1));
+	for (_ForwardIter1 __scan = __first1; __scan != __last1; ++__scan)
+	{
+	  if (__scan != _STLP_STD::find(__first1, __scan, *__scan))
+	    continue;
+	  _STLP_DIFFERENCE_TYPE(_ForwardIter2) __matches = _STLP_STD::count(__first2, __last2, *__scan);
+	  if (0 == __matches || _STLP_STD::count(__scan, __last1, *__scan) != __matches)
+	    return false;
+	}
+  }
+  return true;
+}
+			   
+template <class _ForwardIter1, class _ForwardIter2, class _BinaryPredicate>
+bool
+is_permutation(_ForwardIter1 __first1, _ForwardIter1 __last1,
+               _ForwardIter2 __first2, _BinaryPredicate __pred)
+{
+  _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first1, __last1))
+  _STLP_STD::pair<_ForwardIter1, _ForwardIter2> eq
+    = _STLP_STD::mismatch(__first1, __last1, __first2, __pred);
+  __first1 = eq.first;
+  __first2 = eq.second;
+  if (__first1 != __last1)
+  {
+    _ForwardIter2 __last2 = __first2;
+	_STLP_STD::advance(__last2, _STLP_STD::distance(__first1, __last1));
+	return __is_permutation(__first1, __last1, __first2, __last2, __pred);
+  }
+  return true;
+}
+
 // unique and unique_copy
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
@@ -524,6 +605,10 @@ void rotate(_ForwardIter __first, _ForwardIter __middle, _ForwardIter __last) {
 // whether we're using rand (part of the standard C library) or lrand48
 // (not standard, but a much better choice whenever it's available).
 _STLP_MOVE_TO_PRIV_NAMESPACE
+
+#ifdef __sun
+extern "C" long lrand48 (void);
+#endif
 
 template <class _Distance>
 inline _Distance __random_number(_Distance __n) {
@@ -1354,7 +1439,11 @@ _STLP_MOVE_TO_PRIV_NAMESPACE
 template <class _ForwardIter, class _Tp,
           class _Compare1, class _Compare2, class _Distance>
 _ForwardIter __upper_bound(_ForwardIter __first, _ForwardIter __last, const _Tp& __val,
-                           _Compare1 __comp1, _Compare2 __comp2, _Distance*) {
+                           _Compare1
+#ifdef _STLP_DEBUG
+                                     __comp1
+#endif
+                                            , _Compare2 __comp2, _Distance*) {
   _Distance __len = _STLP_STD::distance(__first, __last);
   _Distance __half;
 
@@ -1852,6 +1941,63 @@ _ForwardIter min_element(_ForwardIter __first, _ForwardIter __last,
   return __result;
 }
 
+// minmax_element. Return smallest and largest elements in range
+
+template <class _ForwardIter>
+_STLP_STD::pair<_ForwardIter, _ForwardIter>
+minmax_element(_ForwardIter __first, _ForwardIter __last)
+{
+  return minmax_element(__first, __last,
+                        _STLP_PRIV __less(_STLP_VALUE_TYPE(__first, _ForwardIter)));
+}
+
+template <class _ForwardIter, class _Compare>
+_STLP_STD::pair<_ForwardIter, _ForwardIter>
+minmax_element(_ForwardIter __first, _ForwardIter __last, _Compare __comp)
+{
+  _STLP_STD::pair<_ForwardIter, _ForwardIter> __result(__first, __first);
+  if (__first != __last)
+  {
+      if (++__first != __last)
+      {
+          if (__comp(*__first, *__result.first))
+              __result.first = __first;
+          else
+              __result.second = __first;
+          while (++__first != __last)
+          {
+              _ForwardIter __i = __first;
+              if (++__first == __last)
+              {
+                  if (__comp(*__i, *__result.first))
+                      __result.first = __i;
+                  else if (!__comp(*__i, *__result.second))
+                      __result.second = __i;
+                  break;
+              }
+              else
+              {
+                  if (__comp(*__first, *__i))
+                  {
+                      if (__comp(*__first, *__result.first))
+                          __result.first = __first;
+                      if (!__comp(*__i, *__result.second))
+                          __result.second = __i;
+                  }
+                  else
+                  {
+                      if (__comp(*__i, *__result.first))
+                          __result.first = __i;
+                      if (!__comp(*__first, *__result.second))
+                          __result.second = __first;
+                  }
+              }
+          }
+      }
+  }
+  return __result;
+}
+
 // next_permutation and prev_permutation, with and without an explicitly
 // supplied comparison function.
 _STLP_MOVE_TO_PRIV_NAMESPACE
@@ -1998,21 +2144,27 @@ bool is_heap(_RandomAccessIter __first, _RandomAccessIter __last,
 _STLP_MOVE_TO_PRIV_NAMESPACE
 
 template <class _ForwardIter, class _StrictWeakOrdering>
-bool __is_sorted(_ForwardIter __first, _ForwardIter __last,
-                 _StrictWeakOrdering __comp) {
+_ForwardIter __is_sorted_until(_ForwardIter __first, _ForwardIter __last,
+                               _StrictWeakOrdering __comp) {
   _STLP_DEBUG_CHECK(_STLP_PRIV __check_range(__first, __last))
   if (__first == __last)
-    return true;
+    return __last;
 
   _ForwardIter __next = __first;
   for (++__next; __next != __last; __first = __next, ++__next) {
     if (__comp(*__next, *__first)) {
       _STLP_VERBOSE_ASSERT(!__comp(*__first, *__next), _StlMsg_INVALID_STRICT_WEAK_PREDICATE)
-      return false;
+      return __next;
     }
   }
 
-  return true;
+  return __last;
+}
+
+template <class _ForwardIter, class _StrictWeakOrdering>
+bool __is_sorted(_ForwardIter __first, _ForwardIter __last,
+                 _StrictWeakOrdering __comp) {
+  return __is_sorted_until(__first, __last, __comp) == __last;
 }
 
 _STLP_MOVE_TO_STD_NAMESPACE

@@ -1,12 +1,16 @@
-# -*- Makefile -*- Time-stamp: <08/06/12 16:03:31 ptr>
+# -*- Makefile -*- Time-stamp: <10/06/02 13:24:55 ptr>
 #
-# Copyright (c) 1997-1999, 2002, 2003, 2005-2007
+# Copyright (c) 1997-1999, 2002, 2003, 2005-2010
 # Petr Ovtchenkov
 #
-# Portion Copyright (c) 1999-2001
-# Parallel Graphics Ltd.
+# This material is provided "as is", with absolutely no warranty expressed
+# or implied. Any use is at your own risk.
 #
-# Licensed under the Academic Free License version 3.0
+# Permission to use or copy this software for any purpose is hereby granted
+# without fee, provided the above notices are retained on all copies.
+# Permission to modify the code and to distribute modified code is granted,
+# provided the above notices are retained, and a notice that the code was
+# modified is included with the above copyright notice.
 #
 
 ifndef NOT_USE_NOSTDLIB
@@ -33,10 +37,19 @@ NOT_USE_NOSTDLIB := 1
 endif
 endif
 
+# Android NDK 1.5 r1, in pre-build gcc 4.2.1 no libsupc++, is we should link with libstdc++?
+#ifeq ($(OSNAME),android)
+#NOT_USE_NOSTDLIB := 1
+#endif
+
 endif
 
 ifndef NOT_USE_NOSTDLIB
 ifeq ($(OSNAME),linux)
+_USE_NOSTDLIB := 1
+endif
+
+ifeq ($(OSNAME),android)
 _USE_NOSTDLIB := 1
 endif
 
@@ -140,6 +153,12 @@ ifeq ($(OSNAME),linux)
 START_OBJ := $(shell for o in crt1.o crti.o crtbegin.o; do ${CXX} ${CXXFLAGS} -print-file-name=$$o; done)
 END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} ${CXXFLAGS} -print-file-name=$$o; done)
 STDLIBS = ${STLPORT_LIB} ${_LGCC_S} -lpthread -lc -lm
+endif
+
+ifeq ($(OSNAME),android)
+START_OBJ := $(shell for o in crti.o crtbegin.o crtbegin_dynamic.o; do ${CXX} ${CXXFLAGS} -print-file-name=$$o; done)
+END_OBJ := $(shell for o in crtend.o crtn.o; do ${CXX} ${CXXFLAGS} -print-file-name=$$o; done)
+STDLIBS = ${STLPORT_LIB} ${_LGCC_S} -lc -lm
 endif
 
 ifeq ($(OSNAME),openbsd)

@@ -209,17 +209,6 @@
 */
 
 /*
- * Some compilers support the automatic linking feature.
- * Uncomment the following if you prefer to specify the STLport library
- * to link with yourself.
- * For the moment, this feature is only supported and implemented within STLport
- * by the Microsoft compilers.
- */
-/*
-#define _STLP_DONT_USE_AUTO_LINK 1
-*/
-
-/*
  * If you customize the STLport generated library names don't forget to give
  * the motif you used during configuration here if you still want the auto link
  * to work. (Do not remove double quotes in the macro value)
@@ -316,6 +305,16 @@
 #define _STLP_USE_BOOST_SUPPORT 1
 */
 
+
+/*
+ * The Windows CE C runtime library chooses to omit certain functions.  Replacements are
+ * provided for some of the more basic of these functions.  Defining this macro chooses
+ * to include these replacement CRT functions in the libraries.
+ */
+
+/*
+#define _STLP_USE_WINCE_CRT_FUNCTIONS 1
+ */
 
 /*==========================================================*/
 

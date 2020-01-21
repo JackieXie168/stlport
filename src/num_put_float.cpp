@@ -33,6 +33,9 @@
 #if defined (_STLP_UNIX)
 
 #  if defined (__sun)
+#    // Bug in Solaris 9 headers: FILE used in <floatingpoint.h>, but no
+#    // definition included.
+#    include <stdio.h>
 #    include <floatingpoint.h>
 #  endif
 
@@ -43,7 +46,7 @@
 #  endif
 
 #  if defined (__QNXNTO__) || ( defined(__GNUC__) && defined(__APPLE__) ) || defined(_STLP_USE_UCLIBC) /* 0.9.26 */ || \
-      defined(__FreeBSD__)
+      defined(__FreeBSD__) || defined(__ANDROID__)
 #    define USE_SPRINTF_INSTEAD
 #  endif
 
@@ -121,11 +124,12 @@ struct _Dig<0>
 // Tests for infinity and NaN differ on different OSs.  We encapsulate
 // these differences here.
 #if !defined (USE_SPRINTF_INSTEAD)
-#  if defined (__hpux)
+#  if defined (__hpux) && defined (__GNUC__) && defined(__ARMCC_VERSION)
 #    define _STLP_USE_SIGN_HELPER
 #  elif defined (__DJGPP) || (defined (_STLP_USE_GLIBC) && ! defined (__MSL__)) || \
       defined (__CYGWIN__) || \
-      defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
+      defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__) || \
+      defined (__HP_aCC)
 static inline bool _Stl_is_nan_or_inf(double x)
 #    if defined (isfinite)
 { return !isfinite(x); }
@@ -138,7 +142,7 @@ static inline bool _Stl_is_inf(double x)        { return isinf(x); }
 static inline bool _Stl_is_neg_inf(double x)    { return isinf(x) && x < 0; }
 #  elif (defined (__unix) || defined (__unix__)) && \
          !defined (__APPLE__) && !defined (__DJGPP) && !defined(__osf__) && \
-         !defined (_CRAY)
+    !defined (_CRAY) && !defined(__ARMCC_VERSION)
 static inline bool _Stl_is_nan_or_inf(double x) { return IsNANorINF(x); }
 static inline bool _Stl_is_inf(double x)        { return IsNANorINF(x) && IsINF(x); }
 static inline bool _Stl_is_neg_inf(double x)    { return (IsINF(x)) && (x < 0.0); }

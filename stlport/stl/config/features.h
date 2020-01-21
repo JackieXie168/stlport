@@ -158,11 +158,11 @@
 
 #if !defined (_STLP_BIG_ENDIAN) && !defined (_STLP_LITTLE_ENDIAN)
 #  if defined (_MIPSEB) || defined (__sparc) || defined (_AIX) || \
-      defined (__hpux) || defined (macintosh) || defined (_MAC)
+      defined (__hpux) || defined (macintosh) || defined (_MAC) 
 #    define _STLP_BIG_ENDIAN 1
 #  elif defined (__i386) || defined (_M_IX86) || defined (_M_ARM) || \
         defined (__amd64__) || defined (_M_AMD64) || defined (__x86_64__) || \
-        defined (__alpha__)
+        defined (__alpha__) || defined (__ARMCC_VERSION)
 #    define _STLP_LITTLE_ENDIAN 1
 #  elif defined (__ia64__)
     /* itanium allows both settings (for instance via gcc -mbig-endian) - hence a seperate check is required */
@@ -202,7 +202,7 @@
 #endif
 
 /* Operating system recognition (basic) */
-#if (defined(__unix) || defined(__linux__) || defined(__QNX__) || defined(_AIX)  || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__Lynx__) || defined(__hpux) || defined(__sgi)) && \
+#if (defined(__unix) || defined(__linux__) || defined(__QNX__) || defined(_AIX)  || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__Lynx__) || defined(__hpux) || defined(__sgi)) && !defined (__ARMCC_VERSION) && \
      !defined (_STLP_UNIX)
 #  define _STLP_UNIX 1
 #endif /* __unix */
@@ -382,7 +382,7 @@
 #endif
 
 /* this always mean the C library is in global namespace */
-#if defined (_STLP_HAS_NO_NEW_C_HEADERS) && !defined (_STLP_VENDOR_GLOBAL_CSTD)
+#if !defined (_STLP_USE_NEW_C_HEADERS) && !defined (_STLP_VENDOR_GLOBAL_CSTD)
 #  define _STLP_VENDOR_GLOBAL_CSTD 1
 #endif
 
@@ -1075,5 +1075,14 @@ void _STLP_DECLSPEC _STLP_CALL _STLP_CHECK_RUNTIME_COMPATIBILITY();
 #undef _STLP_NEED_TYPENAME
 #undef _STLP_NO_NEW_STYLE_CASTS
 #undef __AUTO_CONFIGURED
+
+
+/* This should always be at the end of features.h.  In order to avoid circular dependencies on
+    Windows CE with the CRT extensions, we delay including windows.h until here.
+ */
+#if defined(_STLP_WCE)
+#  include <stl/config/_wince_windows_suffix.h>
+#endif
+
 
 #endif /* _STLP_FEATURES_H */

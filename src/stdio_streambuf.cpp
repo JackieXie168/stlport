@@ -20,6 +20,7 @@
 #include "stdio_streambuf.h"
 
 #ifdef _STLP_UNIX
+#  include <stdio.h>
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
@@ -34,7 +35,7 @@ _STLP_MOVE_TO_PRIV_NAMESPACE
 
 #if defined (_STLP_USE_DEFAULT_FILE_OFFSET) || \
     (!defined(_LARGEFILE_SOURCE) && !defined(_LARGEFILE64_SOURCE))
-#  if !defined (_STLP_MSVC) || (_STLP_MSVC < 1400)
+#  if !defined (_STLP_MSVC) || (_STLP_MSVC < 1400) || defined(_STLP_WCE)
 #    define FSEEK fseek
 #  else
 #    define FSEEK _fseeki64
@@ -95,7 +96,7 @@ stdio_streambuf_base::seekoff(off_type off, ios_base::seekdir dir,
     FGETPOS(_M_file, &pos);
     // added 21 june 00 mdb,rjf,wjs: glibc 2.2 changed fpos_t to be a struct instead
     // of a primitive type
-#if (defined (__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 2))))
+#if (defined (__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 2)))) || defined (__ARMCC_VERSION)
     return pos_type((streamoff)pos.__pos);
 #elif defined (__ISCPP__) || defined (__MVS__) || defined (__OS400__)
     return pos_type(pos.__fpos_elem[ 0 ]);
@@ -134,6 +135,9 @@ stdio_streambuf_base::seekpos(pos_type pos, ios_base::openmode /* mode */) {
   FPOS_T p;
   p._pos = pos;
   memset( &(p._mbstate), 0, sizeof(p._mbstate) );
+#elif defined (__ARMCC_VERSION)
+  FPOS_T p;
+  p.__pos = pos;
 #else
   FPOS_T p(pos);
 #endif

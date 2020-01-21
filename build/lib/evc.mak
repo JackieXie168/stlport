@@ -10,7 +10,8 @@
 
 !if ("$(COMPILER_NAME)" != "evc3" && \
      "$(COMPILER_NAME)" != "evc4" && \
-     "$(COMPILER_NAME)" != "evc8")
+     "$(COMPILER_NAME)" != "evc8" && \
+     "$(COMPILER_NAME)" != "evc9")
 !error You picked the wrong makefile, please rerun configure script and follow the instructions.
 !endif
 
@@ -18,6 +19,13 @@ SRCROOT=..
 
 STLPORT_INCLUDE_DIR = ../../stlport
 !include Makefile.inc
+
+SRC_CPP = $(SRC_CPP) \
+            ../../src/wince_time.cpp \
+            ../../src/wince_env.cpp \
+            ../../src/wince_multibyte.cpp \
+            ../../src/wince_string.cpp \
+            ../../src/wince_file.cpp
 
 CROSS_COMPILING=1
 

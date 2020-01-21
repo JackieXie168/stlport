@@ -64,6 +64,8 @@ typedef _BSD_WINT_T_ wint_t;
 #  else
 #    if defined (_STLP_HAS_INCLUDE_NEXT)
 #      include_next <wchar.h>
+#    elif defined (_STLP_WCE_NET) && defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
+#      include <wchar.h>
 #    else
 #      include _STLP_NATIVE_C_HEADER(wchar.h)
 #    endif
@@ -183,7 +185,7 @@ using _STLP_VENDOR_CSTD::wint_t;
 
 using _STLP_VENDOR_CSTD::size_t;
 
-#    if !defined (_STLP_NO_NATIVE_MBSTATE_T) && !defined (_STLP_USE_OWN_MBSTATE_T)
+#    if !defined (_STLP_NO_NATIVE_MBSTATE_T) && !defined (_STLP_USE_OWN_MBSTATE_T) && !defined (__ARMCC_VERSION)
 using _STLP_VENDOR_MB_NAMESPACE::mbstate_t;
 
 #      if !defined (_STLP_NO_CSTD_FUNCTION_IMPORTS) && !defined(_STLP_WCHAR_BORLAND_EXCLUDE) && \
@@ -266,6 +268,8 @@ using _STLP_VENDOR_CSTD::wcstok;
 
 #      if !defined (_STLP_WCE_NET)
 using _STLP_VENDOR_CSTD::wcscoll;
+#	   endif
+#      if !defined (_STLP_WCE_NET) || defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
 using _STLP_VENDOR_CSTD::wcsxfrm;
 #      endif
 using _STLP_VENDOR_CSTD::wcscat;

@@ -1,3 +1,61 @@
+2010-03-05  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: support for Android NDK 1.5 r1 and 1.6 r1.
+
+2010-01-26  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: qNaN/sNaN dirty fix for long double.
+
+2009-08-27  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: improved support of Windows CE
+
+2009-07-03  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: visibility hidden not work
+	on Solaris; fixed.
+
+2009-06-25  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* build: fix build for ARM GNU/Linux cross;
+	verified with Sourcery G++ Lite 2009q1-176 for ARM GNU/Linux;
+	unit test build success, run not checked.
+
+2009-01-20  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* assert.h, errno.h: do #include <assert.h> only if
+	assert not defined, but don't print error in other case;
+	this allow bypass stlport's headers;
+
+	* cassert, cerrno: do #include <assert.h> insead of
+	#include_next <cassert>; this allow bypass problem with
+	#includ_next <assert.h> in gcc 4.3.x, that include
+	/usr/include/assert.h, not stlport/assert.h.
+
+	* Repository: this is ac324b3 commit from mainstream. 
+
+2009-01-09  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* configure: fix wrong parsing of values in environment
+	variables like CFLAGS, thanks Peter Pramberger;
+
+	* configure: if no arguments, check environment variables
+	for options, instead of setting defaults.
+
+2008-12-10  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* Repository: STLport release 5.2.1
+
+2008-12-03  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* build: HP-UX/ia64 with aC++ compiler; verified on HP-UX 11.23
+	and 11.31 with aC++ A.06.17; [4 of 436 tests, 4 ignored (2 explicit),
+	and 4 of 360 tests, 2 ignored]; submitted by Boris Gubenko.
+
+2008-11-27  Petr Ovtchenkov  <complement@users.sourceforge.net>
+
+	* build: EVC9 (Visual Studio 2008) by Johan Andersson.
+
 2008-11-19  Petr Ovtchenkov  <complement@users.sourceforge.net>
 
 	* Repository: STLport release 5.2.0

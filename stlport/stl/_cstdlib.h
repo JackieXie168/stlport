@@ -61,11 +61,13 @@ using _STLP_VENDOR_CSTD::size_t;
 #    ifndef _STLP_WCE
 // these functions just don't exist on Windows CE
 using _STLP_VENDOR_CSTD::abort;
+using _STLP_VENDOR_CSTD::system;
+using _STLP_VENDOR_CSTD::bsearch;
+#    endif
+#    if !defined(_STLP_WCE) || defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
 using _STLP_VENDOR_CSTD::getenv;
 using _STLP_VENDOR_CSTD::mblen;
 using _STLP_VENDOR_CSTD::mbtowc;
-using _STLP_VENDOR_CSTD::system;
-using _STLP_VENDOR_CSTD::bsearch;
 #    endif
 using _STLP_VENDOR_CSTD::atexit;
 using _STLP_VENDOR_CSTD::exit;
@@ -83,7 +85,7 @@ using _STLP_VENDOR_CSTD::strtoul;
 
 #    if !(defined (_STLP_NO_NATIVE_WIDE_STREAMS) || defined (_STLP_NO_NATIVE_MBSTATE_T))
 using _STLP_VENDOR_CSTD::wcstombs;
-#      ifndef _STLP_WCE
+#      if !defined(_STLP_WCE) || defined(_STLP_USE_WINCE_CRT_FUNCTIONS)
 using _STLP_VENDOR_CSTD::wctomb;
 #      endif
 #    endif
@@ -91,7 +93,7 @@ using _STLP_VENDOR_CSTD::qsort;
 using _STLP_VENDOR_CSTD::labs;
 using _STLP_VENDOR_CSTD::ldiv;
 #    if defined (_STLP_LONG_LONG) && !defined (_STLP_NO_VENDOR_STDLIB_L)
-#      if !defined(__sun)
+#      if !defined(__sun) && !defined(__arm__)
 using _STLP_VENDOR_CSTD::llabs;
 using _STLP_VENDOR_CSTD::lldiv_t;
 using _STLP_VENDOR_CSTD::lldiv;
@@ -126,13 +128,13 @@ inline _STLP_VENDOR_CSTD::div_t div(int __x, int __y) { return _STLP_VENDOR_CSTD
     (!defined (__HP_aCC) || (__HP_aCC < 30000))
 
 //MSVC starting with .Net 2003 already define all math functions in global namespace:
-#  if !defined (__WATCOMC__) && \
+#  if !defined (__WATCOMC__) && !defined (__ARMCC_VERSION) && \
      (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1310) || defined (UNDER_CE))
 inline long abs(long __x) { return _STLP_VENDOR_CSTD::labs(__x); }
 #  endif
 
 /** VC since version 8 has this, the platform SDK and CE SDKs hanging behind. */
-#  if !defined (__WATCOMC__) && \
+#  if !defined (__WATCOMC__)  && !defined (__ARMCC_VERSION) && \
      (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1400) || defined (_STLP_USING_PLATFORM_SDK_COMPILER) || defined (UNDER_CE))
 inline _STLP_VENDOR_CSTD::ldiv_t div(long __x, long __y) { return _STLP_VENDOR_CSTD::ldiv(__x, __y); }
 #  endif
@@ -147,14 +149,14 @@ inline _STLP_VENDOR_CSTD::ldiv_t div(long __x, long __y) { return _STLP_VENDOR_C
 
 #if defined (_STLP_LONG_LONG)
 #  if !defined (_STLP_NO_VENDOR_STDLIB_L)
-#    if !defined (__sun)
+#    if !defined (__sun) && !defined(__arm__)
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return _STLP_VENDOR_CSTD::llabs(__x); }
 inline lldiv_t div(_STLP_LONG_LONG __x, _STLP_LONG_LONG __y) { return _STLP_VENDOR_CSTD::lldiv(__x, __y); }
 #    else
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return ::llabs(__x); }
 inline lldiv_t div(_STLP_LONG_LONG __x, _STLP_LONG_LONG __y) { return ::lldiv(__x, __y); }
 #    endif
-#  else
+#  elif  !defined (__ARMCC_VERSION) && (!defined (_STLP_MSVC_LIB) || (_STLP_MSVC_LIB < 1600))
 inline _STLP_LONG_LONG  abs(_STLP_LONG_LONG __x) { return __x < 0 ? -__x : __x; }
 #  endif
 #endif
